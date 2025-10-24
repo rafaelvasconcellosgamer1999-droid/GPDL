@@ -2,51 +2,71 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use Notifiable, TwoFactorAuthenticatable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $table = 'usuarios';
+
+    const CREATED_AT = 'data_criacao';
+    const UPDATED_AT = null;
+
     protected $fillable = [
-        'name',
+        'nome',
         'email',
-        'password',
+        'usuarioRede',
+        'senha',
+        'cargo_id',
+        'setor_id',
+        'status',
+        'precisa_trocar_senha'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
+        'senha',
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'senha' => 'hashed',
+        'two_factor_confirmed_at' => 'datetime',
+        'status' => 'boolean',
+        'precisa_trocar_senha' => 'boolean',
+    ];
+
+    // IMPORTANTE: Laravel usa 'password', mas seu banco usa 'senha'
+    public function getAuthPassword()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
-        ];
+        return $this->senha;
+    }
+
+    // Accessor para o nome (Laravel espera 'name')
+    public function getNameAttribute()
+    {
+        return $this->nome;
+    }
+
+    // Relationships
+    public function cargo()
+    {
+        return $this->belongsTo(Cargo::class);
+    }
+
+    public function setor()
+    {
+        return $this->belongsTo(Setor::class);
+    }
+
+    // Scopes
+    public function scopeAtivos($query)
+    {
+        return $query->where('status', 1);
     }
 }
