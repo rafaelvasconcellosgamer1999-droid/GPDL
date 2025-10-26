@@ -5,7 +5,7 @@ import { Head, usePage, Link, router } from '@inertiajs/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, AlertTriangle } from 'lucide-react'
 
-type DashboardStats = { ativos: number; vencidos: number; finalizados7d: number }
+type DashboardStats = {ativos: number; pendentes: number; vencidos: number; finalizados7d: number; finalizadosMes: number; ativos_hoje: number; ativos_48h: number}
 type ProcessoResumo = { titulo: string; entidade?: string | null; responsavel?: string | null; vencimento?: string | null }
 type Capacidade = { sigla: string; nome: string; ativos: number; perc: number }
 
@@ -15,10 +15,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard() {
   const { auth } = usePage<SharedData>().props
-  const page = usePage().props as { stats?: DashboardStats; emAndamento?: ProcessoResumo[]; capacidade?: Capacidade[] }
-  const stats: DashboardStats = page.stats ?? { ativos: 0, vencidos: 0, finalizados7d: 0 }
+  const page = usePage().props as {
+    stats?: DashboardStats
+    emAndamento?: ProcessoResumo[]
+    capacidade?: Capacidade[]
+    capView?: 'ativos' | 'pendentes' | 'vencidos' | 'encerrados' | 'ativos_hoje' | 'ativos_48h'
+  }
+
+  const stats: DashboardStats = page.stats ?? { ativos: 0, vencidos: 0, finalizados7d: 0, pendentes: 0, ativos_hoje: 0, ativos_48h: 0, finalizadosMes: 0}
   const emAndamento: ProcessoResumo[] = page.emAndamento ?? []
   const capacidade: Capacidade[] = page.capacidade ?? []
+  const capView = page.capView ?? 'ativos'
+
+  const firstName = auth?.user?.name ? String(auth.user.name).split(' ')[0] : ''
 
   return (
     <GPDLLayout breadcrumbs={breadcrumbs}>
@@ -29,10 +38,10 @@ export default function Dashboard() {
         <div className="flex items-start justify-between gap-6">
           <div className="flex-1">
             <div className="gpdl-chip mb-4">
-              <span>PAINEL GERAL DO SQUAD</span>
+              <span>PAINEL GERAL</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight">
-              {`Bem-vindo${auth?.user?.name ? `, ${auth.user.name.split(' ')[0]}!` : '!'}`}
+              {`Bem-vindo${firstName ? `, ${firstName}!` : '!'}`}
             </h1>
             <p className="text-white/85 mt-2 text-sm md:text-base">
               Você tem {stats.ativos} processos ativos e 0 com risco elevado. Priorize os itens que vencem hoje.
@@ -54,8 +63,10 @@ export default function Dashboard() {
                 }}
               >
                 <div className="text-xs text-[var(--text-muted)] mb-2">Processos finalizados no mês</div>
-                <div className="text-3xl font-semibold text-white">0</div>
-                <div className="mt-1 text-xs text-white/80">▲ +{stats.finalizados7d} nos últimos 7 dias</div>
+                <div className="text-3xl font-semibold text-white">{stats.finalizadosMes}</div>
+<div className="mt-1 text-xs text-white/80">
+  +{stats.finalizados7d} nos últimos 7 dias
+</div>
                 <div className="mt-2 text-xs">
                   <Link className="gpdl-link" href="/relatorios" onClick={(e) => e.stopPropagation()}>
                     Ver relatório
@@ -63,8 +74,12 @@ export default function Dashboard() {
                 </div>
               </div>
               <Link href="/processos?view=pendentes" className="gpdl-review-callout">
-                <div className="text-sm font-medium">18 processos aguardam sua revisão.</div>
-                <span className="text-[0.72rem] font-semibold">ABRIR FILA →</span>
+                <div className="text-sm font-medium">
+  {stats.pendentes > 0
+    ? `${stats.pendentes} processo${stats.pendentes !== 1 ? 's' : ''} aguardam sua revisão.`
+    : 'Nenhum processo pendente no momento.'}
+</div>
+                <span className="text-[0.72rem] font-semibold">ABRIR FILA</span>
               </Link>
             </div>
           </div>
@@ -80,7 +95,9 @@ export default function Dashboard() {
             <LineChart className="metric-icon text-[var(--brand-600)] h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <p className="metric-trend">Hoje: 0 • 48h: 0</p>
+            <p className="metric-trend">
+  Hoje: {stats.ativos_hoje ?? 0} | 48h: {stats.ativos_48h ?? 0}
+</p>
             <div className="mt-2">
               <span className="metric-link blue"><LineChart className="h-4 w-4" /> Ver lista</span>
             </div>
@@ -95,9 +112,11 @@ export default function Dashboard() {
             <AlertTriangle className="metric-icon text-[var(--danger-500)] h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <p className="metric-trend">Monitore itens críticos</p>
+<div className="mt-2">
+  <span className="metric-link red"><AlertTriangle className="h-4 w-4" /> Monitorar itens críticos</span>
+</div>
           </CardContent>
-          <Link href="/processos?view=pendentes" aria-label="Ver processos vencidos" className="absolute inset-0" />
+          <Link href="/processos?view=vencidos" aria-label="Ver processos vencidos" className="absolute inset-0" />
         </Card>
       </div>
 
@@ -142,7 +161,23 @@ export default function Dashboard() {
               <CardTitle>Capacidade do time</CardTitle>
               <CardDescription>Acompanhe a distribuição das demandas por pessoa.</CardDescription>
             </div>
-            <a className="gpdl-chip text-white/90" href="#">Filtros</a>
+            <div>
+              <label className="sr-only">Situação</label>
+              <select
+                value={capView}
+                onChange={(e) => {
+                  const v = e.target.value
+                  const base = typeof window !== 'undefined' ? window.location.pathname : '/dashboard'
+                  router.get(`${base}?cap_view=${encodeURIComponent(v)}`, {}, { preserveState: true, preserveScroll: true, replace: true })
+                }}
+                className="gpdl-input-contrast px-3 py-1 text-xs rounded-lg"
+              >
+                <option value="ativos">Ativos</option>
+                <option value="pendentes">Pendentes</option>
+                <option value="vencidos">Vencidos</option>
+                <option value="encerrados">Finalizados</option>
+              </select>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {capacidade.length === 0 && (
@@ -173,4 +208,6 @@ export default function Dashboard() {
     </GPDLLayout>
   )
 }
+
+
 

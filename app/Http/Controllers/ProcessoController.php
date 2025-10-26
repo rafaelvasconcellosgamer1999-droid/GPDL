@@ -61,7 +61,8 @@ class ProcessoController extends Controller
                 $select[] = 'processos.'.$c;
             }
             if ($hasDataLimite) {
-                $select[] = DB::raw("CASE WHEN processos.data_limite IS NULL THEN NULL ELSE CONCAT(processos.data_limite, 'T00:00:00') END as data_limite");
+                // Envia em ISO amigável preservando hora:minuto quando existir
+                $select[] = DB::raw("CASE WHEN processos.data_limite IS NULL THEN NULL ELSE REPLACE(processos.data_limite, ' ', 'T') END as data_limite");
             }
             if ($hasDataCiencia) {
                 $select[] = DB::raw("CASE WHEN processos.data_ciencia IS NULL THEN NULL ELSE REPLACE(processos.data_ciencia, ' ', 'T') END as data_ciencia");
@@ -85,19 +86,19 @@ class ProcessoController extends Controller
                 case 'ativos':
                     $q->whereNot(function ($q2) use ($finishedFlag) { $finishedFlag($q2); });
                     if (Schema::hasColumn('processos', 'data_limite')) {
-                        $today = now()->toDateString();
-                        // Ativo: prazo de manifestação futuro (estritamente maior que hoje)
+                        $now = now();
+                        // Ativo: prazo de manifestação futuro (estritamente maior que agora)
                         $q->whereNotNull('processos.data_limite')
-                          ->where('processos.data_limite', '>', $today);
+                          ->where('processos.data_limite', '>', $now);
                     }
                     break;
                 case 'vencidos':
                     $q->whereNot(function ($q2) use ($finishedFlag) { $finishedFlag($q2); });
                     if (Schema::hasColumn('processos', 'data_limite')) {
-                        $today = now()->toDateString();
-                        // Vencidos: prazo de manifestação até hoje (<= hoje)
+                        $now = now();
+                        // Vencidos: prazo de manifestação até agora (<= agora)
                         $q->whereNotNull('processos.data_limite')
-                          ->where('processos.data_limite', '<=', $today);
+                          ->where('processos.data_limite', '<=', $now);
                         // Tentativa de fallback por status, se existir convenção
                     }
                     break;
@@ -150,17 +151,27 @@ class ProcessoController extends Controller
             'responsavel_id' => ['required', 'integer', 'exists:usuarios,id'],
             'assunto' => ['nullable', 'string', 'max:180'],
             'texto' => ['required', 'string'],
+
+            'modelo' => ['nullable', 'string', 'in:pje'],
         ]);
 
         $usuario = Auth::user();
-        $setorId = optional($usuario)->setor_id;
+        // setor_id deve seguir o setor do procurador responsável escolhido no formulário
+        $responsavel = \App\Models\User::find($data['responsavel_id']);
+        $setorId = optional($responsavel)->setor_id;
 
         $blocos = $this->separarBlocos($data['texto']);
 
         $inseridos = 0;
         DB::transaction(function () use ($blocos, $data, $usuario, $setorId, &$inseridos) {
             foreach ($blocos as $bloco) {
-                $parsed = $this->parsePublicacaoLote($bloco);
+                $modeloSel = strtolower($data['modelo'] ?? 'pje');
+                switch ($modeloSel) {
+                    case 'pje':
+                    default:
+                        $parsed = $this->parsePublicacaoLote($bloco);
+                        break;
+                }
 
                 // Se o parser extraiu um data_limite igual à data_ciencia, trata como sem prazo de manifestação
                 if (!empty($parsed['limite']) && !empty($parsed['ciencia'])) {
@@ -396,4 +407,9 @@ class ProcessoController extends Controller
         return $out;
     }
 }
+
+
+
+
+
 

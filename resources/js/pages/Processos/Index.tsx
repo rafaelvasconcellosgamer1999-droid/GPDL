@@ -1,7 +1,7 @@
-﻿import GPDLLayout from '@/layouts/gpdl-layout'
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react'
+import GPDLLayout from '@/layouts/gpdl-layout'
+import { Head, router, useForm, usePage } from '@inertiajs/react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { Layers, User as UserIcon, Zap, X, Plus, Eraser } from 'lucide-react'
 import InputError from '@/components/input-error'
 
@@ -21,6 +21,37 @@ interface Paginator<T> {
   prev_page_url?: string | null
 }
 
+// Tipagem das linhas de processo usadas na tabela
+interface ProcessoRow {
+  id: number
+  orgao?: string | null
+  acao?: string | null
+  numero?: string | null
+  assunto?: string | null
+  vara_juizo?: string | null
+  partes_envolvidas?: string | null
+  data_limite?: string | null
+  data_ciencia?: string | null
+  ultimo_mov_texto?: string | null
+  responsavel_nome?: string | null
+}
+
+// Filtros do topo das listas
+interface FiltersForm {
+  responsavel_id: string
+  order: string
+  per_page: string
+  view: View
+}
+
+// Formulário de cadastro em lote
+interface LoteForm {
+  modelo: 'pje'
+  responsavel_id: string
+  assunto: string
+  texto: string
+}
+
 export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { procuradores?: Procurador[] }) {
   const search = typeof window !== 'undefined' ? window.location.search : ''
   const currentView: View = useMemo(() => {
@@ -29,22 +60,40 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
     return (views as readonly string[]).includes(v) ? (v as View) : 'ativos'
   }, [search])
 
-  const page: any = usePage()
-  const processos: Paginator<any> | undefined = page?.props?.processos
+  const page = usePage<{ processos?: Paginator<ProcessoRow>; flash?: { success?: string; error?: string }; filters?: FiltersForm }>()
+  const processos: Paginator<ProcessoRow> | undefined = page?.props?.processos
   const flashSuccess: string | undefined = page?.props?.flash?.success
   const flashError: string | undefined = page?.props?.flash?.error
-  const filters = page?.props?.filters || {}
+  const filters: FiltersForm = (page?.props?.filters || { responsavel_id: '', order: 'prazo_asc', per_page: '10' }) as FiltersForm
+  const [flashSuccessLocal, setFlashSuccessLocal] = useState<string>('')
+  const [flashErrorLocal, setFlashErrorLocal] = useState<string>('')
 
-  const { data: f, setData: setF } = useForm({
+  useEffect(() => { if (!flashSuccess) return; const sync = setTimeout(() => setFlashSuccessLocal(flashSuccess), 0); const id = setTimeout(() => setFlashSuccessLocal(''), 5000); return () => { clearTimeout(sync); clearTimeout(id) } }, [flashSuccess])
+
+  useEffect(() => { if (!flashError) return; const sync = setTimeout(() => setFlashErrorLocal(flashError), 0); const id = setTimeout(() => setFlashErrorLocal(''), 6000); return () => { clearTimeout(sync); clearTimeout(id) } }, [flashError])
+  // Auto-refresh for deadline lists to keep status updated
+  useEffect(() => {
+    if (!(['ativos','vencidos'].includes(currentView))) return
+    const id = setInterval(() => {
+      if (typeof window !== 'undefined') {
+        router.get(window.location.pathname + window.location.search, {}, { preserveState: true, preserveScroll: true, replace: true })
+      }
+    }, 15000)
+    return () => clearInterval(id)
+  }, [currentView])
+
+  const { data: f, setData: setF } = useForm<FiltersForm>({
     responsavel_id: String(filters.responsavel_id || ''),
     order: String(filters.order || 'prazo_asc'),
     per_page: String(filters.per_page || '10'),
+    view: (filters.view as View) || currentView,
   })
 
   // Cadastro em lote
   const loteRef = useRef<HTMLDivElement | null>(null)
   const [showLote, setShowLote] = useState(true)
-  const { data: lf, setData: setLf, post, processing, errors, reset } = useForm({
+  const { data: lf, setData: setLf, post, processing, errors, reset } = useForm<LoteForm>({
+    modelo: 'pje',
     responsavel_id: '',
     assunto: '',
     texto: '',
@@ -75,7 +124,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
   }
 
   function applyFilters() {
-    const q = new URLSearchParams({ view: currentView })
+    const q = new URLSearchParams({ view: String(f.view || currentView) })
     if (f.responsavel_id) q.set('responsavel_id', f.responsavel_id)
     if (f.order) q.set('order', f.order)
     if (f.per_page) q.set('per_page', f.per_page)
@@ -85,7 +134,8 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
     setF('responsavel_id', '')
     setF('order', 'prazo_asc')
     setF('per_page', '10')
-    router.get(`/processos?view=${currentView}`, {}, { preserveState: true, preserveScroll: true })
+    setF('view', 'ativos' as View)
+    router.get(`/processos?view=ativos`, {}, { preserveState: true, preserveScroll: true })
   }
 
   return (
@@ -97,20 +147,21 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
           <h1 className="text-2xl font-bold text-[var(--text-strong)]">Processos</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">Central de cadastros e acompanhamento</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/processos?view=cadastro" className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)]">Novo Processo</Link>
-        </div>
       </div>
 
-      {(flashSuccess || localSuccess) && (
-        <Alert className="mt-3 border border-[var(--gpdl-border)]">
-          <AlertDescription>{localSuccess || flashSuccess}</AlertDescription>
+
+
+
+      {(flashSuccessLocal || localSuccess) && (
+        <Alert variant="success" className="mt-3 relative">
+          <AlertDescription>{localSuccess || flashSuccessLocal}</AlertDescription>
+          <button type="button" onClick={() => { setLocalSuccess(''); setFlashSuccessLocal('') }} className="absolute right-2 top-2 opacity-70 hover:opacity-100"><X className="w-4 h-4" /></button>
         </Alert>
       )}
       {/* Navegacao removida: comandos via sidebar */}
-      {(flashError || localError) && (
-        <Alert className="mt-3 border border-[var(--danger-500)]/40">
-          <AlertDescription>{localError || flashError}</AlertDescription>
+      {(flashErrorLocal || localError) && (
+        <Alert variant="destructive" className="mt-3 relative">
+          <AlertDescription>{localError || flashErrorLocal}</AlertDescription>
         </Alert>
       )}
 
@@ -122,7 +173,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--text-strong)]">Central de cadastros</h2>
-                <p className="text-sm text-[var(--text-muted)]">Escolha o formato de cadastro ideal. A opcao??o em lotes aceita diversas linhas de processos e aplica as mesmas regras de distribui????o.</p>
+                <p className="text-sm text-[var(--text-muted)]">Escolha o formato de cadastro ideal. A opção em lotes aceita diversas linhas de processos e aplica as mesmas regras de distribuição.</p>
               </div>
               <span className="text-xs px-3 py-1 rounded-full bg-[var(--surface-muted)] text-[var(--text-muted)] border border-[var(--gpdl-border)]">Guia rapido</span>
             </div>
@@ -135,7 +186,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
                   </div>
                   <div className="flex-1">
                     <div className="text-[var(--text-strong)] font-medium">Cadastro individual</div>
-                    <p className="text-sm text-[var(--text-muted)] mt-1">Inclua um processo por vez, validando os detalhes com aten????o.</p>
+                    <p className="text-sm text-[var(--text-muted)] mt-1">Inclua um processo por vez, validando os detalhes com atenção.</p>
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--surface-muted)]">Em breve</span>
                 </div>
@@ -148,7 +199,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
                   </div>
                   <div className="flex-1">
                     <div className="text-[var(--text-strong)] font-medium">Cadastro em lote</div>
-                    <p className="text-sm text-[var(--text-muted)] mt-1">Importe varios processos de uma unica vez copiando o conteudo da publicacao.</p>
+                    <p className="text-sm text-[var(--text-muted)] mt-1">Importe varios processos de uma unica vez copiando o conteudo da publicação.</p>
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--surface-muted)] flex items-center gap-1"><Zap className="w-3 h-3" /> Produtividade</span>
                 </div>
@@ -160,7 +211,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-[var(--text-strong)]">Importar processos em lotes</h3>
-                    <p className="text-xs text-[var(--text-muted)]">Defina o responsavel e cole o conteudo integral da publicacao.</p>
+                    <p className="text-xs text-[var(--text-muted)]">Defina o responsavel e cole o conteudo integral da publicação.</p>
                   </div>
                   <button type="button" onClick={() => setShowLote(false)} className="text-xs px-3 py-1 rounded-full bg-[var(--surface-muted)] border border-[var(--gpdl-border)] hover:border-[var(--brand-600)]/40 flex items-center gap-1"><X className="w-3 h-3" /> Fechar painel</button>
                 </div>
@@ -174,28 +225,35 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
                   }}
                   className="space-y-4"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Respons??vel</label>
+                      <label className="block text-sm font-medium mb-2">Responsável</label>
                       <select name="responsavel_id" value={lf.responsavel_id} onChange={(e) => setLf('responsavel_id', e.target.value)} className="gpdl-input-contrast px-3 py-2">
                         <option value="">Selecione um procurador</option>
                         {procuradores.map((p) => (
                           <option key={p.id} value={p.id}>{p.nome}</option>
                         ))}
                       </select>
-                      <InputError className="mt-1" message={(errors as any)?.responsavel_id} />
+                      <InputError className="mt-1" message={errors.responsavel_id} />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Assunto (opcional)</label>
-                      <input name="assunto" value={lf.assunto} onChange={(e) => setLf('assunto', e.target.value)} className="gpdl-input-contrast px-3 py-2" placeholder="Se preencher, substitui o assunto extra??do do texto para todo o lote" />
-                      <InputError className="mt-1" message={(errors as any)?.assunto} />
+                      <input name="assunto" value={lf.assunto} onChange={(e) => setLf('assunto', e.target.value)} className="gpdl-input-contrast px-3 py-2" placeholder="Se preencher, substitui o assunto extraído do texto para todo o lote" />
+                      <InputError className="mt-1" message={errors.assunto} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Modelo</label>
+                      <select name="modelo" value={lf.modelo} onChange={(e) => setLf('modelo', e.target.value)} className="gpdl-input-contrast px-3 py-2">
+                        <option value="pje">PJE</option>
+                      </select>
+                      <InputError className="mt-1" message={errors.modelo} />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">Cole o texto completo do processo</label>
                     <textarea name="texto" rows={12} value={lf.texto} onChange={(e) => setLf('texto', e.target.value)} className="gpdl-input-contrast px-3 py-2" placeholder="Separe processos por uma linha em branco"></textarea>
-                    <InputError className="mt-1" message={(errors as any)?.texto} />
+                    <InputError className="mt-1" message={errors.texto} />
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -255,7 +313,36 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
   )
 }
 
-function TableList({ itens, empty, showActions = false, onFinalize, finalizingId }: { itens: any[]; empty: string; showActions?: boolean; onFinalize?: (id:number)=>void; finalizingId?: number | null }) {
+function TableList({ itens, empty, showActions = false, onFinalize, finalizingId }: { itens: ProcessoRow[]; empty: string; showActions?: boolean; onFinalize?: (id:number)=>void; finalizingId?: number | null }) {
+  const [nowTick, setNowTick] = useState<number>(() => Date.now())
+  useEffect(() => { const id = setInterval(() => setNowTick(Date.now()), 1000); return () => clearInterval(id) }, [])
+
+  function Countdown({ value }: { value?: string | null }) {
+    const [now, setNow] = useState<number>(() => Date.now())
+    useEffect(() => {
+      const id = setInterval(() => setNow(Date.now()), 1000)
+      return () => clearInterval(id)
+    }, [])
+    if (!value) return <span>-</span>
+    const str = String(value).replace(' ', 'T')
+    const target = new Date(str)
+    if (isNaN(target.getTime())) return <span>{String(value)}</span>
+    const diff = target.getTime() - now
+    const past = diff < 0
+    const abs = Math.abs(diff)
+    const totalSeconds = Math.floor(abs / 1000)
+    const days = Math.floor(totalSeconds / 86400)
+    const hours = Math.floor((totalSeconds % 86400) / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+    const hh = String(hours).padStart(2, '0')
+    const mm = String(minutes).padStart(2, '0')
+    const ss = String(seconds).padStart(2, '0')
+    const text = days > 0 ? `${days}d ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`
+    const cls = past ? 'deadline-tag deadline-danger' : (abs <= 86400000 ? 'deadline-tag deadline-warn' : 'deadline-tag deadline-ok')
+    return <span className={cls}>{past ? 'Vencido h� ' : 'Em '}{text}</span>
+  }
+
   function formatBrDate(value?: string | null) {
     if (!value) return '-'
     const m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T].*)?$/.exec(String(value))
@@ -301,7 +388,7 @@ function TableList({ itens, empty, showActions = false, onFinalize, finalizingId
               <td className="px-4 py-2 text-sm">{p.assunto ?? '-'}</td>
               <td className="px-4 py-2 text-sm">{p.vara_juizo ?? '-'}</td>
               <td className="px-4 py-2 text-sm">{p.partes_envolvidas ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">{formatBrDate(p.data_limite)}</td>
+              <td className="px-4 py-2 text-sm">{(()=>{ const isFinalizadosView = (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "encerrados"); if(isFinalizadosView){ return <span className="deadline-tag deadline-ok">Finalizado</span>; } if(!p.data_limite){ return <span className="deadline-tag deadline-warn">Pendente</span>; } const str = String(p.data_limite).replace(" ", "T"); const target = new Date(str); if(!isNaN(target.getTime()) && target.getTime() < nowTick){ return <span className="deadline-tag deadline-danger">Prazo vencido</span>; } return <Countdown value={p.data_limite} />; })()}</td>
               <td className="px-4 py-2 text-sm">{formatBrDate(p.data_ciencia)}</td>
               <td className="px-4 py-2 text-sm">{p.ultimo_mov_texto ?? '-'}</td>
               <td className="px-4 py-2 text-sm">{p.responsavel_nome ?? '-'}</td>
@@ -349,10 +436,26 @@ function TablePlaceholder() {
   )
 }
 
-function Toolbar({ filtros, setF, onApply, onClear, procuradores }: any) {
+function Toolbar({ filtros, setF, onApply, onClear, procuradores }: { filtros: FiltersForm; setF: (k: keyof FiltersForm, v: string) => void; onApply: () => void; onClear: () => void; procuradores: Procurador[] }) {
   return (
     <div className="mb-4">
       <div className="flex flex-wrap items-end gap-3 p-3 border border-[var(--gpdl-border)] rounded-lg bg-[var(--surface-elevate)]">
+        <div className="min-w-[180px]">
+          <label className="block text-xs text-[var(--text-muted)] mb-1">Situação</label>
+          <select
+            value={filtros.view}
+            onChange={(e) => {
+              setF('view', e.target.value as View)
+              setTimeout(() => onApply && onApply(), 0)
+            }}
+            className="gpdl-input-contrast px-3 py-2"
+          >
+            <option value="ativos">Ativos</option>
+            <option value="pendentes">Pendentes</option>
+            <option value="vencidos">Vencidos</option>
+            <option value="encerrados">Finalizados</option>
+          </select>
+        </div>
         <div className="min-w-[220px]">
           <label className="block text-xs text-[var(--text-muted)] mb-1">Responsavel</label>
           <select
@@ -364,7 +467,7 @@ function Toolbar({ filtros, setF, onApply, onClear, procuradores }: any) {
             className="gpdl-input-contrast px-3 py-2"
           >
             <option value="">Todos</option>
-            {procuradores.map((p: any) => (
+            {procuradores.map((p: Procurador) => (
               <option key={p.id} value={p.id}>{p.nome}</option>
             ))}
           </select>
@@ -389,7 +492,7 @@ function Toolbar({ filtros, setF, onApply, onClear, procuradores }: any) {
   )
 }
 
-function Pager({ meta }: { meta?: Paginator<any> }) {
+function Pager({ meta }: { meta?: Paginator<ProcessoRow> }) {
   if (!meta) return null
   const showing = meta.to && meta.from ? meta.to - meta.from + 1 : meta.data.length
   return (
@@ -403,4 +506,19 @@ function Pager({ meta }: { meta?: Paginator<any> }) {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

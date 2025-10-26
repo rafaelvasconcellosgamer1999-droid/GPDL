@@ -16,7 +16,10 @@ export default function GpdlLayout({ children, breadcrumbs = [] }: PropsWithChil
             <GpdlSidebar />
 
             {/* Conteúdo principal */}
-            <AppContent variant="sidebar" className="overflow-x-hidden bg-[var(--surface-main)] gpdl-background">
+            <AppContent
+  variant="sidebar"
+  className="overflow-x-hidden bg-[var(--surface-main)] gpdl-background gpdl-main-content"
+>
                 {/* Header com breadcrumbs */}
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
 

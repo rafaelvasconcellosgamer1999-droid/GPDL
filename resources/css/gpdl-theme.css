@@ -1,11 +1,11 @@
-﻿/* =======================================================
-   ðŸŽ¨ GPDL - DESIGN SYSTEM MIGRADO
-   Sistema de cores e variÃ¡veis do projeto original
+/* =======================================================
+   🎨 GPDL - DESIGN SYSTEM MIGRADO
+   Sistema de cores e variáveis do projeto original
    ======================================================= */
 
 @layer theme {
   :root {
-    /* ===== SUPERFÃCIES ===== */
+    /* ===== SUPERFÍCIES ===== */
     --surface-main: #f8fafc;
     --surface-muted: #f1f5f9;
     --surface-card: #ffffff;
@@ -131,7 +131,7 @@
 }
 
 /* =======================================================
-   ðŸŽ­ ELEMENTOS DECORATIVOS
+   🎭 ELEMENTOS DECORATIVOS
    ======================================================= */
 
 @layer components {
@@ -189,7 +189,7 @@
     transform: translateX(0);
   }
 
-  /* Painel de vidro do formulário (direita no login) */
+  /* Painel de vidro do formul�rio (direita no login) */
   .panel-glass {
     background-color: rgba(0, 0, 0, 0.30); /* bg-black/30 */
     backdrop-filter: blur(16px); /* backdrop-blur-lg */
@@ -219,11 +219,11 @@
     pointer-events: none;
   }
 
-  /* Botão com gradiente brand */
+  /* Bot�o com gradiente brand */
   .btn-gradient {
     @apply bg-gradient-to-r from-[var(--brand-700)] to-[var(--brand-600)] text-white hover:from-[var(--brand-600)] hover:to-[var(--brand-500)] shadow-lg;
   }
-  /* Cards elevados padrão GPDL */
+  /* Cards elevados padr�o GPDL */
   .gpdl-card {
     @apply rounded-2xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)];
   }
@@ -276,12 +276,12 @@
     box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
   }
 
-  /* Placeholder de área vazia (tracejada) */
+  /* Placeholder de �rea vazia (tracejada) */
   .gpdl-empty {
     @apply border-2 border-dashed border-[var(--gpdl-border)] rounded-2xl p-10 text-center text-[var(--text-muted)];
   }
 
-  /* Fundo dinÃ¢mico com gradientes */
+  /* Fundo dinâmico com gradientes */
   .gpdl-background::before,
   .gpdl-background::after {
     @apply content-[''] fixed inset-0 pointer-events-none;
@@ -368,7 +368,7 @@
     @apply scale-x-100;
   }
 
-  /* Ãcones de atalho */
+  /* Ícones de atalho */
   .shortcut-icon {
     @apply w-11 h-11 rounded-[14px] 
            inline-flex items-center justify-center 
@@ -391,7 +391,7 @@
     @apply bg-gradient-to-br from-purple-500 to-purple-400;
   }
 
-  /* Ãcones de estatÃ­sticas */
+  /* Ícones de estatísticas */
   .stat-icon {
     @apply w-[46px] h-[46px] rounded-[14px]
            flex items-center justify-center
@@ -424,7 +424,7 @@
            w-0.5 bg-slate-400/25;
   }
 
-  /* MÃ©tricas */
+  /* Métricas */
   .metric-label {
     @apply text-sm text-[var(--text-muted)];
   }
@@ -471,12 +471,12 @@
   .gpdl-input-icy::placeholder { color: var(--text-muted); }
   .gpdl-input-icy:focus { outline: none; box-shadow: 0 0 0 2px var(--brand-600); border-color: transparent; }
 
-  /* Campos com contraste para painéis escuros */
+  /* Campos com contraste para pain�is escuros */
   .gpdl-input-contrast { width:100%; border-radius:0.75rem; border:1px solid var(--gpdl-border); background-color: var(--field-bg); color: var(--text-strong); transition: box-shadow .15s ease, border-color .15s ease, background-color .15s ease; }
   .gpdl-input-contrast::placeholder { color: var(--text-muted); }
   .gpdl-input-contrast:focus { outline: none; box-shadow: 0 0 0 2px var(--brand-600); border-color: transparent; }
 
-  /* Melhor legibilidade do menu de opções do <select> em temas escuros/claro */
+  /* Melhor legibilidade do menu de op��es do <select> em temas escuros/claro */
   .gpdl-input-contrast option, .gpdl-input-contrast optgroup {
     color: var(--text-strong);
     background-color: var(--surface-card);
@@ -525,7 +525,7 @@
   .metric-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 600; }
   .metric-link.blue { color: var(--brand-600); }
   .metric-link.red { color: var(--danger-500); }
-  /* Callout amarelo com brilho (fila de revisão) */
+  /* Callout amarelo com brilho (fila de revis�o) */
   .gpdl-review-callout {
     display: block;
     border-radius: 16px;
@@ -572,6 +572,13 @@
     padding-right: 2.5rem; /* pr-10 */
   }
   .gpdl-pill-group {background: linear-gradient(180deg, rgba(9,26,56,0.75), rgba(7,22,48,0.9)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(2,6,23,0.35);} 
-  /* ativo é realçado pelo thumb; não aplicar background aqui */
+  /* ativo � real�ado pelo thumb; n�o aplicar background aqui */
   .gpdl-pill.is-active { background: transparent; }
+  /* Deadline badges (countdown) */
+  .deadline-tag { display:inline-flex; align-items:center; white-space:nowrap; padding: 2px 10px; border-radius: 9999px; font-size: 12px; line-height: 1; border: 1px solid var(--gpdl-border); }
+  .deadline-ok { color: var(--accent-success); background-color: var(--accent-success-soft); border-color: var(--accent-success-border); }
+  .deadline-warn { color: var(--accent-warning); background-color: var(--accent-warning-soft); border-color: var(--accent-warning-border); }
+  .deadline-danger { color: var(--accent-danger); background-color: var(--accent-danger-soft); border-color: var(--accent-danger-border); }
 }
+
+

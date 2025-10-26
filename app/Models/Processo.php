@@ -33,7 +33,7 @@ class Processo extends Model
         'data_entrada' => 'datetime',
         'data_ciencia' => 'datetime',
         'ultimo_mov_data' => 'datetime',
-        'data_limite' => 'date',
+        'data_limite' => 'datetime',
         'data_finalizacao' => 'datetime',
     ];
 
