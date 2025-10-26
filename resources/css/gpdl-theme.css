@@ -1,0 +1,577 @@
+﻿/* =======================================================
+   ðŸŽ¨ GPDL - DESIGN SYSTEM MIGRADO
+   Sistema de cores e variÃ¡veis do projeto original
+   ======================================================= */
+
+@layer theme {
+  :root {
+    /* ===== SUPERFÃCIES ===== */
+    --surface-main: #f8fafc;
+    --surface-muted: #f1f5f9;
+    --surface-card: #ffffff;
+    --surface-task: #f8fafc;
+    --surface-switcher: #e2e8f099;
+    --deadline-back-warning: #fef3c7cc;
+    --deadline-back-critical: #fee2e2cc;
+
+    /* ===== GRADIENTES ===== */
+    --radcomplet: radial-gradient(
+      circle at top,
+      var(--surface-card) 0%,
+      var(--radial-gradient) 100%
+    );
+    --radial-gradient: #dbeafe;
+
+    /* ===== SIDEBAR ===== */
+    --gpdl-sidebar: #1345b1;
+
+    /* ===== TEXTOS ===== */
+    --text-strong: #0f172a;
+    --text-muted: #64748b;
+
+    /* ===== BRAND COLORS ===== */
+    --brand-950: #050b1e;
+    --brand-900: #0f172a;
+    --brand-800: #1e293b;
+    --brand-700: #2563eb;
+    --brand-600: #3b82f6;
+    --brand-500: #60a5fa;
+
+    /* ===== STATUS COLORS ===== */
+    --success-500: #22c55e;
+    --warning-500: #f59e0b;
+    --danger-500: #ef4444;
+
+    /* ===== ACCENT COLORS ===== */
+    --accent-info: var(--brand-700);
+    --accent-info-soft: rgba(37, 99, 235, 0.12);
+    --accent-info-border: rgba(37, 99, 235, 0.30);
+
+    --accent-warning: var(--warning-500);
+    --accent-warning-soft: rgba(245, 158, 11, 0.14);
+    --accent-warning-border: rgba(245, 158, 11, 0.28);
+
+    --accent-danger: var(--danger-500);
+    --accent-danger-soft: rgba(239, 68, 68, 0.14);
+    --accent-danger-border: rgba(239, 68, 68, 0.28);
+
+    --accent-success: var(--success-500);
+    --accent-success-soft: rgba(34, 197, 94, 0.14);
+    --accent-success-border: rgba(34, 197, 94, 0.28);
+
+    /* ===== BORDAS E SOMBRAS ===== */
+    --gpdl-border: rgba(148, 163, 184, 0.3);
+    --shadow-card: 0 18px 45px rgba(8, 18, 43, 0.32);
+    --empty-admin: 1px dashed rgba(15, 23, 42, 0.18);
+    --header-admin: 1px solid rgba(15, 23, 42, 0.08);
+    --shadow-box: rgba(0, 0, 0, 0.05);
+
+    /* Campos (contraste visual) */
+    --field-bg: rgba(2, 6, 23, 0.04);
+  }
+
+  /* ===== DARK MODE ===== */
+  .dark {
+    --surface-main: #0f172a;
+    --surface-muted: #1e293b;
+    --surface-card: #1e293b;
+    --surface-task: #0f172aeb;
+    --surface-switcher: #646e7899;
+    --deadline-back-warning: #f59e092b;
+    --deadline-back-critical: #ef44442e;
+
+    --radcomplet: radial-gradient(
+      circle at top,
+      var(--radial-gradient) 0%,
+      var(--surface-card) 100%
+    );
+    --radial-gradient: #243465;
+
+    --gpdl-sidebar: #162647;
+
+    --text-strong: #f8fafc;
+    --text-muted: #94a3b8;
+
+    --brand-950: #f8fafc;
+    --brand-900: #e2e8f0;
+    --brand-800: #cbd5e1;
+    --brand-700: #60a5fa;
+    --brand-600: #3b82f6;
+    --brand-500: #2563eb;
+
+    --success-500: #4ade80;
+    --warning-500: #fbbf24;
+    --danger-500: #f87171;
+
+    --accent-info: #60a5fa;
+    --accent-info-soft: rgba(96, 165, 250, 0.2);
+    --accent-info-border: rgba(96, 165, 250, 0.35);
+
+    --accent-warning: var(--warning-500);
+    --accent-warning-soft: rgba(251, 191, 36, 0.18);
+    --accent-warning-border: rgba(251, 191, 36, 0.35);
+
+    --accent-danger: var(--danger-500);
+    --accent-danger-soft: rgba(248, 113, 113, 0.2);
+    --accent-danger-border: rgba(248, 113, 113, 0.35);
+
+    --accent-success: var(--success-500);
+    --accent-success-soft: rgba(74, 222, 128, 0.18);
+    --accent-success-border: rgba(74, 222, 128, 0.32);
+
+    --gpdl-border: rgba(255, 255, 255, 0.12);
+    --shadow-card: 0 18px 45px rgba(0, 0, 0, 0.45);
+    --empty-admin: 1px dashed rgba(217, 219, 224, 0.653);
+    --header-admin: 1px solid rgba(199, 200, 204, 0.554);
+    --shadow-box: rgba(255, 255, 255, 0.05);
+
+    /* Campos (contraste visual) */
+    --field-bg: rgba(255, 255, 255, 0.10);
+  }
+}
+
+/* =======================================================
+   ðŸŽ­ ELEMENTOS DECORATIVOS
+   ======================================================= */
+
+@layer components {
+  /* Pill group (toggle) */
+  .gpdl-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem; /* gap-1 */
+    padding: 0.25rem; /* p-1 */
+    border-radius: 9999px; /* rounded-full */
+    border: 1px solid rgba(255,255,255,0.10); /* ring-1 ring-white/10 */
+    box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05); /* shadow-inner */
+    background-color: rgba(255,255,255,0.10); /* bg-white/10 */
+    position: relative;
+    overflow: hidden;
+  }
+  .gpdl-pill {
+    padding-left: 1.25rem; /* px-5 */
+    padding-right: 1.25rem;
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+    color: rgba(255,255,255,0.70); /* text-white/70 */
+    transition-property: color, background-color, box-shadow; /* transition-colors */
+    transition-duration: 150ms;
+  }
+  .gpdl-pill:hover {
+    color: #fff; /* hover:text-white */
+  }
+  .gpdl-pill.is-active {
+    background-color: transparent; /* handled by thumb */
+    color: #fff; /* text-white */
+    box-shadow: none;
+    border: 1px solid transparent;
+    font-weight: 600;
+  }
+
+  /* Segmented toggle with sliding thumb */
+  .gpdl-segmented { --seg-gap: 0.25rem; }
+  .gpdl-segmented .gpdl-pill-thumb {
+    position: absolute;
+    z-index: 0;
+    left: 0.25rem; /* match padding */
+    top: 0.25rem;
+    height: calc(100% - 0.5rem);
+    width: calc((100% - 0.5rem - var(--seg-gap)) / 2);
+    /* Explanation: container padding adds 0.5rem total; compensate in width */
+    border-radius: 9999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10));
+    border: 1px solid rgba(255,255,255,0.20);
+    box-shadow: 0 6px 16px rgba(2,6,23,0.20), inset 0 1px 0 rgba(255,255,255,0.35);
+    transition: transform 220ms ease;
+    transform: translateX(0);
+  }
+
+  /* Painel de vidro do formulário (direita no login) */
+  .panel-glass {
+    background-color: rgba(0, 0, 0, 0.30); /* bg-black/30 */
+    backdrop-filter: blur(16px); /* backdrop-blur-lg */
+    border: 1px solid rgba(255,255,255,0.10); /* border border-white/10 */
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Entrada com efeito "gelo" */
+  .gpdl-input-icy {
+    width: 100%;
+    border-radius: 0.75rem; /* rounded-xl */
+    border: 1px solid var(--gpdl-border);
+    background-color: rgba(255,255,255,0.60); /* bg-white/60 */
+    backdrop-filter: blur(8px); /* backdrop-blur-sm */
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.06);
+    color: var(--text-strong);
+  }
+  .dark .gpdl-input-icy { background-color: rgba(255,255,255,0.10); }
+  .gpdl-input-icy::placeholder { color: var(--text-muted); }
+  .gpdl-input-icy:focus { outline: none; box-shadow: 0 0 0 2px var(--brand-600); border-color: transparent; }
+  .input-adornment {
+    position: absolute;
+    right: 0.75rem; /* right-3 */
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.6);
+    pointer-events: none;
+  }
+
+  /* Botão com gradiente brand */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-[var(--brand-700)] to-[var(--brand-600)] text-white hover:from-[var(--brand-600)] hover:to-[var(--brand-500)] shadow-lg;
+  }
+  /* Cards elevados padrão GPDL */
+  .gpdl-card {
+    @apply rounded-2xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)];
+  }
+
+  /* Painel/hero com gradiente da brand */
+  .gpdl-hero {
+    background: radial-gradient(1200px 600px at -10% -20%, rgba(37, 99, 235, 0.18), transparent 60%),
+      radial-gradient(1000px 540px at 110% 120%, rgba(96, 165, 250, 0.12), transparent 60%),
+      linear-gradient(135deg, rgba(2, 6, 23, 0.1), rgba(2, 6, 23, 0));
+    border-radius: 1.5rem; /* ~ rounded-3xl */
+    padding: 1.5rem; /* p-6 */
+    border: 1px solid rgba(255,255,255,0.10); /* border-white/10 */
+    color: #fff;
+    box-shadow: var(--shadow-card);
+  }
+
+  .gpdl-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem; /* gap-2 */
+    border-radius: 9999px; /* rounded-full */
+    background-color: rgba(255,255,255,0.10); /* bg-white/10 */
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+    font-size: 0.75rem; /* text-xs */
+    letter-spacing: 0.05em; /* tracking-wider */
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+    border: 1px solid rgba(255,255,255,0.15); /* ring-1 ring-white/15 */
+  }
+
+  /* Abas/pills */
+  .gpdl-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .gpdl-tab {
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+    border-radius: 9999px;
+    background-color: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.80);
+    font-size: 0.875rem; /* text-sm */
+    transition: background-color 150ms, color 150ms;
+  }
+  .gpdl-tab:hover { background-color: rgba(255,255,255,0.10); }
+  .gpdl-tab.is-active {
+    background-color: rgba(255,255,255,0.15);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset;
+  }
+
+  /* Placeholder de área vazia (tracejada) */
+  .gpdl-empty {
+    @apply border-2 border-dashed border-[var(--gpdl-border)] rounded-2xl p-10 text-center text-[var(--text-muted)];
+  }
+
+  /* Fundo dinÃ¢mico com gradientes */
+  .gpdl-background::before,
+  .gpdl-background::after {
+    @apply content-[''] fixed inset-0 pointer-events-none;
+  }
+
+  .gpdl-background::before {
+    background: radial-gradient(
+        circle at 18% 20%,
+        rgba(37, 99, 235, 0.30),
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 82% 12%,
+        rgba(14, 165, 233, 0.22),
+        transparent 65%
+      );
+    @apply opacity-80;
+  }
+
+  /* Badge */
+  .gpdl-badge {
+    @apply inline-flex items-center gap-2 
+           bg-black/[0.32] border border-slate-200/35 
+           px-4 py-2 rounded-full 
+           text-xs tracking-wider uppercase;
+  }
+
+  /* Esferas decorativas */
+  .sphere {
+    @apply absolute rounded-full opacity-75 blur-[0.4px];
+  }
+
+  .sphere-1 {
+    @apply w-[180px] h-[180px] bottom-3 right-5;
+    background: radial-gradient(
+      circle,
+      rgba(244, 245, 255, 0.9),
+      rgba(59, 130, 246, 0.4)
+    );
+  }
+
+  .sphere-2 {
+    @apply w-[120px] h-[120px] top-6 left-6;
+    background: radial-gradient(
+      circle,
+      rgba(14, 165, 233, 0.65),
+      rgba(37, 99, 235, 0.4)
+    );
+  }
+
+  .sphere-3 {
+    @apply w-[78px] h-[78px] bottom-[60px] left-[90px];
+    background: radial-gradient(
+      circle,
+      rgba(250, 204, 21, 0.68),
+      transparent 70%
+    );
+  }
+
+  /* Links estilizados */
+  .gpdl-link {
+    @apply font-semibold text-sm 
+           relative transition-colors duration-200;
+    color: var(--brand-600);
+  }
+
+  .gpdl-link:hover {
+    color: var(--brand-500);
+  }
+
+  .gpdl-link::after {
+    @apply content-[''] absolute left-0 -bottom-0.5 
+           w-full h-0.5 scale-x-0 origin-center
+           transition-transform duration-300;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(37, 99, 235, 0.8),
+      transparent
+    );
+  }
+
+  .gpdl-link:hover::after {
+    @apply scale-x-100;
+  }
+
+  /* Ãcones de atalho */
+  .shortcut-icon {
+    @apply w-11 h-11 rounded-[14px] 
+           inline-flex items-center justify-center 
+           text-white text-base;
+  }
+
+  .shortcut-icon.is-blue {
+    @apply bg-gradient-to-br from-blue-600 to-blue-500;
+  }
+
+  .shortcut-icon.is-green {
+    @apply bg-gradient-to-br from-green-600 to-green-500;
+  }
+
+  .shortcut-icon.is-amber {
+    @apply bg-gradient-to-br from-amber-500 to-yellow-400 text-slate-900;
+  }
+
+  .shortcut-icon.is-purple {
+    @apply bg-gradient-to-br from-purple-500 to-purple-400;
+  }
+
+  /* Ãcones de estatÃ­sticas */
+  .stat-icon {
+    @apply w-[46px] h-[46px] rounded-[14px]
+           flex items-center justify-center
+           text-[1.05rem] text-white;
+  }
+
+  .stat-icon.is-blue {
+    @apply bg-gradient-to-br from-blue-600 to-blue-500;
+  }
+
+  .stat-icon.is-green {
+    @apply bg-gradient-to-br from-green-600 to-green-500;
+  }
+
+  .stat-icon.is-amber {
+    @apply bg-gradient-to-br from-amber-500 to-yellow-400 text-slate-900;
+  }
+
+  .stat-icon.is-purple {
+    @apply bg-gradient-to-br from-purple-500 to-purple-400;
+  }
+
+  /* Timeline */
+  .gpdl-timeline {
+    @apply list-none flex flex-col gap-4 relative pl-5;
+  }
+
+  .gpdl-timeline::before {
+    @apply content-[''] absolute left-2 top-1.5 bottom-1.5 
+           w-0.5 bg-slate-400/25;
+  }
+
+  /* MÃ©tricas */
+  .metric-label {
+    @apply text-sm text-[var(--text-muted)];
+  }
+
+  .metric-value {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+
+  .metric-value.success {
+    @apply text-[var(--success-500)];
+  }
+
+  .metric-trend {
+    @apply text-sm text-[var(--text-muted)] 
+           flex items-center gap-1.5;
+  }
+
+  /* Brand Icon */
+  .brand-icon {
+    @apply w-11 h-11 rounded-[14px]
+           flex items-center justify-center
+           text-white text-[1.05rem];
+    background: linear-gradient(
+      135deg,
+      var(--brand-700),
+      var(--brand-600)
+    );
+  }
+}
+
+
+
+
+/* ===== Overrides limpos (append) ===== */
+@layer components {
+  .gpdl-pill-group { display:flex; align-items:center; gap:0.25rem; padding:0.25rem; border-radius:9999px; border:1px solid rgba(255,255,255,0.10); box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05); background-color: rgba(255,255,255,0.10); position:relative; overflow:hidden; }
+  .gpdl-pill { padding-left:1.25rem; padding-right:1.25rem; padding-top:0.5rem; padding-bottom:0.5rem; border-radius:9999px; font-size:0.875rem; line-height:1.25rem; color:rgba(255,255,255,0.70); transition-property: color, background-color, box-shadow; transition-duration:150ms; }
+  .gpdl-pill:hover { color:#ffffff; }
+  .gpdl-pill.is-active { background-color: transparent; color:#ffffff; box-shadow: none; border:1px solid transparent; font-weight:600; }
+
+  .panel-glass { background-color: rgba(0,0,0,0.30); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.10); box-shadow: var(--shadow-card); }
+  .gpdl-input-icy { width:100%; border-radius:0.75rem; border:1px solid var(--gpdl-border); background-color: rgba(255,255,255,0.60); backdrop-filter: blur(8px); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.06); color: var(--text-strong); }
+  .dark .gpdl-input-icy { background-color: rgba(255,255,255,0.10); }
+  .gpdl-input-icy::placeholder { color: var(--text-muted); }
+  .gpdl-input-icy:focus { outline: none; box-shadow: 0 0 0 2px var(--brand-600); border-color: transparent; }
+
+  /* Campos com contraste para painéis escuros */
+  .gpdl-input-contrast { width:100%; border-radius:0.75rem; border:1px solid var(--gpdl-border); background-color: var(--field-bg); color: var(--text-strong); transition: box-shadow .15s ease, border-color .15s ease, background-color .15s ease; }
+  .gpdl-input-contrast::placeholder { color: var(--text-muted); }
+  .gpdl-input-contrast:focus { outline: none; box-shadow: 0 0 0 2px var(--brand-600); border-color: transparent; }
+
+  /* Melhor legibilidade do menu de opções do <select> em temas escuros/claro */
+  .gpdl-input-contrast option, .gpdl-input-contrast optgroup {
+    color: var(--text-strong);
+    background-color: var(--surface-card);
+  }
+  .gpdl-input-contrast option:checked {
+    color: #fff;
+    background-color: var(--brand-600);
+  }
+  .dark .gpdl-input-contrast { color-scheme: dark; }
+  .dark .gpdl-input-contrast option, .dark .gpdl-input-contrast optgroup {
+    color: var(--text-strong);
+    background-color: var(--surface-main);
+  }
+
+  .gpdl-hero { border-radius:1.5rem; padding:1.5rem; border:1px solid rgba(255,255,255,0.10); color:#fff; box-shadow: var(--shadow-card); }
+  .gpdl-chip { display:inline-flex; align-items:center; gap:0.5rem; border-radius:9999px; background-color: rgba(255,255,255,0.10); padding:0.5rem 1rem; font-size:0.75rem; letter-spacing:0.05em; text-transform:uppercase; box-shadow:0 1px 2px 0 rgba(0,0,0,0.05); border:1px solid rgba(255,255,255,0.15); }
+  
+  /* ===== Metric cards (dashboard) ===== */
+  .metric-card { position: relative; border-radius: 16px; overflow: hidden; }
+  .metric-card-blue {
+    background: linear-gradient(180deg, rgba(59,130,246,0.10), rgba(2,6,23,0.0));
+    border: 1px solid rgba(37,99,235,0.25);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .metric-card-red {
+    background: linear-gradient(180deg, rgba(239,68,68,0.12), rgba(2,6,23,0.0));
+    border: 1px solid rgba(239,68,68,0.25);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .metric-card-neutral {
+    background: linear-gradient(180deg, rgba(148,163,184,0.10), rgba(2,6,23,0.02));
+    border: 1px solid var(--gpdl-border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .metric-card-neutral:hover {
+    background: linear-gradient(180deg, rgba(148,163,184,0.16), rgba(2,6,23,0.04));
+    border-color: rgba(148,163,184,0.55);
+  }
+  .metric-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease; }
+  .metric-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(2,6,23,0.35), inset 0 1px 0 rgba(255,255,255,0.06); }
+  .metric-card:focus-within { box-shadow: 0 0 0 2px rgba(59,130,246,0.45), 0 16px 34px rgba(2,6,23,0.35); }
+  .metric-card-blue:hover { background: linear-gradient(180deg, rgba(59,130,246,0.18), rgba(2,6,23,0.02)); border-color: rgba(59,130,246,0.45); }
+  .metric-card-red:hover { background: linear-gradient(180deg, rgba(239,68,68,0.18), rgba(2,6,23,0.02)); border-color: rgba(239,68,68,0.45); }
+  .metric-icon { position: absolute; top: 12px; right: 12px; opacity: 0.9; transition: transform .18s ease, opacity .18s ease; }
+  .metric-card:hover .metric-icon { transform: translateY(-2px) scale(1.05); opacity: 1; }
+  .metric-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 600; }
+  .metric-link.blue { color: var(--brand-600); }
+  .metric-link.red { color: var(--danger-500); }
+  /* Callout amarelo com brilho (fila de revisão) */
+  .gpdl-review-callout {
+    display: block;
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: #111827;
+    background: radial-gradient(120% 120% at 100% 100%, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.12) 40%, transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.70));
+    border: 1px solid rgba(253, 230, 138, 0.8);
+    box-shadow: 0 14px 40px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(255,255,255,0.65);
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, border-color .18s ease;
+    cursor: pointer;
+  }
+  .dark .gpdl-review-callout {
+    color: #fde68a;
+    background: radial-gradient(140% 140% at 100% 100%, rgba(245, 158, 11, 0.35), rgba(245, 158, 11, 0.16) 45%, rgba(0,0,0,0) 70%),
+      linear-gradient(180deg, rgba(120, 53, 15, 0.55), rgba(146, 64, 14, 0.35));
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    box-shadow: 0 14px 40px rgba(245, 158, 11, 0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .gpdl-review-callout:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.04) brightness(1.03);
+    box-shadow: 0 20px 48px rgba(245, 158, 11, 0.32), inset 0 1px 0 rgba(255,255,255,0.75);
+    border-color: rgba(251, 191, 36, 0.9);
+  }
+  .dark .gpdl-review-callout:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.08) brightness(1.02);
+    box-shadow: 0 22px 56px rgba(245, 158, 11, 0.36), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-color: rgba(245, 158, 11, 0.65);
+  }
+  .gpdl-review-callout:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.6), 0 18px 42px rgba(245, 158, 11, 0.28);
+  }
+}
+
+/* ===== Overrides (login fine-tune) ===== */
+@layer components {
+  .panel-glass input[type="text"],
+  .panel-glass input[type="password"],
+  .panel-glass input:not([type]) {
+    /* Evita @apply de classe custom (Tailwind v4) */
+    padding-right: 2.5rem; /* pr-10 */
+  }
+  .gpdl-pill-group {background: linear-gradient(180deg, rgba(9,26,56,0.75), rgba(7,22,48,0.9)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(2,6,23,0.35);} 
+  /* ativo é realçado pelo thumb; não aplicar background aqui */
+  .gpdl-pill.is-active { background: transparent; }
+}

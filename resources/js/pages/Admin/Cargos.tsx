@@ -1,5 +1,7 @@
-import AuthLayout from '@/layouts/auth-layout';
+import GPDLLayout from '@/layouts/gpdl-layout';
+import { AdminTabs } from '@/components/admin-tabs';
 import { Head, useForm, router } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
 import { useState, FormEventHandler } from 'react';
 
 interface Cargo {
@@ -11,6 +13,11 @@ interface Cargo {
 interface Props {
     cargos: Cargo[];
 }
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Admin', href: '/admin' },
+    { title: 'Cargos', href: '/admin/cargos' },
+];
 
 export default function Cargos({ cargos }: Props) {
     const [showModal, setShowModal] = useState(false);
@@ -73,24 +80,25 @@ export default function Cargos({ cargos }: Props) {
     };
 
     return (
-        <AuthLayout>
-            <Head title="Cargos" />
+        <GPDLLayout breadcrumbs={breadcrumbs}>
+            <AdminTabs />
+            <Head title="Cargos - GPDL" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="text-2xl font-bold text-[var(--text-strong)]">
                                 Cargos
                             </h1>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm text-[var(--text-muted)] mt-1">
                                 Gerencie os cargos do sistema
                             </p>
                         </div>
                         <button
                             onClick={openCreateModal}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                            className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] transition flex items-center gap-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -100,20 +108,20 @@ export default function Cargos({ cargos }: Props) {
                     </div>
 
                     {/* Tabela */}
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <h2 className="text-lg font-semibold text-[var(--text-strong)] mb-4">
                                 Cargos cadastrados
                             </h2>
 
                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
                                     <thead>
-                                        <tr className="bg-gray-50 dark:bg-gray-900">
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <tr className="bg-[var(--surface-muted)]">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
                                                 ID
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
                                                 Nome
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -124,7 +132,7 @@ export default function Cargos({ cargos }: Props) {
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--gpdl-border)]">
                                         {cargos.length === 0 ? (
                                             <tr>
                                                 <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
@@ -134,10 +142,10 @@ export default function Cargos({ cargos }: Props) {
                                         ) : (
                                             cargos.map((cargo) => (
                                                 <tr key={cargo.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-strong)]">
                                                         {cargo.id}
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    <td className="px-6 py-4 text-sm text-[var(--text-strong)]">
                                                         {cargo.nome}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -148,7 +156,7 @@ export default function Cargos({ cargos }: Props) {
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                                                         <button
                                                             onClick={() => openEditModal(cargo)}
-                                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center"
+                                                            className="text-[var(--brand-600)] hover:opacity-80 inline-flex items-center"
                                                         >
                                                             <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -157,7 +165,7 @@ export default function Cargos({ cargos }: Props) {
                                                         </button>
                                                         <button
                                                             onClick={() => deleteCargo(cargo.id, cargo.nome, cargo.usuarios_count || 0)}
-                                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 inline-flex items-center"
+                                                            className="text-[var(--danger-500)] hover:opacity-80 inline-flex items-center"
                                                         >
                                                             <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -173,7 +181,7 @@ export default function Cargos({ cargos }: Props) {
                             </div>
 
                             {/* Paginação */}
-                            <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                            <div className="mt-4 text-center text-sm text-[var(--text-muted)]">
                                 Página 1 de 1
                             </div>
                         </div>
@@ -184,7 +192,7 @@ export default function Cargos({ cargos }: Props) {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
                         {/* Header do Modal */}
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -259,6 +267,6 @@ export default function Cargos({ cargos }: Props) {
                     </div>
                 </div>
             )}
-        </AuthLayout>
+        </GPDLLayout>
     );
 }

@@ -41,6 +41,9 @@ class User extends Authenticatable
         'precisa_trocar_senha' => 'boolean',
     ];
 
+    // Garanta que o atributo computado "name" seja serializado para o frontend (Inertia)
+    protected $appends = ['name'];
+
     // IMPORTANTE: Laravel usa 'password', mas seu banco usa 'senha'
     public function getAuthPassword()
     {

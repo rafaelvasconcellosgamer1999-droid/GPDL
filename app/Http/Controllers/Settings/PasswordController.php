@@ -30,9 +30,40 @@ class PasswordController extends Controller
         ]);
 
         $request->user()->update([
-            'password' => $validated['password'],
+            // O modelo User usa coluna 'senha' (hash via cast)
+            'senha' => $validated['password'],
+            'precisa_trocar_senha' => false,
         ]);
 
-        return back();
+        return back()->with('success', 'Senha atualizada com sucesso.');
+    }
+
+    /**
+     * First access/forced password change view (minimal, central card)
+     */
+    public function first(): Response
+    {
+        return Inertia::render('auth/force-password');
+    }
+
+    /**
+     * Handle forced password change (no current password required).
+     */
+    public function firstUpdate(Request $request): RedirectResponse
+    {
+        if (! ($request->user()?->precisa_trocar_senha ?? false)) {
+            return redirect('/dashboard');
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        $request->user()->update([
+            'senha' => $validated['password'],
+            'precisa_trocar_senha' => false,
+        ]);
+
+        return redirect('/dashboard')->with('success', 'Senha atualizada. Bem-vindo!');
     }
 }

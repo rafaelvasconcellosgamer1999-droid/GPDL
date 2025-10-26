@@ -1,4 +1,4 @@
-import AuthLayout from '@/layouts/auth-layout';
+import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState, FormEventHandler } from 'react';
 
@@ -149,24 +149,29 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
         return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
-    return (
-        <AuthLayout>
-            <Head title="Usuários" />
+    const breadcrumbs = [
+        { title: 'Administração', href: '/admin' },
+        { title: 'Usuários', href: '/admin/usuarios' },
+    ];
 
-            <div className="py-12">
+    return (
+        <GPDLLayout breadcrumbs={breadcrumbs}>
+            <Head title="Usuários - GPDL" />
+
+            <div>
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-[var(--text-strong)]">
                             Usuários
                         </h1>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-[var(--text-muted)] mt-1">
                             Gerencie os usuários do sistema
                         </p>
                     </div>
 
                     {/* Filtros */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+                    <div className="bg-[var(--surface-card)] rounded-lg shadow-sm p-4 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -175,7 +180,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <select
                                     value={filterData.cargo_id}
                                     onChange={(e) => setFilterData('cargo_id', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                    className="w-full px-3 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] text-sm"
                                 >
                                     <option value="">Todos</option>
                                     {cargos.map((cargo) => (
@@ -191,7 +196,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <select
                                     value={filterData.setor_id}
                                     onChange={(e) => setFilterData('setor_id', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                    className="w-full px-3 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] text-sm"
                                 >
                                     <option value="">Todos</option>
                                     {setores.map((setor) => (
@@ -209,7 +214,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <select
                                     value={filterData.status}
                                     onChange={(e) => setFilterData('status', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                    className="w-full px-3 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] text-sm"
                                 >
                                     <option value="">Todos</option>
                                     <option value="ativos">Ativos</option>
@@ -220,7 +225,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                             <div className="flex items-end gap-2">
                                 <button
                                     onClick={applyFilters}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                                    className="flex-1 px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] transition text-sm"
                                 >
                                     Filtrar
                                 </button>
@@ -235,10 +240,10 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                     </div>
 
                     {/* Tabela */}
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead className="bg-gray-50 dark:bg-gray-900">
+                            <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
+                                <thead className="bg-[var(--surface-muted)]">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Usuário
@@ -257,7 +262,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--gpdl-border)]">
                                     {usuarios.data.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
@@ -275,7 +280,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                                             </span>
                                                         </div>
                                                         <div className="ml-4">
-                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            <div className="text-sm font-medium text-[var(--text-strong)]">
                                                                 {usuario.nome}
                                                             </div>
                                                             <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -284,10 +289,10 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-strong)]">
                                                     {usuario.cargo?.nome || '-'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-strong)]">
                                                     {usuario.setor?.nome || '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -358,7 +363,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                             onClick={() => router.get(`/admin/usuarios?page=${page}`)}
                                             className={`px-3 py-1 rounded ${
                                                 page === usuarios.current_page
-                                                    ? 'bg-blue-600 text-white'
+                                                    ? 'bg-[var(--brand-700)] text-white'
                                                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
                                             }`}
                                         >
@@ -375,9 +380,9 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
             {/* Modal Editar */}
             {showEditModal && editingUsuario && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            <h3 className="text-xl font-semibold text-[var(--text-strong)]">
                                 Editar Usuário
                             </h3>
                             <button onClick={closeEditModal} className="text-gray-400 hover:text-gray-600">
@@ -390,8 +395,8 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                         <form onSubmit={submitEdit}>
                             <div className="p-6 space-y-4">
                                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{editingUsuario.nome}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">{editingUsuario.email}</p>
+                                    <p className="text-sm font-medium text-[var(--text-strong)]">{editingUsuario.nome}</p>
+                                    <p className="text-xs text-[var(--text-muted)]">{editingUsuario.email}</p>
                                 </div>
 
                                 <div>
@@ -401,7 +406,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                     <select
                                         value={editData.cargo_id}
                                         onChange={(e) => setEditData('cargo_id', e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        className="w-full px-4 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)]"
                                         required
                                     >
                                         <option value="">Selecione</option>
@@ -418,7 +423,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                     <select
                                         value={editData.setor_id}
                                         onChange={(e) => setEditData('setor_id', e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        className="w-full px-4 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)]"
                                     >
                                         <option value="">Nenhum</option>
                                         {setores.map((setor) => (
@@ -441,7 +446,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                    className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] disabled:opacity-50"
                                     disabled={processing}
                                 >
                                     {processing ? 'Salvando...' : 'Salvar'}
@@ -455,27 +460,27 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
             {/* Modal Senha Gerada */}
             {showResetModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
                         <div className="p-6 text-center">
                             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 mb-4">
                                 <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <h3 className="text-lg font-semibold text-[var(--text-strong)] mb-4">
                                 Senha Temporária Gerada
                             </h3>
                             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-                                <code className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                <code className="text-2xl font-bold text-[var(--brand-600)]">
                                     {senhaGerada}
                                 </code>
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            <p className="text-sm text-[var(--text-muted)] mb-4">
                                 Anote essa senha e repasse ao usuário.
                             </p>
                             <button
                                 onClick={() => setShowResetModal(false)}
-                                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                className="w-full px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)]"
                             >
                                 Fechar
                             </button>
@@ -483,6 +488,6 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                     </div>
                 </div>
             )}
-        </AuthLayout>
+        </GPDLLayout>
     );
 }

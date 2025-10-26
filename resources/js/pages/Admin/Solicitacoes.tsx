@@ -1,4 +1,6 @@
-import AuthLayout from '@/layouts/auth-layout';
+import GPDLLayout from '@/layouts/gpdl-layout';
+import { type BreadcrumbItem } from '@/types';
+import { AdminTabs } from '@/components/admin-tabs';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState, FormEventHandler } from 'react';
 
@@ -29,6 +31,7 @@ interface Props {
     setores: Setor[];
 }
 
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Admin', href: '/admin' }, { title: 'Solicitaes', href: '/admin/solicitacoes' }];
 export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
     const [showModal, setShowModal] = useState(false);
     const [selectedSolicitacao, setSelectedSolicitacao] = useState<Solicitacao | null>(null);
@@ -99,23 +102,24 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
     };
 
     return (
-        <AuthLayout>
+        <GPDLLayout breadcrumbs={breadcrumbs}>
+            <AdminTabs />
             <Head title="Solicitações" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-[var(--text-strong)]">
                             Solicitações de Acesso
                         </h1>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-[var(--text-muted)] mt-1">
                             Acompanhe, aprove ou rejeite os novos pedidos de acesso enviados pelos usuários
                         </p>
                     </div>
 
                     {/* Conteúdo */}
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             {solicitacoes.length === 0 ? (
                                 // Estado vazio
@@ -123,7 +127,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">
+                                    <h3 className="mt-2 text-lg font-medium text-[var(--text-strong)]">
                                         Nenhuma solicitação por aqui
                                     </h3>
                                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -147,7 +151,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                             </svg>
                                                         </div>
                                                         <div>
-                                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                            <h3 className="text-lg font-semibold text-[var(--text-strong)]">
                                                                 {solicitacao.nome}
                                                             </h3>
                                                             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -161,7 +165,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                                                                 Usuário de Rede
                                                             </p>
-                                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            <p className="text-sm font-medium text-[var(--text-strong)]">
                                                                 {solicitacao.usuarioRede}
                                                             </p>
                                                         </div>
@@ -169,7 +173,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                                                                 E-mail
                                                             </p>
-                                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            <p className="text-sm font-medium text-[var(--text-strong)]">
                                                                 {solicitacao.email}
                                                             </p>
                                                         </div>
@@ -178,7 +182,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                                                                     Setor Solicitado
                                                                 </p>
-                                                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                <p className="text-sm font-medium text-[var(--text-strong)]">
                                                                     {solicitacao.setor}
                                                                 </p>
                                                             </div>
@@ -189,7 +193,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                 <div className="flex flex-col gap-2 ml-4">
                                                     <button
                                                         onClick={() => openApproveModal(solicitacao)}
-                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 whitespace-nowrap"
+                                                        className="px-4 py-2 bg-[var(--success-500)] text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -198,7 +202,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                     </button>
                                                     <button
                                                         onClick={() => rejectSolicitacao(solicitacao.id, solicitacao.nome)}
-                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2 whitespace-nowrap"
+                                                        className="px-4 py-2 bg-[var(--danger-500)] text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -219,9 +223,9 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
             {/* Modal de Aprovação */}
             {showModal && selectedSolicitacao && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            <h3 className="text-xl font-semibold text-[var(--text-strong)]">
                                 Aprovar Solicitação
                             </h3>
                             <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -235,10 +239,10 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                             <div className="p-6 space-y-4">
                                 {/* Info do Usuário */}
                                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    <p className="text-sm font-medium text-[var(--text-strong)]">
                                         {selectedSolicitacao.nome}
                                     </p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                    <p className="text-xs text-[var(--text-muted)] mt-1">
                                         {selectedSolicitacao.usuarioRede} • {selectedSolicitacao.email}
                                     </p>
                                 </div>
@@ -251,7 +255,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                     <select
                                         value={data.cargo_id}
                                         onChange={(e) => setData('cargo_id', e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] focus:ring-2 focus:ring-[var(--brand-600)] focus:border-transparent"
                                         required
                                     >
                                         <option value="">Selecione um cargo</option>
@@ -274,7 +278,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                     <select
                                         value={data.setor_id}
                                         onChange={(e) => setData('setor_id', e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] focus:ring-2 focus:ring-[var(--brand-600)] focus:border-transparent"
                                         required
                                     >
                                         <option value="">Selecione um setor</option>
@@ -315,7 +319,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+                                    className="px-4 py-2 bg-[var(--success-500)] text-white rounded-lg hover:opacity-90 transition disabled:opacity-50"
                                     disabled={processing}
                                 >
                                     {processing ? 'Aprovando...' : 'Aprovar'}
@@ -329,7 +333,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
             {/* Modal de Senha Gerada */}
             {showSenhaModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
                         <div className="p-6">
                             <div className="text-center">
                                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
@@ -337,15 +341,15 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+                                <h3 className="mt-4 text-lg font-semibold text-[var(--text-strong)]">
                                     Usuário aprovado com sucesso!
                                 </h3>
                                 <div className="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <p className="text-sm text-[var(--text-muted)] mb-2">
                                         Senha temporária gerada:
                                     </p>
                                     <div className="flex items-center justify-center gap-2">
-                                        <code className="text-2xl font-bold text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 px-4 py-2 rounded border-2 border-dashed border-blue-300 dark:border-blue-700">
+                                        <code className="text-2xl font-bold text-blue-600 dark:text-blue-400 bg-[var(--surface-card)] px-4 py-2 rounded border-2 border-dashed border-blue-300 dark:border-blue-700">
                                             {senhaGerada}
                                         </code>
                                         <button
@@ -378,6 +382,6 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                     </div>
                 </div>
             )}
-        </AuthLayout>
+        </GPDLLayout>
     );
 }

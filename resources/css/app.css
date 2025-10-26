@@ -1,6 +1,10 @@
-@import 'tailwindcss';
+﻿@import 'tailwindcss';
 
 @import "tw-animate-css";
+
+/* GPDL Custom Theme */
+@import "./gpdl-theme.css";
+@import "./gpdl-sidebar.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -50,6 +54,14 @@
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
+
+    /* GPDL brand scale */
+    --color-brand-950: var(--brand-950);
+    --color-brand-900: var(--brand-900);
+    --color-brand-800: var(--brand-800);
+    --color-brand-700: var(--brand-700);
+    --color-brand-600: var(--brand-600);
+    --color-brand-500: var(--brand-500);
 
     --color-sidebar: var(--sidebar);
     --color-sidebar-foreground: var(--sidebar-foreground);
