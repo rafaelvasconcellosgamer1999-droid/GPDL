@@ -44,24 +44,39 @@ class ProcessoController extends Controller
             $select = ['processos.id'];
             $hasDataLimite = false;
             $hasDataCiencia = false;
-            foreach ([
-                'orgao','acao','numero','assunto','partes_envolvidas','vara_juizo',
-                'data_limite','data_ciencia','ultimo_mov_texto','ultimo_mov_data',
-                'updated_at','created_at','procurador_responsavel_id'
-            ] as $c) {
-                if (!Schema::hasColumn('processos', $c)) { continue; }
+
+            foreach (
+                [
+                    'orgao',
+                    'acao',
+                    'numero',
+                    'assunto',
+                    'partes_envolvidas',
+                    'vara_juizo',
+                    'data_limite',
+                    'data_ciencia',
+                    'ultimo_mov_texto',
+                    'ultimo_mov_data',
+                    'updated_at',
+                    'created_at',
+                    'procurador_responsavel_id'
+                ] as $c
+            ) {
+                if (!Schema::hasColumn('processos', $c)) {
+                    continue;
+                }
                 if ($c === 'data_limite') {
-                    $hasDataLimite = true; // evita fuso horário no front
+                    $hasDataLimite = true;
                     continue;
                 }
                 if ($c === 'data_ciencia') {
-                    $hasDataCiencia = true; // envia em ISO amigável
+                    $hasDataCiencia = true;
                     continue;
                 }
-                $select[] = 'processos.'.$c;
+                $select[] = 'processos.' . $c;
             }
+
             if ($hasDataLimite) {
-                // Envia em ISO amigável preservando hora:minuto quando existir
                 $select[] = DB::raw("CASE WHEN processos.data_limite IS NULL THEN NULL ELSE REPLACE(processos.data_limite, ' ', 'T') END as data_limite");
             }
             if ($hasDataCiencia) {
@@ -69,57 +84,69 @@ class ProcessoController extends Controller
             }
 
             $q = DB::table('processos')
-                ->leftJoin('usuarios as u', 'u.id', '=', 'processos.procurador_responsavel_id')
-                ->select(array_merge($select, ['u.nome as responsavel_nome']));
+                ->select(array_merge($select, ['u.nome as responsavel_nome']))
+                ->leftJoin('usuarios as u', function ($join) {
+                    $join->on('u.id', '=', 'processos.procurador_responsavel_id');
+                });
+
+            $responsavelId = (int) $request->query('responsavel_id');
+            if ($responsavelId > 0) {
+                $q->where('processos.procurador_responsavel_id', $responsavelId);
+            }
 
             switch ($view) {
                 case 'encerrados':
-                    $q->where(function ($q2) use ($finishedFlag) { $finishedFlag($q2); });
+                    $q->where(function ($q2) use ($finishedFlag) {
+                        $finishedFlag($q2);
+                    });
                     break;
+
                 case 'pendentes':
-                    $q->whereNot(function ($q2) use ($finishedFlag) { $finishedFlag($q2); });
+                    $q->whereNot(function ($q2) use ($finishedFlag) {
+                        $finishedFlag($q2);
+                    });
                     if (Schema::hasColumn('processos', 'data_limite')) {
-                        // Pendente: sem prazo de manifestação
                         $q->whereNull('processos.data_limite');
                     }
                     break;
+
                 case 'ativos':
-                    $q->whereNot(function ($q2) use ($finishedFlag) { $finishedFlag($q2); });
+                    $q->whereNot(function ($q2) use ($finishedFlag) {
+                        $finishedFlag($q2);
+                    });
                     if (Schema::hasColumn('processos', 'data_limite')) {
                         $now = now();
-                        // Ativo: prazo de manifestação futuro (estritamente maior que agora)
                         $q->whereNotNull('processos.data_limite')
-                          ->where('processos.data_limite', '>', $now);
+                            ->where('processos.data_limite', '>', $now);
                     }
                     break;
+
                 case 'vencidos':
-                    $q->whereNot(function ($q2) use ($finishedFlag) { $finishedFlag($q2); });
+                    $q->whereNot(function ($q2) use ($finishedFlag) {
+                        $finishedFlag($q2);
+                    });
                     if (Schema::hasColumn('processos', 'data_limite')) {
                         $now = now();
-                        // Vencidos: prazo de manifestação até agora (<= agora)
                         $q->whereNotNull('processos.data_limite')
-                          ->where('processos.data_limite', '<=', $now);
-                        // Tentativa de fallback por status, se existir convenção
+                            ->where('processos.data_limite', '<=', $now);
                     }
                     break;
+
                 default:
-                    $q = null; // cadastro
+                    $q = null;
             }
 
             if ($q) {
-                // Filtros
-                if ($request->filled('responsavel_id')) {
-                    $q->where('processos.procurador_responsavel_id', $request->integer('responsavel_id'));
-                }
-
-                // Ordenação (padrão: prazo mais urgente)
                 $order = $request->query('order', 'prazo_asc');
                 if ($order === 'prazo_asc' && Schema::hasColumn('processos', 'data_limite')) {
                     $q->orderByRaw('CASE WHEN processos.data_limite IS NULL THEN 1 ELSE 0 END ASC')
-                      ->orderBy('processos.data_limite', 'asc');
+                        ->orderBy('processos.data_limite', 'asc');
                 } else {
-                    foreach (['updated_at','created_at','id'] as $orderCol) {
-                        if (Schema::hasColumn('processos', $orderCol)) { $q->orderByDesc($orderCol); break; }
+                    foreach (['updated_at', 'created_at', 'id'] as $orderCol) {
+                        if (Schema::hasColumn('processos', $orderCol)) {
+                            $q->orderByDesc($orderCol);
+                            break;
+                        }
                     }
                 }
 
@@ -128,13 +155,13 @@ class ProcessoController extends Controller
             }
         }
 
-        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id','nome']);
+        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
 
         return Inertia::render('Processos/Index', [
             'procuradores' => $procuradores,
             'processos' => $lista,
             'filters' => [
-                'responsavel_id' => $request->query('responsavel_id'),
+                'responsavel_id' => $request->query('responsavel_id', null) ?? '',
                 'order' => $request->query('order', 'prazo_asc'),
                 'per_page' => (int) $request->query('per_page', 10),
                 'view' => $view,
@@ -181,7 +208,8 @@ class ProcessoController extends Controller
                         if ($lim->format('Y-m-d H:i') === $cin->format('Y-m-d H:i')) {
                             $parsed['limite'] = null;
                         }
-                    } catch (\Throwable $e) {}
+                    } catch (\Throwable $e) {
+                    }
                 }
 
                 Processo::create([
@@ -331,7 +359,7 @@ class ProcessoController extends Controller
     private function parsePublicacaoLote(string $texto): array
     {
         $t = trim(preg_replace('/\r\n?/', "\n", $texto));
-        $out = [ 'numero' => $this->extrairNumeroProcesso($t) ];
+        $out = ['numero' => $this->extrairNumeroProcesso($t)];
 
         // Órgão: primeira linha
         $linhas = preg_split('/\n+/', $t) ?: [];
@@ -354,7 +382,10 @@ class ProcessoController extends Controller
             foreach ($linhas as $ln) {
                 $s = trim($ln);
                 if ($s === '') continue;
-                if (preg_match('/\b(IPTU|ISS|Invent[áa]rio|Partilha|Tribut[áa]rio|Municipais?)\b/iu', $s)) { $out['assunto'] = $s; break; }
+                if (preg_match('/\b(IPTU|ISS|Invent[áa]rio|Partilha|Tribut[áa]rio|Municipais?)\b/iu', $s)) {
+                    $out['assunto'] = $s;
+                    break;
+                }
             }
         }
 
@@ -365,7 +396,10 @@ class ProcessoController extends Controller
 
         // Vara/Juízo: linha com "Vara", "Juizado" ou "Turma"
         foreach ($linhas as $ln) {
-            if (preg_match('/(\d+ª?\s+Vara[^\n]+|Juizado[^\n]+|Turma[^\n]+)/iu', $ln, $m)) { $out['vara'] = trim($m[1]); break; }
+            if (preg_match('/(\d+ª?\s+Vara[^\n]+|Juizado[^\n]+|Turma[^\n]+)/iu', $ln, $m)) {
+                $out['vara'] = trim($m[1]);
+                break;
+            }
         }
 
         // Ciência
@@ -382,9 +416,13 @@ class ProcessoController extends Controller
             $dt = $m[1] . (isset($m[2]) ? (' ' . $m[2]) : ' 00:00');
             $out['limite'] = Carbon::createFromFormat('d/m/Y H:i', $dt);
             // Se a mesma linha de "Data limite" indica ciencia, nao registrar como prazo de manifestacao
-            $tPlain = @iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$t);
-            if ($tPlain === false) { $tPlain = $t; }
-            if (preg_match('/Data\s+limite[^\n]*ciencia/iu', $tPlain)) { unset($out['limite']); }
+            $tPlain = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $t);
+            if ($tPlain === false) {
+                $tPlain = $t;
+            }
+            if (preg_match('/Data\s+limite[^\n]*ciencia/iu', $tPlain)) {
+                unset($out['limite']);
+            }
         }
 
         // Último movimento
@@ -392,14 +430,19 @@ class ProcessoController extends Controller
             $out['movimento'] = trim($m[1]);
             if (preg_match('/([0-3]\d\/[01]\d\/[12]\d{3})\s*(\d{2}:\d{2})?/', $out['movimento'], $md)) {
                 $dt = $md[1] . (isset($md[2]) ? (' ' . $md[2]) : ' 00:00');
-                try { $out['mov_data'] = Carbon::createFromFormat('d/m/Y H:i', $dt); } catch (\Exception $e) {}
+                try {
+                    $out['mov_data'] = Carbon::createFromFormat('d/m/Y H:i', $dt);
+                } catch (\Exception $e) {
+                }
             }
         }
 
         // Fallback de ação caso não tenha sido capturado nos padrões acima
         if (empty($out['acao'])) {
             $tn = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $t);
-            if ($tn === false) { $tn = $t; }
+            if ($tn === false) {
+                $tn = $t;
+            }
             if (preg_match('/^\s*(Decisao|Intimacao|Sentenca|Despacho|Citacao|Notificacao|Ato\s+Ordinatorio|Juntada|Distribuicao|Conclusao|Conclusoes)\b/mi', $tn, $mm)) {
                 $out['acao'] = $mm[1];
             }
@@ -407,9 +450,3 @@ class ProcessoController extends Controller
         return $out;
     }
 }
-
-
-
-
-
-

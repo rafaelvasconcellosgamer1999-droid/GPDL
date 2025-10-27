@@ -228,10 +228,4 @@ export function StatusBadge({ status, children }) {
 - **shadcn/ui**: https://ui.shadcn.com
 - **Lucide Icons**: https://lucide.dev
 
----
-
-## ❓ Dúvidas?
-
-- Quer migrar um componente específico? Me diga qual!
-- Precisa ajustar alguma cor? Posso modificar o `gpdl-theme.css`
-- Quer criar mais classes utilitárias? É só pedir!
+--

@@ -46,56 +46,39 @@ class DashboardController extends Controller
                     $hasAny = true;
                 }
             };
-            // Ativos criados recentemente (últimas 24h e 48h)
+            // ─────────────────────────────────────────────────────────────────────────────
+            // Contadores "Hoje" e "48h" (próximas 48h, excluindo hoje) com base em data_limite
+            // ─────────────────────────────────────────────────────────────────────────────
             $recentToday = 0;
-            $recent48h = 0;
+            $recent48h   = 0;
 
-            if (Schema::hasTable('processos')) {
-                $ativosRecentes = DB::table('processos')
+            if (Schema::hasColumn('processos', 'data_limite')) {
+                // Usa o timezone configurado no app (ex.: America/Sao_Paulo)
+                $now         = now(config('app.timezone'));
+                $startOfDay  = $now->copy()->startOfDay();
+                $endOfToday  = $now->copy()->endOfDay();
+                $endNext48h  = $now->copy()->addHours(48);
+
+                // 🔹 Prazo HOJE (00:00 .. 23:59:59 do dia atual)
+                $recentToday = DB::table('processos')
                     ->whereNot(function ($q) use ($finishedFlag) {
                         $finishedFlag($q);
-                    });
+                    })
+                    ->whereBetween('data_limite', [$startOfDay, $endOfToday])
+                    ->count();
 
-                // filtra apenas os processos com prazo futuro (ativos)
-                $now = now();
-                if (Schema::hasColumn('processos', 'data_limite')) {
-                    $ativosRecentes->whereNotNull('data_limite')->where('data_limite', '>', $now);
-                } else {
-                    foreach (['vencimento', 'prazo'] as $deadlineCol) {
-                        if (Schema::hasColumn('processos', $deadlineCol)) {
-                            $ativosRecentes->whereNotNull($deadlineCol)->where($deadlineCol, '>', $now);
-                            break;
-                        }
-                    }
-                }
-
-                // coluna de data base (prioriza updated_at > created_at)
-                $dateCol = null;
-                foreach (['updated_at', 'created_at', 'data_ciencia', 'data_cadastro'] as $col) {
-                    if (Schema::hasColumn('processos', $col)) {
-                        $dateCol = $col;
-                        break;
-                    }
-                }
-
-                if ($dateCol) {
-                    // Hoje (desde o início do dia)
-                    $recentToday = (clone $ativosRecentes)
-                        ->where($dateCol, '>=', now()->startOfDay())
-                        ->count();
-
-                    // Últimas 48h EXCLUINDO o dia atual
-                    $recent48h = (clone $ativosRecentes)
-                        ->whereBetween($dateCol, [
-                            now()->subHours(48),
-                            now()->startOfDay()->subSecond(), // até 23:59:59 de ontem
-                        ])
-                        ->count();
-                }
+                // 🔹 Prazo nas PRÓXIMAS 48H (após hoje, até +48h)
+                //    Exclui o período de "Hoje" para não somar duas vezes
+                $recent48h = DB::table('processos')
+                    ->whereNot(function ($q) use ($finishedFlag) {
+                        $finishedFlag($q);
+                    })
+                    ->whereBetween('data_limite', [$endOfToday->copy()->addSecond(), $endNext48h])
+                    ->count();
             }
 
             $stats['ativos_hoje'] = (int) $recentToday;
-            $stats['ativos_48h'] = (int) $recent48h;
+            $stats['ativos_48h']  = (int) $recent48h;
 
 
             // Stats

@@ -6,14 +6,15 @@ use App\Http\Controllers\SolicitacaoController;
 use App\Http\Controllers\Settings\PasswordController as SettingsPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProcessoController;
+use App\Http\Controllers\RelatoriosController;
 use App\Models\User;
 
 
 
-// Rota pÃºblica para envio de solicitaÃ§Ã£o de acesso
+// Rota pública para envio de solicitação de acesso
 Route::post('/solicitar-acesso', [SolicitacaoController::class, 'store'])->name('solicitacoes.store');
 
-// Troca obrigatÃ³ria de senha (layout centrado)
+// Troca obrigatória de senha (layout centrado)
 Route::middleware(['auth'])->group(function () {
     Route::get('/trocar-senha', [SettingsPasswordController::class, 'first'])->name('password.force.edit');
     Route::post('/trocar-senha', [SettingsPasswordController::class, 'firstUpdate'])->name('password.force.update');
@@ -21,7 +22,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'force.password.change'])->group(function () {
 
-    // NavegaÃ§Ã£o principal (estrutura base)
+    // Navegação principal (estrutura base)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.base');
 
     Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
@@ -50,6 +51,15 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         return Inertia\Inertia::render('Auditoria/Index');
     })->name('auditoria.index');
 
+
+    Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
+    Route::get('/api/relatorios/total', [RelatoriosController::class, 'total']);
+
+// Rotas AJAX
+Route::get('/api/relatorios/status', [RelatoriosController::class, 'processosPorStatus']);
+Route::get('/api/relatorios/procurador', [RelatoriosController::class, 'processosPorProcurador']);
+Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
+
     // ========== ADMIN ==========
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
@@ -66,20 +76,19 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::post('cargos/editar', [AdminController::class, 'editarCargo'])->name('cargos.editar');
         Route::delete('cargos/excluir', [AdminController::class, 'excluirCargo'])->name('cargos.excluir');
 
-        // UsuÃ¡rios
+        // Usuários
         Route::get('usuarios', [AdminController::class, 'usuarios'])->name('usuarios');
         Route::post('usuarios/atualizar', [AdminController::class, 'atualizarUsuario'])->name('usuarios.atualizar');
         Route::post('usuarios/resetar-senha', [AdminController::class, 'resetarSenhaUsuario'])->name('usuarios.resetar-senha');
         Route::post('usuarios/desabilitar', [AdminController::class, 'desabilitarUsuario'])->name('usuarios.desabilitar');
         Route::post('usuarios/habilitar', [AdminController::class, 'habilitarUsuario'])->name('usuarios.habilitar');
 
-        // SolicitaÃ§Ãµes
+        // Solicitações
         Route::get('solicitacoes', [AdminController::class, 'solicitacoes'])->name('solicitacoes');
         Route::post('solicitacoes/aprovar', [AdminController::class, 'aprovarSolicitacao'])->name('solicitacoes.aprovar');
         Route::delete('solicitacoes/rejeitar', [AdminController::class, 'rejeitarSolicitacao'])->name('solicitacoes.rejeitar');
 
-        // ADICIONE AQUI ðŸ‘‡
-        // PermissÃµes
+        // Permissões
         Route::get('permissoes', [AdminController::class, 'permissoes'])->name('permissoes');
         Route::post('permissoes/criar', [AdminController::class, 'criarPermissao'])->name('permissoes.criar');
         Route::post('permissoes/editar', [AdminController::class, 'editarPermissao'])->name('permissoes.editar');
@@ -91,7 +100,7 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::post('regras/atualizar', [AdminController::class, 'atualizarRegra'])->name('regras.atualizar');
         Route::delete('regras/excluir', [AdminController::class, 'excluirRegra'])->name('regras.excluir');
     });
-    // ConfiguraÃ§Ãµes de senha (via layout do app)
+    // Configurações de senha (via layout do app)
     Route::get('/settings/password', [SettingsPasswordController::class, 'edit'])->name('settings.password.edit');
     Route::put('/settings/password', [SettingsPasswordController::class, 'update'])->name('settings.password.update');
 });
