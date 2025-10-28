@@ -5,9 +5,9 @@ import { Head, usePage, Link, router } from '@inertiajs/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, AlertTriangle } from 'lucide-react'
 
-type DashboardStats = {ativos: number; pendentes: number; vencidos: number; finalizados7d: number; finalizadosMes: number; ativos_hoje: number; ativos_48h: number}
+type DashboardStats = { ativos: number; pendentes: number; vencidos: number; finalizados7d: number; finalizadosMes: number; ativos_hoje: number; ativos_48h: number }
 type ProcessoResumo = { titulo: string; entidade?: string | null; responsavel?: string | null; vencimento?: string | null }
-type Capacidade = { sigla: string; nome: string; ativos: number; perc: number }
+type Capacidade = { sigla: string; nome: string; processos: number; perc: number }
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Dashboard', href: dashboard().url },
@@ -22,12 +22,18 @@ export default function Dashboard() {
     capView?: 'ativos' | 'pendentes' | 'vencidos' | 'encerrados' | 'ativos_hoje' | 'ativos_48h'
   }
 
-  const stats: DashboardStats = page.stats ?? { ativos: 0, vencidos: 0, finalizados7d: 0, pendentes: 0, ativos_hoje: 0, ativos_48h: 0, finalizadosMes: 0}
+  const stats: DashboardStats = page.stats ?? { ativos: 0, vencidos: 0, finalizados7d: 0, pendentes: 0, ativos_hoje: 0, ativos_48h: 0, finalizadosMes: 0 }
   const emAndamento: ProcessoResumo[] = page.emAndamento ?? []
   const capacidade: Capacidade[] = page.capacidade ?? []
-  const capView = page.capView ?? 'ativos'
+  const capView = page.capView ?? 'processos'
 
   const firstName = auth?.user?.name ? String(auth.user.name).split(' ')[0] : ''
+  const labelPorView: Record<string, string> = {
+    ativos: 'processos ativos',
+    pendentes: 'processos pendentes',
+    vencidos: 'processos vencidos',
+    encerrados: 'processos finalizados',
+  }
 
   return (
     <GPDLLayout breadcrumbs={breadcrumbs}>
@@ -44,7 +50,7 @@ export default function Dashboard() {
               {`Bem-vindo${firstName ? `, ${firstName}!` : '!'}`}
             </h1>
             <p className="text-white/85 mt-2 text-sm md:text-base">
-              Você tem {stats.ativos} processos ativos e 0 com risco elevado. Priorize os itens que vencem hoje.
+              Você tem {stats.ativos} processos ativos e {stats.ativos_hoje} com risco elevado. Priorize os itens que vencem hoje.
             </p>
           </div>
 
@@ -64,9 +70,9 @@ export default function Dashboard() {
               >
                 <div className="text-xs text-[var(--text-muted)] mb-2">Processos finalizados no mês</div>
                 <div className="text-3xl font-semibold text-white">{stats.finalizadosMes}</div>
-<div className="mt-1 text-xs text-white/80">
-  +{stats.finalizados7d} nos últimos 7 dias
-</div>
+                <div className="mt-1 text-xs text-white/80">
+                  +{stats.finalizados7d} nos últimos 7 dias
+                </div>
                 <div className="mt-2 text-xs">
                   <Link className="gpdl-link" href="/relatorios" onClick={(e) => e.stopPropagation()}>
                     Ver relatório
@@ -75,10 +81,10 @@ export default function Dashboard() {
               </div>
               <Link href="/processos?view=pendentes" className="gpdl-review-callout">
                 <div className="text-sm font-medium">
-  {stats.pendentes > 0
-    ? `${stats.pendentes} processo${stats.pendentes !== 1 ? 's' : ''} aguardam sua revisão.`
-    : 'Nenhum processo pendente no momento.'}
-</div>
+                  {stats.pendentes > 0
+                    ? `${stats.pendentes} processo${stats.pendentes !== 1 ? 's' : ''} aguardam sua revisão.`
+                    : 'Nenhum processo pendente de ciência no momento.'}
+                </div>
                 <span className="text-[0.72rem] font-semibold">ABRIR FILA</span>
               </Link>
             </div>
@@ -96,8 +102,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <p className="metric-trend">
-  Hoje: {stats.ativos_hoje ?? 0} | 48h: {stats.ativos_48h ?? 0}
-</p>
+              Hoje: {stats.ativos_hoje ?? 0} | 48h: {stats.ativos_48h ?? 0}
+            </p>
             <div className="mt-2">
               <span className="metric-link blue"><LineChart className="h-4 w-4" /> Ver lista</span>
             </div>
@@ -112,9 +118,9 @@ export default function Dashboard() {
             <AlertTriangle className="metric-icon text-[var(--danger-500)] h-4 w-4" />
           </CardHeader>
           <CardContent>
-<div className="mt-2">
-  <span className="metric-link red"><AlertTriangle className="h-4 w-4" /> Monitorar itens críticos</span>
-</div>
+            <div className="mt-2">
+              <span className="metric-link red"><AlertTriangle className="h-4 w-4" /> Monitorar itens críticos</span>
+            </div>
           </CardContent>
           <Link href="/processos?view=vencidos" aria-label="Ver processos vencidos" className="absolute inset-0" />
         </Card>
@@ -183,6 +189,7 @@ export default function Dashboard() {
             {capacidade.length === 0 && (
               <div className="text-sm text-[var(--text-muted)]">Sem dados disponíveis.</div>
             )}
+
             {capacidade.map((p, idx) => (
               <div key={idx} className="rounded-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)]/80 p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -192,7 +199,9 @@ export default function Dashboard() {
                     </div>
                     <div className="text-sm text-white/90">
                       <div className="font-medium">{p.nome}</div>
-                      <div className="text-[var(--text-muted)] text-xs">{p.ativos} processos ativos</div>
+                      <div className="text-[var(--text-muted)] text-xs">
+                        {p.processos} {labelPorView[capView] || 'processos'}
+                      </div>
                     </div>
                   </div>
                   <div className="text-xs text-white/70">{p.perc}%</div>

@@ -23,6 +23,10 @@ use App\Http\Controllers\RelatoriosController;
 // Rota pública para envio de solicitação de acesso
 Route::post('/solicitar-acesso', [SolicitarController::class, 'store'])->name('solicitacoes.store');
 
+
+Route::get('/', function () {
+    return redirect('/login');
+});
 // Troca obrigatória de senha (layout centrado)
 Route::middleware(['auth'])->group(function () {
     Route::get('/trocar-senha', [SettingsPasswordController::class, 'first'])->name('password.force.edit');
