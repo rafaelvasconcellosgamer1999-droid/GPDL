@@ -453,25 +453,24 @@ export default function Regras({
                                                                         'N/A'}
                                                                 </span>
                                                                 <span
-                                                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                                        regra
+                                                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${regra
                                                                             .scope
                                                                             ?.nome ===
-                                                                        'own'
+                                                                            'own'
                                                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                                                             : regra.scope?.nome
-                                                                                    ?.toLowerCase()
-                                                                                    .includes(
-                                                                                        'sector',
-                                                                                    ) ||
+                                                                                ?.toLowerCase()
+                                                                                .includes(
+                                                                                    'sector',
+                                                                                ) ||
                                                                                 regra.scope?.nome
                                                                                     ?.toLowerCase()
                                                                                     .includes(
                                                                                         'setor',
                                                                                     )
-                                                                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                                              : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
-                                                                    }`}
+                                                                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                                                : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                                                                        }`}
                                                                 >
                                                                     Scope:{' '}
                                                                     {regra.scope
@@ -491,14 +490,14 @@ export default function Regras({
                                                             </div>
                                                             {regra.permissao
                                                                 ?.descricao && (
-                                                                <p className="mt-2 text-sm text-[var(--text-muted)]">
-                                                                    {
-                                                                        regra
-                                                                            .permissao
-                                                                            .descricao
-                                                                    }
-                                                                </p>
-                                                            )}
+                                                                    <p className="mt-2 text-sm text-[var(--text-muted)]">
+                                                                        {
+                                                                            regra
+                                                                                .permissao
+                                                                                .descricao
+                                                                        }
+                                                                    </p>
+                                                                )}
                                                         </div>
                                                         <div className="ml-4 flex gap-2">
                                                             <button
@@ -554,8 +553,13 @@ export default function Regras({
 
             {/* Modal */}
             {showModal && (
-                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
-                    <div className="w-full max-w-md rounded-lg bg-[var(--surface-card)] shadow-xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={closeModal} />
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+                    >
                         <div className="flex items-center justify-between border-b border-[var(--gpdl-border)] p-6">
                             <h3 className="text-xl font-semibold text-[var(--text-strong)]">
                                 {editingRegra ? 'Editar Regra' : 'Nova Regra'}
@@ -796,6 +800,13 @@ export default function Regras({
                     </div>
                 </div>
             )}
+            {/* animações mínimas (Tailwind inline) */}
+            <style>{`
+        .animate-fadeIn { animation: fadeIn .2s ease-out; }
+        .animate-scaleIn { animation: scaleIn .18s ease-out; }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: scale(1) } }
+      `}</style>
         </GPDLLayout>
     );
 }

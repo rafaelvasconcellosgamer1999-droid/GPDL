@@ -222,8 +222,13 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
 
             {/* Modal de Aprovação */}
             {showModal && selectedSolicitacao && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={closeModal} />
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+                    >
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
                             <h3 className="text-xl font-semibold text-[var(--text-strong)]">
                                 Aprovar Solicitação
@@ -382,6 +387,13 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                     </div>
                 </div>
             )}
+            {/* animações mínimas (Tailwind inline) */}
+      <style>{`
+        .animate-fadeIn { animation: fadeIn .2s ease-out; }
+        .animate-scaleIn { animation: scaleIn .18s ease-out; }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: scale(1) } }
+      `}</style>
         </GPDLLayout>
     );
 }

@@ -122,19 +122,19 @@ export default function Cargos({ cargos }: Props) {
                     {/* Header */}
                     <div className="mb-6">
                         <div className="flex items-center justify-between gap-4">
-                                <div>
-                            <h1 className="text-2xl font-bold text-[var(--text-strong)]">Cargos</h1>
-                            <p className="text-sm text-[var(--text-muted)] mt-1">Gerencie os cargos do sistema</p>
-                        </div>
-                        <button
-                            onClick={openCreateModal}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] transition"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Novo cargo
-                        </button>
+                            <div>
+                                <h1 className="text-2xl font-bold text-[var(--text-strong)]">Cargos</h1>
+                                <p className="text-sm text-[var(--text-muted)] mt-1">Gerencie os cargos do sistema</p>
+                            </div>
+                            <button
+                                onClick={openCreateModal}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] transition"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Novo cargo
+                            </button>
                         </div>
                     </div>
 
@@ -292,8 +292,13 @@ export default function Cargos({ cargos }: Props) {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
+                <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={closeModal} />
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+                    >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
                             <h3 className="text-xl font-semibold text-[var(--text-strong)]">
@@ -301,7 +306,8 @@ export default function Cargos({ cargos }: Props) {
                             </h3>
                             <button
                                 onClick={closeModal}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                className="p-2 rounded-lg hover:bg-[var(--surface-muted)] text-[var(--text-muted)]"
+                                title="Fechar"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -336,23 +342,30 @@ export default function Cargos({ cargos }: Props) {
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-[var(--text-strong)] bg-[var(--surface-muted)] rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                    className="px-4 py-2 rounded-lg bg-[var(--surface-muted)] text-[var(--text-strong)] hover:opacity-90 transition"
                                     disabled={processing}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] disabled:opacity-50 transition"
+                                    className="px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] disabled:opacity-50 transition"
                                     disabled={processing}
                                 >
-                                    {processing ? 'Salvando...' : 'Salvar'}
+                                    {processing ? 'Salvando…' : 'Salvar'}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+            {/* animações mínimas (Tailwind inline) */}
+      <style>{`
+        .animate-fadeIn { animation: fadeIn .2s ease-out; }
+        .animate-scaleIn { animation: scaleIn .18s ease-out; }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: scale(1) } }
+      `}</style>
         </GPDLLayout>
     );
 }
