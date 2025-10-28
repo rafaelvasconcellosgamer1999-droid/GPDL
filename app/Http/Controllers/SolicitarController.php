@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Solicitacao;
 
-class SolicitacaoController extends Controller
+class SolicitarController extends Controller
 {
     /**
      * Recebe solicitações de acesso a partir da tela de login.

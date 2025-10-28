@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SetorController;
 use App\Http\Controllers\Admin\CargoController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\SolicitacaoController;
+use App\Http\Controllers\SolicitarController;
 use App\Http\Controllers\Admin\PermissaoController;
 use App\Http\Controllers\Admin\RegraController;
 
@@ -20,7 +21,7 @@ use App\Http\Controllers\RelatoriosController;
 
 
 // Rota pública para envio de solicitação de acesso
-Route::post('/solicitar-acesso', [SolicitacaoController::class, 'store'])->name('solicitacoes.store');
+Route::post('/solicitar-acesso', [SolicitarController::class, 'store'])->name('solicitacoes.store');
 
 // Troca obrigatória de senha (layout centrado)
 Route::middleware(['auth'])->group(function () {
@@ -96,10 +97,11 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
 
         // Usuários
         Route::get('usuarios', [UsuarioController::class, 'index'])->name('usuarios');
-        Route::post('usuarios/atualizar', [UsuarioController::class, 'atualizarUsuario'])->name('usuarios.atualizar');
-        Route::post('usuarios/resetar-senha', [UsuarioController::class, 'resetarSenhaUsuario'])->name('usuarios.resetar-senha');
-        Route::post('usuarios/desabilitar', [UsuarioController::class, 'desabilitarUsuario'])->name('usuarios.desabilitar');
-        Route::post('usuarios/habilitar', [UsuarioController::class, 'habilitarUsuario'])->name('usuarios.habilitar');
+        Route::post('usuarios/atualizar', [UsuarioController::class, 'atualizar'])->name('usuarios.atualizar');
+        Route::post('usuarios/resetar-senha', [UsuarioController::class, 'resetarSenha'])->name('usuarios.resetar-senha');
+        Route::post('usuarios/desabilitar', [UsuarioController::class, 'desabilitar'])->name('usuarios.desabilitar');
+        Route::post('usuarios/habilitar', [UsuarioController::class, 'habilitar'])->name('usuarios.habilitar');
+        Route::delete('usuarios/excluir', [UsuarioController::class, 'excluir'])->name('usuarios.excluir');
 
         // Solicitações
         Route::get('solicitacoes', [SolicitacaoController::class, 'index'])->name('solicitacoes');

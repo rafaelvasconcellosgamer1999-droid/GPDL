@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import AuthLayout from '@/layouts/auth-layout'
 import * as React from 'react'
-import { register } from '@/routes'
 import { store } from '@/routes/login'
 import { request } from '@/routes/password'
 import { Form, Head } from '@inertiajs/react'
@@ -20,7 +19,7 @@ interface LoginProps {
   canRegister: boolean
 }
 
-export default function Login({ status, canResetPassword, canRegister }: LoginProps) {
+export default function Login({ status, canResetPassword, /*canRegister*/ }: LoginProps) {
   const [view, setView] = React.useState<'login' | 'request'>('login')
   const [showPassword, setShowPassword] = React.useState(false)
 

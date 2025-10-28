@@ -41,8 +41,8 @@ class User extends Authenticatable
         'precisa_trocar_senha' => 'boolean',
     ];
 
-    // Garanta que o atributo computado "name" seja serializado para o frontend (Inertia)
-    protected $appends = ['name'];
+    // Garanta que os atributos computados sejam serializados para o frontend (Inertia)
+    protected $appends = ['name', 'ativo'];
 
     // IMPORTANTE: Laravel usa 'password', mas seu banco usa 'senha'
     public function getAuthPassword()
@@ -54,6 +54,18 @@ class User extends Authenticatable
     public function getNameAttribute()
     {
         return $this->nome;
+    }
+
+    // Accessor para mapear 'status' -> 'ativo' no frontend
+    public function getAtivoAttribute()
+    {
+        return (bool) $this->status;
+    }
+
+    // Mutator para mapear 'ativo' -> 'status' quando receber do frontend
+    public function setAtivoAttribute($value)
+    {
+        $this->attributes['status'] = $value ? 1 : 0;
     }
 
     // Relationships
@@ -71,5 +83,10 @@ class User extends Authenticatable
     public function scopeAtivos($query)
     {
         return $query->where('status', 1);
+    }
+
+    public function scopeInativos($query)
+    {
+        return $query->where('status', 0);
     }
 }
