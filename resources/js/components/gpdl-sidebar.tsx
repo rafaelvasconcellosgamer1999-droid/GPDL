@@ -88,58 +88,63 @@ export function GpdlSidebar({ className }: Props) {
 
   return (
     <motion.aside
-  data-sidebar={collapsed ? 'collapsed' : 'expanded'}
-  animate={{ width: collapsed ? 80 : 260 }}
-  transition={{ type: 'spring', stiffness: 130, damping: 18 }}
-  className={clsx(
-    // ⚙️ Base
-    'fixed left-0 top-0 bottom-0 z-40 flex flex-col h-screen',
-    'bg-[var(--gpdl-sidebar)] border-r border-white/10 shadow-lg',
-    'overflow-hidden overflow-x-hidden', // 🚫 impede scroll lateral
-    'gpdl-shell-sidebar',
-    className
-  )}
->
-     {/* HEADER */}
-<SidebarHeader className="border-b border-white/10 px-3 py-4 flex items-center justify-between gap-2">
-  <SidebarMenu>
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        size="lg"
-        asChild
-        className="hover:bg-white/10"
-      >
-        <Link href={dashboard()} prefetch>
-          <div className="flex items-center gap-3">
-            {/* Ícone agora também colapsa */}
-            <div
-              className="brand-icon cursor-pointer active:scale-95 transition-transform"
-              onClick={(e) => {
-                e.preventDefault() // Evita abrir o link
-                setCollapsed((c) => !c)
-              }}
-              title={collapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+      data-sidebar={collapsed ? 'collapsed' : 'expanded'}
+      animate={{ width: collapsed ? 80 : 260 }}
+      transition={{ type: 'spring', stiffness: 130, damping: 18 }}
+      className={clsx(
+        // ⚙️ Base
+        'fixed left-0 top-0 bottom-0 z-40 flex flex-col h-screen',
+        'bg-[var(--gpdl-sidebar)] border-r border-white/10 shadow-lg',
+        'overflow-hidden overflow-x-hidden', // 🚫 impede scroll lateral
+        'gpdl-shell-sidebar',
+        className
+      )}
+    >
+      {/* HEADER */}
+      <SidebarHeader className="border-b border-white/10 px-3 py-4 flex items-center justify-between gap-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              className="hover:bg-white/10"
             >
-              <LayoutDashboard className="h-5 w-5" />
-            </div>
+              <Link href={dashboard()} prefetch>
+                <div className="flex items-center gap-3">
+                  {/* Ícone agora também colapsa */}
+                  <div
+                    className="brand-icon cursor-pointer active:scale-95 transition-transform"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setCollapsed((c) => {
+                        const newState = !c
+                        localStorage.setItem('gpdl_sidebar_collapsed', String(newState))
+                        window.dispatchEvent(new Event('sidebar:toggle')) // 🔔 notifica o layout
+                        return newState
+                      })
+                    }}
+                    title={collapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                  </div>
 
-            {/* Texto só aparece se não estiver colapsado */}
-            {!collapsed && (
-              <div className="brand-copy select-none">
-                <span className="text-xs text-white/70 uppercase tracking-wider">
-                  Gerenciador
-                </span>
-                <strong className="text-white font-semibold">Processos</strong>
-              </div>
-            )}
-          </div>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  </SidebarMenu>
+                  {/* Texto só aparece se não estiver colapsado */}
+                  {!collapsed && (
+                    <div className="brand-copy select-none">
+                      <span className="text-xs text-white/70 uppercase tracking-wider">
+                        Gerenciador
+                      </span>
+                      <strong className="text-white font-semibold">Processos</strong>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
 
-  {/* ❌ Botão da seta removido completamente */}
-</SidebarHeader>
+        {/* ❌ Botão da seta removido completamente */}
+      </SidebarHeader>
 
       {/* CONTENT */}
       <SidebarContent className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-3 py-4">
@@ -159,96 +164,96 @@ export function GpdlSidebar({ className }: Props) {
           {can('view_process') && (
             <div>
               <button
-    onClick={() => setOpenProcessos((v) => !v)}
-    className={clsx(
-      'nav-link relative w-full',
-      openProcessos && 'is-active'
-    )}
-    aria-expanded={openProcessos}
-  >
-    <FileText className="h-4 w-4 shrink-0" />
-    {!collapsed && (
-      <>
-        <span className="flex-1 text-left">Processos</span>
-        <motion.svg
-          animate={{ rotate: openProcessos ? 180 : 0 }}
-          transition={{ duration: 0.25 }}
-          className="caret h-4 w-4 text-white/70 absolute right-3 top-1/2 -translate-y-1/2"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </motion.svg>
-      </>
-    )}
-  </button>
+                onClick={() => setOpenProcessos((v) => !v)}
+                className={clsx(
+                  'nav-link relative w-full',
+                  openProcessos && 'is-active'
+                )}
+                aria-expanded={openProcessos}
+              >
+                <FileText className="h-4 w-4 shrink-0" />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-left">Processos</span>
+                    <motion.svg
+                      animate={{ rotate: openProcessos ? 180 : 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="caret h-4 w-4 text-white/70 absolute right-3 top-1/2 -translate-y-1/2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </motion.svg>
+                  </>
+                )}
+              </button>
 
               <AnimatePresence initial={false}>
-  {openProcessos && (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="nav-sub"
-      data-state="open"
-    >
-        {/* ✅ NOVA OPÇÃO DE CADASTRO */}
-      {can('create_process', ['all', 'sector']) && (
-        <Link
-          href="/processos?view=cadastro"
-          className={clsx('nav-link', isActive('processos', 'cadastro') && 'is-active')}
-        >
-          <Plus className="h-4 w-4" />
+                {openProcessos && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="nav-sub"
+                    data-state="open"
+                  >
+                    {/* ✅ NOVA OPÇÃO DE CADASTRO */}
+                    {can('create_process', ['all', 'sector']) && (
+                      <Link
+                        href="/processos?view=cadastro"
+                        className={clsx('nav-link', isActive('processos', 'cadastro') && 'is-active')}
+                      >
+                        <Plus className="h-4 w-4" />
 
-          {!collapsed && <span>Cadastro</span>}
-        </Link>
-      )}      <Link
-        href="/processos?view=ativos"
-        className={clsx('nav-link', isActive('processos', 'ativos') && 'is-active')}
-      >
-        <FileText className="h-4 w-4" />
-        {!collapsed && <span>Ativos</span>}
-      </Link>
+                        {!collapsed && <span>Cadastro</span>}
+                      </Link>
+                    )}      <Link
+                      href="/processos?view=ativos"
+                      className={clsx('nav-link', isActive('processos', 'ativos') && 'is-active')}
+                    >
+                      <FileText className="h-4 w-4" />
+                      {!collapsed && <span>Ativos</span>}
+                    </Link>
 
-      <Link
-        href="/processos?view=pendentes"
-        className={clsx('nav-link', isActive('processos', 'pendentes') && 'is-active')}
-      >
-        <TriangleAlert className="h-4 w-4" />
-        {!collapsed && <span>Pendentes</span>}
-      </Link>
+                    <Link
+                      href="/processos?view=pendentes"
+                      className={clsx('nav-link', isActive('processos', 'pendentes') && 'is-active')}
+                    >
+                      <TriangleAlert className="h-4 w-4" />
+                      {!collapsed && <span>Pendentes</span>}
+                    </Link>
 
-      <Link
-        href="/processos?view=vencidos"
-        className={clsx('nav-link', isActive('processos', 'vencidos') && 'is-active')}
-      >
-        <TriangleAlert className="h-4 w-4" />
-        {!collapsed && <span>Vencidos</span>}
-      </Link>
+                    <Link
+                      href="/processos?view=vencidos"
+                      className={clsx('nav-link', isActive('processos', 'vencidos') && 'is-active')}
+                    >
+                      <TriangleAlert className="h-4 w-4" />
+                      {!collapsed && <span>Vencidos</span>}
+                    </Link>
 
-      <Link
-        href="/processos?view=encerrados"
-        className={clsx('nav-link', isActive('processos', 'encerrados') && 'is-active')}
-      >
-        
-        <Lock className="h-4 w-4" />
-        {!collapsed && <span>Finalizados</span>}
-      </Link>
-      {can('edit_process', ['sector', 'all']) && (
-  <Link
-    href="/processos?view=distribuicao"
-    className={clsx('nav-link', isActive('processos', 'distribuicao') && 'is-active')}
-  >
-    <Share2 className="h-4 w-4" />
-    {!collapsed && <span>Distribuição</span>}
-  </Link>
-)}
-      
-    </motion.div>
-  )}
-</AnimatePresence>
+                    <Link
+                      href="/processos?view=encerrados"
+                      className={clsx('nav-link', isActive('processos', 'encerrados') && 'is-active')}
+                    >
+
+                      <Lock className="h-4 w-4" />
+                      {!collapsed && <span>Finalizados</span>}
+                    </Link>
+                    {can('edit_process', ['sector', 'all']) && (
+                      <Link
+                        href="/processos?view=distribuicao"
+                        className={clsx('nav-link', isActive('processos', 'distribuicao') && 'is-active')}
+                      >
+                        <Share2 className="h-4 w-4" />
+                        {!collapsed && <span>Distribuição</span>}
+                      </Link>
+                    )}
+
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
             </div>
           )}
