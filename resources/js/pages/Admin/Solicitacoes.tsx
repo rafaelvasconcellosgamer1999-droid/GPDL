@@ -140,7 +140,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                     {solicitacoes.map((solicitacao) => (
                                         <div
                                             key={solicitacao.id}
-                                            className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                                            className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-shadow hover:shadow-lg"
                                         >
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
@@ -193,7 +193,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                 <div className="flex flex-col gap-2 ml-4">
                                                     <button
                                                         onClick={() => openApproveModal(solicitacao)}
-                                                        className="px-4 py-2 bg-[var(--success-500)] text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
+                                                        className="px-4 py-2 bg-[var(--success-500)] text-white rounded-lg hover:bg-green-600 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -202,7 +202,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
                                                     </button>
                                                     <button
                                                         onClick={() => rejectSolicitacao(solicitacao.id, solicitacao.nome)}
-                                                        className="px-4 py-2 bg-[var(--danger-500)] text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 whitespace-nowrap"
+                                                        className="px-4 py-2 bg-[var(--danger-500)] text-white rounded-lg hover:bg-red-600 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

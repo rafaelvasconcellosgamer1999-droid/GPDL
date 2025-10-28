@@ -2,346 +2,293 @@ import GPDLLayout from '@/layouts/gpdl-layout';
 import { type BreadcrumbItem } from '@/types';
 import { AdminTabs } from '@/components/admin-tabs';
 import { Head, useForm, router } from '@inertiajs/react';
-import { useState, FormEventHandler } from 'react';
+import { useState, useMemo, FormEventHandler } from 'react';
 
 interface Permissao {
-    id: number;
-    nome: string;
-    descricao: string;
+  id: number;
+  nome: string;
+  descricao: string;
 }
 
 interface Props {
-    permissoes: Permissao[];
+  permissoes: Permissao[];
 }
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Admin', href: '/admin' }, { title: 'Permisses', href: '/admin/permissoes' }];
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Admin', href: '/admin' },
+  { title: 'Permissões', href: '/admin/permissoes' },
+];
+
 export default function Permissoes({ permissoes }: Props) {
-    const [showModal, setShowModal] = useState(false);
-    const [editingPermissao, setEditingPermissao] = useState<Permissao | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingPermissao, setEditingPermissao] = useState<Permissao | null>(null);
+  const [query, setQuery] = useState('');
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        id: 0,
-        nome: '',
-        descricao: '',
+  const { data, setData, post, processing, errors, reset } = useForm({
+    id: 0,
+    nome: '',
+    descricao: '',
+  });
+
+  const openCreateModal = () => {
+    reset();
+    setEditingPermissao(null);
+    setShowModal(true);
+  };
+
+  const openEditModal = (permissao: Permissao) => {
+    setEditingPermissao(permissao);
+    setData({
+      id: permissao.id,
+      nome: permissao.nome,
+      descricao: permissao.descricao || '',
     });
+    setShowModal(true);
+  };
 
-    const openCreateModal = () => {
-        reset();
-        setEditingPermissao(null);
-        setShowModal(true);
-    };
+  const closeModal = () => {
+    setShowModal(false);
+    reset();
+    setEditingPermissao(null);
+  };
 
-    const openEditModal = (permissao: Permissao) => {
-        setEditingPermissao(permissao);
-        setData({
-            id: permissao.id,
-            nome: permissao.nome,
-            descricao: permissao.descricao || '',
-        });
-        setShowModal(true);
-    };
+  const submit: FormEventHandler = (e) => {
+    e.preventDefault();
+    post(editingPermissao ? 'permissoes/editar' : 'permissoes/criar', {
+      preserveScroll: true,
+      onSuccess: () => closeModal(),
+    });
+  };
 
-    const closeModal = () => {
-        setShowModal(false);
-        reset();
-        setEditingPermissao(null);
-    };
+  const deletePermissao = (id: number, nome: string) => {
+  if (confirm(`Deseja realmente excluir a permissão "${nome}"?`)) {
+    router.delete(`/admin/permissoes/${id}`, { preserveScroll: true });
+  }
+};
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
+  // 🔍 Filtro local
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return permissoes
+      .filter((p) => !q || p.nome.toLowerCase().includes(q) || p.descricao?.toLowerCase().includes(q))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [permissoes, query]);
 
-        if (editingPermissao) {
-            post('/admin/permissoes/editar', {
-                preserveScroll: true,
-                onSuccess: () => closeModal(),
-            });
-        } else {
-            post('/admin/permissoes/criar', {
-                preserveScroll: true,
-                onSuccess: () => closeModal(),
-            });
-        }
-    };
+  return (
+    <GPDLLayout breadcrumbs={breadcrumbs}>
+      <AdminTabs />
+      <Head title="Permissões - GPDL" />
 
-    const deletePermissao = (id: number, nome: string) => {
-        if (confirm(`Deseja realmente excluir a permissão "${nome}"?\n\nAtenção: Todas as regras vinculadas a esta permissão serão removidas!`)) {
-            router.delete('/admin/permissoes/excluir', {
-                data: { id },
-                preserveScroll: true,
-            });
-        }
-    };
-
-    // Sugestões de permissões comuns
-    const permissoesSugeridas = [
-        { nome: 'view_dashboard', descricao: 'Visualizar dashboard' },
-        { nome: 'view_process', descricao: 'Visualizar processos' },
-        { nome: 'create_process', descricao: 'Criar processos' },
-        { nome: 'edit_process', descricao: 'Editar processos' },
-        { nome: 'delete_process', descricao: 'Excluir processos' },
-        { nome: 'finalize_process', descricao: 'Finalizar processos' },
-        { nome: 'import_process', descricao: 'Importar processos em lote' },
-        { nome: 'export_process', descricao: 'Exportar processos' },
-        { nome: 'view_reports', descricao: 'Visualizar relatórios' },
-        { nome: 'view_admin', descricao: 'Acessar painel administrativo' },
-        { nome: 'manage_users', descricao: 'Gerenciar usuários' },
-        { nome: 'manage_permissions', descricao: 'Gerenciar permissões' },
-        { nome: 'manage_rules', descricao: 'Gerenciar regras' },
-    ];
-
-    const usarSugestao = (sugestao: { nome: string; descricao: string }) => {
-        setData({
-            id: 0,
-            nome: sugestao.nome,
-            descricao: sugestao.descricao,
-        });
-    };
-
-    return (
-        <GPDLLayout breadcrumbs={breadcrumbs}>
-            <AdminTabs />
-            <Head title="Permissões" />
-
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-[var(--text-strong)]">
-                                Permissões
-                            </h1>
-                            <p className="text-sm text-[var(--text-muted)] mt-1">
-                                Gerencie as permissões disponíveis no sistema
-                            </p>
-                        </div>
-                        <button
-                            onClick={openCreateModal}
-                            className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] transition flex items-center gap-2"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Nova permissão
-                        </button>
-                    </div>
-
-                    {/* Info Box */}
-                    <div className="mb-6 bg-[var(--accent-info-soft)] border border-[var(--accent-info-border)] rounded-lg p-4">
-                        <div className="flex">
-                            <svg className="w-5 h-5 text-[var(--accent-info)] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                            <div className="flex-1">
-                                <p className="text-sm text-blue-800 dark:text-blue-200">
-                                    <strong>Como funciona:</strong> As permissões definem o que um usuário pode fazer no sistema. 
-                                    Depois de criar as permissões, você as vincula aos cargos através das <strong>Regras</strong>, 
-                                    especificando também o <strong>escopo</strong> (próprio/setor/todos).
-                                </p>
-                                <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
-                                    Exemplo: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">view_process</code> permite visualizar processos
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Tabela */}
-                    <div className="bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6">
-                            <h2 className="text-lg font-semibold text-[var(--text-strong)] mb-4">
-                                Permissões cadastradas
-                            </h2>
-
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
-                                    <thead>
-                                        <tr className="bg-[var(--surface-muted)]">
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
-                                                ID
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
-                                                Nome (Código)
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
-                                                Descrição
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
-                                                Ações
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--gpdl-border)]">
-                                        {permissoes.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="px-6 py-12 text-center">
-                                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                    </svg>
-                                                    <h3 className="mt-2 text-sm font-medium text-[var(--text-strong)]">
-                                                        Nenhuma permissão cadastrada
-                                                    </h3>
-                                                    <p className="mt-1 text-sm text-[var(--text-muted)]">
-                                                        Comece criando uma nova permissão.
-                                                    </p>
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            permissoes.map((permissao) => (
-                                                <tr key={permissao.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-strong)]">
-                                                        {permissao.id}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm">
-                                                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-[var(--accent-info)] rounded font-mono text-xs">
-                                                            {permissao.nome}
-                                                        </code>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm text-[var(--text-strong)]">
-                                                        {permissao.descricao || '-'}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
-                                                        <button
-                                                            onClick={() => openEditModal(permissao)}
-                                                            className=\"text-[var(--brand-600)] hover:opacity-80 inline-flex items-center\"
-                                                        >
-                                                            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                            </svg>
-                                                            Editar
-                                                        </button>
-                                                        <button
-                                                            onClick={() => deletePermissao(permissao.id, permissao.nome)}
-                                                            className=\"text-[var(--danger-500)] hover:opacity-80 inline-flex items-center\"
-                                                        >
-                                                            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                            Excluir
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="mt-4 text-center text-sm text-[var(--text-muted)]">
-                                Página 1 de 1 • {permissoes.length} {permissoes.length === 1 ? 'permissão' : 'permissões'}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <div className="py-8">
+        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-[var(--text-strong)]">Permissões</h1>
+                <p className="text-sm text-[var(--text-muted)] mt-1">
+                  Crie, edite e remova permissões do sistema.
+                </p>
+              </div>
+              <button
+                onClick={openCreateModal}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand-700)] text-white shadow-sm hover:bg-[var(--brand-600)] active:scale-[0.99] transition"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Nova permissão
+              </button>
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        {/* Header do Modal */}
-                        <div className="flex items-center justify-between p-6 border-b dark:border-gray-700 sticky top-0 bg-[var(--surface-card)]">
-                            <h3 className="text-xl font-semibold text-[var(--text-strong)]">
-                                {editingPermissao ? 'Editar Permissão' : 'Nova Permissão'}
-                            </h3>
-                            <button
-                                onClick={closeModal}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+            {/* Barra de busca */}
+            <div className="mt-4 mb-6 flex items-center gap-2">
+              <div className="relative">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar por nome ou descrição..."
+                  className="w-80 pl-9 pr-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                />
+                <svg
+                  className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabela */}
+          <div className="mt-6 bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-xl border border-[var(--gpdl-border)]">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-[var(--surface-muted)] sticky top-0 z-10">
+                  <tr className="[&>th]:px-6 [&>th]:py-3 [&>th]:text-left [&>th]:text-[11px] [&>th]:font-semibold [&>th]:tracking-wider [&>th]:uppercase [&>th]:text-[var(--text-muted)]">
+                    <th>ID</th>
+                    <th>Nome (código)</th>
+                    <th>Descrição</th>
+                    <th className="text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--gpdl-border)]">
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12">
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <svg className="w-10 h-10 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          <p className="mt-2 text-[var(--text-muted)]">
+                            Nenhuma permissão encontrada.
+                          </p>
                         </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((permissao, idx) => (
+                      <tr
+                        key={permissao.id}
+                        className={idx % 2 === 1 ? 'bg-[color:var(--surface-main)/0.35]' : undefined}
+                      >
+                        <td className="px-6 py-3 text-[var(--text-strong)]">{permissao.id}</td>
+                        <td className="px-6 py-3 font-mono text-[var(--accent-info)]">{permissao.nome}</td>
+                        <td className="px-6 py-3 text-[var(--text-strong)]">
+                          {permissao.descricao || <span className="text-[var(--text-muted)]">—</span>}
+                        </td>
+                        <td className="px-6 py-3 whitespace-nowrap text-right">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEditModal(permissao)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[var(--gpdl-border)] hover:bg-[var(--surface-muted)] text-[var(--text-strong)] transition"
+                              title="Editar permissão"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              <span className="hidden sm:inline">Editar</span>
+                            </button>
+                            <button
+                              onClick={() => deletePermissao(permissao.id, permissao.nome)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-300/60 text-[var(--danger-500)] hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                              title="Excluir permissão"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              <span className="hidden sm:inline">Excluir</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-                        {/* Corpo do Modal */}
-                        <form onSubmit={submit}>
-                            <div className="p-6 space-y-4">
-                                {/* Nome (Código) */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Nome (Código) *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.nome}
-                                        onChange={(e) => setData('nome', e.target.value.toLowerCase().replace(/\s+/g, '_'))}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-                                        placeholder="Ex: view_dashboard, manage_users"
-                                        required
-                                    />
-                                    {errors.nome && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nome}</p>
-                                    )}
-                                    <p className="mt-1 text-xs text-[var(--text-muted)]">
-                                        Use snake_case (minúsculas com underline). Ex: view_process, create_user
-                                    </p>
-                                </div>
+            {/* Rodapé */}
+            <div className="px-6 py-4 border-t border-[var(--gpdl-border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+              <span>Mostrando {filtered.length} de {permissoes.length}</span>
+              <span>Página 1 de 1</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                                {/* Descrição */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Descrição
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.descricao}
-                                        onChange={(e) => setData('descricao', e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Ex: Permite visualizar o dashboard"
-                                    />
-                                    {errors.descricao && (
-                                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.descricao}</p>
-                                    )}
-                                </div>
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={closeModal} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+          >
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-[var(--text-strong)]">
+                {editingPermissao ? 'Editar permissão' : 'Nova permissão'}
+              </h3>
+              <button
+                onClick={closeModal}
+                className="p-2 rounded-lg hover:bg-[var(--surface-muted)] text-[var(--text-muted)]"
+                title="Fechar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-                                {/* Sugestões */}
-                                {!editingPermissao && (
-                                    <div className="border-t dark:border-gray-700 pt-4">
-                                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                            📌 Sugestões de permissões comuns:
-                                        </h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                                            {permissoesSugeridas.map((sugestao, index) => (
-                                                <button
-                                                    key={index}
-                                                    type="button"
-                                                    onClick={() => usarSugestao(sugestao)}
-                                                    className="text-left p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition"
-                                                >
-                                                    <code className="text-xs text-[var(--accent-info)] font-mono block">
-                                                        {sugestao.nome}
-                                                    </code>
-                                                    <p className="text-xs text-[var(--text-muted)] mt-1">
-                                                        {sugestao.descricao}
-                                                    </p>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Footer do Modal */}
-                            <div className="flex items-center justify-end gap-3 p-6 border-t dark:border-gray-700 bg-[var(--surface-muted)]">
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition"
-                                    disabled={processing}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] transition disabled:opacity-50"
-                                    disabled={processing}
-                                >
-                                    {processing ? 'Salvando...' : 'Salvar'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+            <form onSubmit={submit}>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
+                    Nome (código) <span className="text-[var(--danger-500)]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={data.nome}
+                    onChange={(e) => setData('nome', e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)] font-mono"
+                    placeholder="Ex: view_dashboard"
+                    required
+                    autoFocus
+                  />
+                  {errors.nome && (
+                    <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.nome}</p>
+                  )}
                 </div>
-            )}
-        </GPDLLayout>
-    );
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
+                    Descrição
+                  </label>
+                  <input
+                    type="text"
+                    value={data.descricao}
+                    onChange={(e) => setData('descricao', e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    placeholder="Ex: Permite visualizar o dashboard"
+                  />
+                  {errors.descricao && (
+                    <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.descricao}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 p-6 border-t dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 rounded-lg bg-[var(--surface-muted)] text-[var(--text-strong)] hover:opacity-90 transition"
+                  disabled={processing}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] disabled:opacity-50 transition"
+                  disabled={processing}
+                >
+                  {processing ? 'Salvando…' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* animações */}
+      <style>{`
+        .animate-fadeIn { animation: fadeIn .2s ease-out; }
+        .animate-scaleIn { animation: scaleIn .18s ease-out; }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: scale(1) } }
+      `}</style>
+    </GPDLLayout>
+  );
 }

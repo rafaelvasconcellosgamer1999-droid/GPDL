@@ -1,5 +1,6 @@
 import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, router } from '@inertiajs/react';
+import { AdminTabs } from '@/components/admin-tabs';
 import { useState, FormEventHandler } from 'react';
 
 interface Usuario {
@@ -156,6 +157,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
 
     return (
         <GPDLLayout breadcrumbs={breadcrumbs}>
+            <AdminTabs/>
             <Head title="Usuários - GPDL" />
 
             <div>

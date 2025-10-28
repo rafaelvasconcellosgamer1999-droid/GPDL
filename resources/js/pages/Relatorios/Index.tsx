@@ -21,6 +21,75 @@ interface AssuntoData {
   total: number;
 }
 
+const TabelaInterativa = ({
+  titulo,
+  dados,
+  onToggle,
+  onSelectAll,
+  maxHeight = 'auto'
+}: {
+  titulo: string;
+  dados: Array<{name: string; value: number; color: string; selected: boolean; percentual: string}>;
+  onToggle: (name: string) => void;
+  onSelectAll: () => void;
+  maxHeight?: string;
+}) => (
+  <div className="mt-4">
+    <div className="flex justify-between items-center mb-3">
+      <h4 className="text-sm font-medium text-[var(--text-muted)]">{titulo}</h4>
+      <button 
+        onClick={onSelectAll}
+        className="text-xs text-[var(--brand-500)] hover:text-[var(--brand-600)]"
+      >
+        Mostrar todos
+      </button>
+    </div>
+    
+    <div className="overflow-x-auto" style={{ maxHeight }}>
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-[var(--gpdl-border)]">
+            <th className="text-left pb-2 text-[var(--text-muted)] font-medium text-sm">Categoria</th>
+            <th className="text-right pb-2 text-[var(--text-muted)] font-medium text-sm">Total</th>
+            <th className="text-right pb-2 text-[var(--text-muted)] font-medium text-sm">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dados.map((item) => (
+            <tr 
+              key={item.name}
+              className={`border-b border-[var(--gpdl-border)] last:border-b-0 cursor-pointer transition-colors ${
+                item.selected 
+                  ? 'bg-[var(--surface-hover)]' 
+                  : 'opacity-40'
+              }`}
+              onClick={() => onToggle(item.name)}
+            >
+              <td className="py-2">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  ></div>
+                  <span className="text-[var(--text-strong)] text-sm break-words">
+                    {item.name}
+                  </span>
+                </div>
+              </td>
+              <td className="py-2 text-right text-[var(--text-strong)] font-medium text-sm whitespace-nowrap">
+                {item.value}
+              </td>
+              <td className="py-2 text-right text-[var(--text-strong)] font-medium text-sm whitespace-nowrap">
+                {item.percentual}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
 export default function RelatoriosIndex() {
   const [statusData, setStatusData] = useState<StatusData | null>(null);
   const [procuradorData, setProcuradorData] = useState<ProcuradorData[]>([]);
@@ -279,76 +348,6 @@ export default function RelatoriosIndex() {
   const selectAllStatus = () => setSelectedStatus([]);
   const selectAllProcuradores = () => setSelectedProcuradores([]);
   const selectAllAssuntos = () => setSelectedAssuntos([]);
-
-  // Componente de tabela interativa reutilizável
-  const TabelaInterativa = ({ 
-    titulo, 
-    dados, 
-    onToggle, 
-    onSelectAll,
-    maxHeight = 'auto'
-  }: {
-    titulo: string;
-    dados: Array<{name: string; value: number; color: string; selected: boolean; percentual: string}>;
-    onToggle: (name: string) => void;
-    onSelectAll: () => void;
-    maxHeight?: string;
-  }) => (
-    <div className="mt-4">
-      <div className="flex justify-between items-center mb-3">
-        <h4 className="text-sm font-medium text-[var(--text-muted)]">{titulo}</h4>
-        <button 
-          onClick={onSelectAll}
-          className="text-xs text-[var(--brand-500)] hover:text-[var(--brand-600)]"
-        >
-          Mostrar todos
-        </button>
-      </div>
-      
-      <div className="overflow-x-auto" style={{ maxHeight }}>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-[var(--gpdl-border)]">
-              <th className="text-left pb-2 text-[var(--text-muted)] font-medium text-sm">Categoria</th>
-              <th className="text-right pb-2 text-[var(--text-muted)] font-medium text-sm">Total</th>
-              <th className="text-right pb-2 text-[var(--text-muted)] font-medium text-sm">%</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dados.map((item) => (
-              <tr 
-                key={item.name}
-                className={`border-b border-[var(--gpdl-border)] last:border-b-0 cursor-pointer transition-colors ${
-                  item.selected 
-                    ? 'bg-[var(--surface-hover)]' 
-                    : 'opacity-40'
-                }`}
-                onClick={() => onToggle(item.name)}
-              >
-                <td className="py-2">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    ></div>
-                    <span className="text-[var(--text-strong)] text-sm break-words">
-                      {item.name}
-                    </span>
-                  </div>
-                </td>
-                <td className="py-2 text-right text-[var(--text-strong)] font-medium text-sm whitespace-nowrap">
-                  {item.value}
-                </td>
-                <td className="py-2 text-right text-[var(--text-strong)] font-medium text-sm whitespace-nowrap">
-                  {item.percentual}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
 
   return (
     <GPDLLayout breadcrumbs={[{ title: 'Relatórios', href: '/relatorios' }]}>

@@ -11,11 +11,11 @@ class Setor extends Model
     protected $fillable = [
         'nome',
         'sigla',
-        'ativo'
+        'status'
     ];
 
     protected $casts = [
-        'ativo' => 'boolean',
+        'status' => 'boolean',
     ];
 
     // Relationships
@@ -27,6 +27,6 @@ class Setor extends Model
     // Scopes
     public function scopeAtivos($query)
     {
-        return $query->where('ativo', 1);
+        return $query->where('status', 1);
     }
 }
