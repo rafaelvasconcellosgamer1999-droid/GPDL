@@ -40,27 +40,6 @@ class Processo extends Model
         'data_finalizacao' => 'datetime',
     ];
 
-    // ---------------------------------------------------------
-    // 🚀 Limpa o cache do dashboard sempre que um processo muda
-    // ---------------------------------------------------------
-    protected static function booted(): void
-    {
-        static::saved(fn() => self::clearDashboardCache());
-        static::deleted(fn() => self::clearDashboardCache());
-    }
-
-    protected static function clearDashboardCache(): void
-    {
-        Cache::forget('dashboard_stats');
-        Cache::forget('dashboard_em_andamento');
-        Cache::forget('dashboard_capacidade_ativos');
-        Cache::forget('dashboard_capacidade_pendentes');
-        Cache::forget('dashboard_capacidade_vencidos');
-        Cache::forget('dashboard_capacidade_encerrados');
-
-        // 🚀 Dispara evento em tempo real
-        event(new DashboardUpdated());
-    }
 
     // ---------------------------------------------------------
     // Relacionamentos
