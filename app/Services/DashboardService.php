@@ -96,6 +96,7 @@ class DashboardService
         }
 
         $now = now();
+        $hasDeadlineColumn = Schema::hasColumn('processos', 'data_limite');
         $query = DB::table('processos')
             ->select('procurador_responsavel_id', DB::raw('count(*) as qtd'))
             ->groupBy('procurador_responsavel_id');
@@ -104,12 +105,20 @@ class DashboardService
             $query->whereNotNull('data_finalizacao');
         } else {
             $query->whereNull('data_finalizacao');
-            if ($view === 'pendentes') {
-                $query->whereNull('data_limite');
-            } elseif ($view === 'vencidos') {
-                $query->where('data_limite', '<=', $now);
-            } elseif ($view === 'ativos') {
-                $query->where('data_limite', '>', $now);
+            if ($hasDeadlineColumn) {
+                if ($view === 'pendentes') {
+                    $query->whereNull('data_limite');
+                } elseif ($view === 'vencidos') {
+                    $query->where('data_limite', '<=', $now);
+                } elseif ($view === 'ativos') {
+                    $query->where('data_limite', '>', $now);
+                } elseif ($view === 'ativos_hoje') {
+                    $query->whereBetween('data_limite', [$now->copy()->startOfDay(), $now->copy()->endOfDay()]);
+                } elseif ($view === 'ativos_48h') {
+                    $start = $now->copy()->endOfDay()->addSecond();
+                    $end = $now->copy()->addHours(48);
+                    $query->whereBetween('data_limite', [$start, $end]);
+                }
             }
         }
 

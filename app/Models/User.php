@@ -23,7 +23,8 @@ class User extends Authenticatable
         'cargo_id',
         'setor_id',
         'status',
-        'precisa_trocar_senha'
+        'precisa_trocar_senha',
+        'email_verified_at',
     ];
 
     protected $hidden = [

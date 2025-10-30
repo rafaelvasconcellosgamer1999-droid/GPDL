@@ -25,7 +25,7 @@ export default function Dashboard() {
   const stats: DashboardStats = page.stats ?? { ativos: 0, vencidos: 0, finalizados7d: 0, pendentes: 0, ativos_hoje: 0, ativos_48h: 0, finalizadosMes: 0 }
   const emAndamento: ProcessoResumo[] = page.emAndamento ?? []
   const capacidade: Capacidade[] = page.capacidade ?? []
-  const capView = page.capView ?? 'processos'
+  const capView = page.capView ?? 'ativos'
 
   const firstName = auth?.user?.name ? String(auth.user.name).split(' ')[0] : ''
   const labelPorView: Record<string, string> = {
@@ -33,6 +33,8 @@ export default function Dashboard() {
     pendentes: 'processos pendentes',
     vencidos: 'processos vencidos',
     encerrados: 'processos finalizados',
+    ativos_hoje: 'processos que vencem hoje',
+    ativos_48h: 'processos que vencem em 48h',
   }
 
   return (
@@ -182,6 +184,8 @@ export default function Dashboard() {
                 <option value="pendentes">Pendentes</option>
                 <option value="vencidos">Vencidos</option>
                 <option value="encerrados">Finalizados</option>
+                <option value="ativos_hoje">Vencem hoje</option>
+                <option value="ativos_48h">Próximos 2 dias</option>
               </select>
             </div>
           </CardHeader>

@@ -22,15 +22,19 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $nome = fake()->name();
+        $usuarioRede = Str::slug(fake()->unique()->userName(), '.');
+
         return [
-            'name' => fake()->name(),
+            'nome' => $nome,
             'email' => fake()->unique()->safeEmail(),
+            'usuarioRede' => $usuarioRede,
+            'senha' => static::$password ??= 'password',
             'email_verified_at' => now(),
-            'password' => static::$password ??= 'password',
-            'remember_token' => Str::random(10),
-            'two_factor_secret' => Str::random(10),
-            'two_factor_recovery_codes' => Str::random(10),
-            'two_factor_confirmed_at' => now(),
+            'cargo_id' => null,
+            'setor_id' => null,
+            'status' => true,
+            'precisa_trocar_senha' => false,
         ];
     }
 
@@ -49,10 +53,6 @@ class UserFactory extends Factory
      */
     public function withoutTwoFactor(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-        ]);
+        return $this->state(fn (array $attributes) => []);
     }
 }

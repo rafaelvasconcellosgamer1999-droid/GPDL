@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { NavUser } from '@/components/nav-user'
 import {
   SidebarContent,
@@ -9,62 +9,63 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { navigationItems, type NavigationItem, type PermissionRequirement } from '@/navigation/menu'
+import { canAccessPermission, type PermissionMap } from '@/navigation/permissions'
 import { dashboard } from '@/routes'
 import { Link, usePage } from '@inertiajs/react'
-import {
-  Calendar,
-  ChartPie,
-  FileText,
-  Home,
-  LayoutDashboard,
-  Lock,
-  Share2,
-  Plus,
-  Shield,
-  TriangleAlert,
-  Users,
-} from 'lucide-react'
+import { LayoutDashboard } from 'lucide-react'
 import clsx from 'clsx'
-
-interface Permission {
-  view_dashboard?: string
-  view_process?: string
-  create_process?: string
-  edit_process?: string
-  finalize_process?: string
-  view_agenda?: string
-  view_reports?: string
-  view_admin?: string
-  view_squads?: string
-  manage_squads?: string
-  view_logs?: string
-  view_audit?: string
-}
 
 type Props = { className?: string }
 
 export function GpdlSidebar({ className }: Props) {
-  const { permissions } = usePage().props as { permissions?: Permission }
-  const pathname =
-    typeof window !== 'undefined' ? window.location.pathname : ''
+  const { permissions } = usePage().props as { permissions?: PermissionMap }
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
   const searchParams =
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search)
       : new URLSearchParams()
-  const currentView = searchParams.get('view') || undefined
 
-  const can = (permission: keyof Permission, levels?: string[]) => {
-    if (!permissions) return true
-    if (!permissions[permission]) return false
-    if (!levels) return true
-    return levels.some((level) => permissions[permission]?.includes(level))
+  const canAccess = (requirement?: PermissionRequirement) =>
+    canAccessPermission(permissions, requirement)
+
+  const routeMatches = (match?: NavigationItem['match']) => {
+    if (!match) return false
+    const segmentMatch = match.segment ? pathname.includes(match.segment) : true
+    const queryMatch = match.query
+      ? searchParams.get(match.query.key) === match.query.value
+      : true
+    return segmentMatch && queryMatch
   }
 
-  const isActive = (routeName: string, view?: string) => {
-    if (view && currentView) {
-      return pathname.includes(routeName) && currentView === view
+  const toPathname = (href: string) => {
+    try {
+      const base =
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
+      return new URL(href, base).pathname
+    } catch {
+      return href
     }
-    return pathname.includes(routeName)
+  }
+
+  const matchesItem = (item: NavigationItem): boolean => {
+    if (routeMatches(item.match)) {
+      return true
+    }
+
+    if (item.href && pathname.startsWith(toPathname(item.href))) {
+      if (!item.match?.query) {
+        return true
+      }
+      const queryValue = searchParams.get(item.match.query.key)
+      return queryValue === item.match.query.value
+    }
+
+    if (item.children?.length) {
+      return item.children.some((child) => matchesItem(child))
+    }
+
+    return false
   }
 
   // ✅ Lê o colapso do localStorage NO INICIALIZADOR (sem useEffect + setState)
@@ -74,9 +75,31 @@ export function GpdlSidebar({ className }: Props) {
     return saved === 'true'
   })
 
-  // Abre o submenu “Processos” por padrão se a rota atual já for /processos
-  const [openProcessos, setOpenProcessos] = useState(
-    pathname.includes('processos')
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {}
+    navigationItems.forEach((item) => {
+      if (item.children?.length && matchesItem(item)) {
+        initial[item.id] = true
+      }
+    })
+    return initial
+  })
+
+  const isGroupOpen = (item: NavigationItem) =>
+    openGroups[item.id] ?? matchesItem(item)
+
+  const toggleGroup = (itemId: string) => {
+    setOpenGroups((state) => ({
+      ...state,
+      [itemId]: !state[itemId],
+    }))
+  }
+
+  const mainNavigation = navigationItems.filter(
+    (item) => (item.section ?? 'main') === 'main'
+  )
+  const monitorNavigation = navigationItems.filter(
+    (item) => item.section === 'monitor'
   )
 
   // Persiste alterações de colapso
@@ -151,170 +174,115 @@ export function GpdlSidebar({ className }: Props) {
         <span className="sidebar-section-title">Principal</span>
 
         <nav className="space-y-1">
-          {can('view_dashboard') && (
-            <Link
-              href={dashboard()}
-              className={clsx('nav-link', isActive('dashboard') && 'is-active')}
-            >
-              <Home className="h-4 w-4" />
-              {!collapsed && <span>Início</span>}
-            </Link>
-          )}
+          {mainNavigation.map((item) => {
+            if (!canAccess(item.permission)) return null
 
-          {can('view_process') && (
-            <div>
-              <button
-                onClick={() => setOpenProcessos((v) => !v)}
-                className={clsx(
-                  'nav-link relative w-full',
-                  openProcessos && 'is-active'
-                )}
-                aria-expanded={openProcessos}
-              >
-                <FileText className="h-4 w-4 shrink-0" />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 text-left">Processos</span>
-                    <motion.svg
-                      animate={{ rotate: openProcessos ? 180 : 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="caret h-4 w-4 text-white/70 absolute right-3 top-1/2 -translate-y-1/2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </motion.svg>
-                  </>
-                )}
-              </button>
+            const Icon = item.icon
 
-              <AnimatePresence initial={false}>
-                {openProcessos && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="nav-sub"
-                    data-state="open"
-                  >
-                    {/* ✅ NOVA OPÇÃO DE CADASTRO */}
-                    {can('create_process', ['all', 'sector']) && (
-                      <Link
-                        href="/processos?view=cadastro"
-                        className={clsx('nav-link', isActive('processos', 'cadastro') && 'is-active')}
-                      >
-                        <Plus className="h-4 w-4" />
+            if (item.children?.length) {
+              const open = isGroupOpen(item)
 
-                        {!collapsed && <span>Cadastro</span>}
-                      </Link>
-                    )}      <Link
-                      href="/processos?view=ativos"
-                      className={clsx('nav-link', isActive('processos', 'ativos') && 'is-active')}
-                    >
-                      <FileText className="h-4 w-4" />
-                      {!collapsed && <span>Ativos</span>}
-                    </Link>
-
-                    <Link
-                      href="/processos?view=pendentes"
-                      className={clsx('nav-link', isActive('processos', 'pendentes') && 'is-active')}
-                    >
-                      <TriangleAlert className="h-4 w-4" />
-                      {!collapsed && <span>Pendentes</span>}
-                    </Link>
-
-                    <Link
-                      href="/processos?view=vencidos"
-                      className={clsx('nav-link', isActive('processos', 'vencidos') && 'is-active')}
-                    >
-                      <TriangleAlert className="h-4 w-4" />
-                      {!collapsed && <span>Vencidos</span>}
-                    </Link>
-
-                    <Link
-                      href="/processos?view=encerrados"
-                      className={clsx('nav-link', isActive('processos', 'encerrados') && 'is-active')}
-                    >
-
-                      <Lock className="h-4 w-4" />
-                      {!collapsed && <span>Finalizados</span>}
-                    </Link>
-                    {can('edit_process', ['sector', 'all']) && (
-                      <Link
-                        href="/processos?view=distribuicao"
-                        className={clsx('nav-link', isActive('processos', 'distribuicao') && 'is-active')}
-                      >
-                        <Share2 className="h-4 w-4" />
-                        {!collapsed && <span>Distribuição</span>}
-                      </Link>
+              return (
+                <div key={item.id}>
+                  <button
+                    onClick={() => toggleGroup(item.id)}
+                    className={clsx(
+                      'nav-link relative w-full',
+                      open && 'is-active'
                     )}
+                    aria-expanded={open}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {!collapsed && (
+                      <>
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <motion.svg
+                          animate={{ rotate: open ? 180 : 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="caret h-4 w-4 text-white/70 absolute right-3 top-1/2 -translate-y-1/2"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </motion.svg>
+                      </>
+                    )}
+                  </button>
 
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  <AnimatePresence initial={false}>
+                    {open && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        className="nav-sub"
+                        data-state="open"
+                      >
+                        {item.children
+                          .filter((child) => canAccess(child.permission))
+                          .map((child) => {
+                            if (!child.href) return null
+                            const ChildIcon = child.icon
+                            return (
+                              <Link
+                                key={child.id}
+                                href={child.href}
+                                className={clsx(
+                                  'nav-link',
+                                  matchesItem(child) && 'is-active'
+                                )}
+                              >
+                                <ChildIcon className="h-4 w-4" />
+                                {!collapsed && <span>{child.label}</span>}
+                              </Link>
+                            )
+                          })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )
+            }
 
-            </div>
-          )}
+            if (!item.href) {
+              return null
+            }
 
-          {can('view_agenda') && (
-            <Link
-              href="/agenda"
-              className={clsx('nav-link', isActive('agenda') && 'is-active')}
-            >
-              <Calendar className="h-4 w-4" />
-              {!collapsed && <span>Agenda</span>}
-            </Link>
-          )}
-
-          {can('view_reports') && (
-            <Link
-              href="/relatorios"
-              className={clsx('nav-link', isActive('relatorios') && 'is-active')}
-            >
-              <ChartPie className="h-4 w-4" />
-              {!collapsed && <span>Relatórios</span>}
-            </Link>
-          )}
-
-          {can('view_admin') && (
-            <Link
-              href="/admin"
-              className={clsx('nav-link', isActive('admin') && 'is-active')}
-            >
-              <Shield className="h-4 w-4" />
-              {!collapsed && <span>Administração</span>}
-            </Link>
-          )}
-
-          {can('view_squads') && (
-            <Link
-              href="/squads"
-              className={clsx('nav-link', isActive('squads') && 'is-active')}
-            >
-              <Users className="h-4 w-4" />
-              {!collapsed && <span>Squads</span>}
-            </Link>
-          )}
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={clsx('nav-link', matchesItem(item) && 'is-active')}
+              >
+                <Icon className="h-4 w-4" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            )
+          })}
         </nav>
 
-        {(can('view_logs') || can('view_audit')) && (
+        {monitorNavigation.some((item) => canAccess(item.permission)) && (
           <>
-            {!collapsed && <span className="sidebar-section-title mt-6">Monitoramento</span>}
+            {!collapsed && (
+              <span className="sidebar-section-title mt-6">Monitoramento</span>
+            )}
             <nav className="space-y-1">
-              {can('view_logs') && (
-                <Link href="/logs" className="nav-link">
-                  <Shield className="h-4 w-4" />
-                  {!collapsed && <span>Logs do Sistema</span>}
-                </Link>
-              )}
-              {can('view_audit') && (
-                <Link href="/auditoria" className="nav-link">
-                  <Shield className="h-4 w-4" />
-                  {!collapsed && <span>Auditoria</span>}
-                </Link>
-              )}
+              {monitorNavigation.map((item) => {
+                if (!canAccess(item.permission) || !item.href) return null
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={clsx('nav-link', matchesItem(item) && 'is-active')}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {!collapsed && <span>{item.label}</span>}
+                  </Link>
+                )
+              })}
             </nav>
           </>
         )}
