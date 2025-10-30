@@ -3,15 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
     public function index(): Response
     {
-        $capView = request()->query('cap_view', 'ativos');
+        $availableViews = [
+            'ativos',
+            'pendentes',
+            'vencidos',
+            'encerrados',
+            'ativos_hoje',
+            'ativos_48h',
+        ];
+
+        $capView = request()->query('cap_view');
+
+        if (!in_array($capView, $availableViews, true)) {
+            $capView = 'ativos';
+        }
 
         return Inertia::render('dashboard', [
             'stats' => DashboardService::gerarEstatisticas(),
