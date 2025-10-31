@@ -154,8 +154,11 @@ export default function Regras({
             : '/admin/regras/criar';
 
         router.post(url, payload, {
+            headers: { Accept: 'application/json' },
             preserveScroll: true,
-            onSuccess: closeModal,
+            onSuccess: () => {
+                if (Object.keys(errors).length === 0) closeModal(); // fecha só se não houver erro
+            },
         });
     };
 
@@ -454,22 +457,22 @@ export default function Regras({
                                                                 </span>
                                                                 <span
                                                                     className={`rounded-full px-3 py-1 text-xs font-semibold ${regra
-                                                                            .scope
-                                                                            ?.nome ===
-                                                                            'own'
-                                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                                                            : regra.scope?.nome
+                                                                        .scope
+                                                                        ?.nome ===
+                                                                        'own'
+                                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                                        : regra.scope?.nome
+                                                                            ?.toLowerCase()
+                                                                            .includes(
+                                                                                'sector',
+                                                                            ) ||
+                                                                            regra.scope?.nome
                                                                                 ?.toLowerCase()
                                                                                 .includes(
-                                                                                    'sector',
-                                                                                ) ||
-                                                                                regra.scope?.nome
-                                                                                    ?.toLowerCase()
-                                                                                    .includes(
-                                                                                        'setor',
-                                                                                    )
-                                                                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                                                                                : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                                                                                    'setor',
+                                                                                )
+                                                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                                                            : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
                                                                         }`}
                                                                 >
                                                                     Scope:{' '}

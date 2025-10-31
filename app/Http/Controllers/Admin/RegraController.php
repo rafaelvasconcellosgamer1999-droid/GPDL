@@ -94,18 +94,18 @@ class RegraController extends Controller
      * ➕ Criar nova regra
      */
     public function criarRegra(RegraRequest $request)
-    {
-        DB::table('cargo_permissoes')->insert([
-            'cargo_id'     => (int) $request->cargo_id,
-            'permissao_id' => (int) $request->permissao_id,
-            'scope_id'     => (int) $request->scope_id,
-            'setor_id'     => $request->setor_id ? (int) $request->setor_id : null,
-            'created_at'   => now(),
-            'updated_at'   => now(),
-        ]);
+{
+    DB::table('cargo_permissoes')->insert([
+        'cargo_id'     => (int) $request->cargo_id,
+        'permissao_id' => (int) $request->permissao_id,
+        'scope_id'     => (int) $request->scope_id,
+        'setor_id'     => $request->setor_id ? (int) $request->setor_id : null,
+        'created_at'   => now(),
+        'updated_at'   => now(),
+    ]);
 
-        return back()->with('success', 'Regra criada com sucesso!');
-    }
+    return back(303)->with('success', 'Regra criada com sucesso!');
+}
 
     /**
      * ✏️ Atualizar regra

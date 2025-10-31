@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class RegraRequest extends FormRequest
 {
@@ -58,15 +60,21 @@ class RegraRequest extends FormRequest
     {
         return [
             'cargo_id.required'     => 'O campo Cargo é obrigatório.',
-            'cargo_id.exists'       => 'O cargo selecionado é inválido.',
             'permissao_id.required' => 'O campo Permissão é obrigatório.',
-            'permissao_id.exists'   => 'A permissão selecionada é inválida.',
             'permissao_id.unique'   => 'Já existe uma regra com essa combinação de Cargo, Permissão, Escopo e Setor.',
             'scope_id.required'     => 'O campo Escopo é obrigatório.',
-            'scope_id.exists'       => 'O escopo selecionado é inválido.',
-            'setor_id.exists'       => 'O setor selecionado é inválido.',
         ];
     }
+
+    protected function failedValidation(Validator $validator)
+{
+    throw new HttpResponseException(
+        response()->json([
+            'message' => 'Os dados enviados são inválidos.',
+            'errors'  => $validator->errors(),
+        ], 422)
+    );
+}
 
     protected function prepareForValidation(): void
     {
