@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use Inertia\Inertia;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LogoutResponse;
-use App\Http\Responses\CustomLogoutResponse;    
+use App\Http\Responses\CustomLogoutResponse;  
+use App\Services\PermissionService;  
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,8 +21,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        //
-    }
+    public function boot()
+{
+    Inertia::share('permissions', function () {
+        $user = auth()->user();
+        if (!$user) {
+            return [];
+        }
+        return app(PermissionService::class)->getUserPermissions($user);
+    });
+}
 }

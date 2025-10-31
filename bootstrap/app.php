@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Route middleware aliases
         $middleware->alias([
             'force.password.change' => ForcePasswordChange::class,
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
         ]);
 
         $middleware->web(append: [
