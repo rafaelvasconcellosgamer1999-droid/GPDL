@@ -33,15 +33,8 @@ class Cargo extends Model
             'cargo_permissoes',  // novo nome da pivot
             'cargo_id',
             'permissao_id'
-        )->withPivot(['setor_id']);
-    }
-
-    /*
-     * Relacionamento com escopos padrão por setor (nova tabela cargo_setor_scope).
-     */
-    public function escoposPorSetor()
-    {
-        return $this->hasMany(CargoSetorScope::class, 'cargo_id');
+        )->withPivot(['scope_id', 'setor_id']);
+        
     }
 
     /*

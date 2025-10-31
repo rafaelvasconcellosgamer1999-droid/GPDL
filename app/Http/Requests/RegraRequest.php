@@ -7,86 +7,74 @@ use Illuminate\Validation\Rule;
 
 class RegraRequest extends FormRequest
 {
-    /**
-     * Autoriza a requisição
-     */
     public function authorize(): bool
     {
-        // 🔒 Se houver controle de acesso no futuro, pode trocar por verificação de permissionamento
+        // 🔒 Caso futuramente queira limitar por permissões, pode ajustar aqui
         return true;
     }
 
-    /**
-     * Regras de validação
-     */
     public function rules(): array
     {
-        // 🔹 Validação simples em GET (filtros)
+        // 🔹 Filtros de GET (ex: ?cargo_id=)
         if ($this->isMethod('get')) {
             return [
                 'cargo_id' => ['nullable', 'exists:cargos,id'],
             ];
         }
 
-        // 🔹 Regras para criação/atualização
+        // 🔹 Regras gerais de criação/edição
         $rules = [
-            'cargo_id' => ['required', 'exists:cargos,id'],
+            'cargo_id'     => ['required', 'exists:cargos,id'],
             'permissao_id' => ['required', 'exists:permissoes,id'],
-            'scope_id' => ['nullable', 'exists:scopes,id'],
-            'setor_id' => ['nullable', 'exists:setores,id'],
+            'scope_id'     => ['required', 'exists:scopes,id'], // agora é obrigatório na pivot
+            'setor_id'     => ['nullable', 'exists:setores,id'],
         ];
 
-        // 🔹 Impede duplicidade (cargo + permissão + scope + setor)
-        if ($this->isMethod('post')) {
-            $rules['permissao_id'][] = Rule::unique('cargo_permissoes_scoped')->where(function ($query) {
-                return $query
-                    ->where('cargo_id', $this->cargo_id)
-                    ->where('permissao_id', $this->permissao_id)
-                    ->where('scope_id', $this->scope_id ?: null)
-                    ->where('setor_id', $this->setor_id ?: null);
-            });
-        }
+        // 🔹 Impede duplicidade (cargo_id + permissao_id + scope_id + setor_id)
+        $uniqueRule = Rule::unique('cargo_permissoes', 'permissao_id')
+            ->where(function ($query) {
+                $query->where('cargo_id', $this->cargo_id)
+                      ->where('scope_id', $this->scope_id);
 
-        // 🔹 Em atualização, ignora a própria linha
-        if ($this->isMethod('put') || $this->isMethod('patch') || $this->is('admin/regras/atualizar')) {
-            $rules['permissao_id'][] = Rule::unique('cargo_permissoes_scoped')->where(function ($query) {
-                return $query
-                    ->where('cargo_id', $this->cargo_id)
-                    ->where('permissao_id', $this->permissao_id)
-                    ->where('scope_id', $this->scope_id ?: null)
-                    ->where('setor_id', $this->setor_id ?: null);
-            })->ignore($this->id);
+                // setor_id pode ser NULL
+                if ($this->setor_id) {
+                    $query->where('setor_id', $this->setor_id);
+                } else {
+                    $query->whereNull('setor_id');
+                }
+            });
+
+        // 🔹 Aplica conforme o método HTTP
+        if ($this->isMethod('post')) {
+            $rules['permissao_id'][] = $uniqueRule;
+        } elseif ($this->isMethod('put') || $this->isMethod('patch') || $this->is('admin/regras/atualizar')) {
+            $rules['permissao_id'][] = $uniqueRule->ignore($this->id);
         }
 
         return $rules;
     }
 
-    /**
-     * Mensagens de erro personalizadas
-     */
     public function messages(): array
     {
         return [
-            'cargo_id.required' => 'O campo Cargo é obrigatório.',
-            'cargo_id.exists' => 'O cargo selecionado é inválido.',
+            'cargo_id.required'     => 'O campo Cargo é obrigatório.',
+            'cargo_id.exists'       => 'O cargo selecionado é inválido.',
             'permissao_id.required' => 'O campo Permissão é obrigatório.',
-            'permissao_id.exists' => 'A permissão selecionada é inválida.',
-            'permissao_id.unique' => 'Já existe uma regra com essa combinação de Cargo, Permissão, Escopo e Setor.',
-            'scope_id.exists' => 'O escopo selecionado é inválido.',
-            'setor_id.exists' => 'O setor selecionado é inválido.',
+            'permissao_id.exists'   => 'A permissão selecionada é inválida.',
+            'permissao_id.unique'   => 'Já existe uma regra com essa combinação de Cargo, Permissão, Escopo e Setor.',
+            'scope_id.required'     => 'O campo Escopo é obrigatório.',
+            'scope_id.exists'       => 'O escopo selecionado é inválido.',
+            'setor_id.exists'       => 'O setor selecionado é inválido.',
         ];
     }
 
-    /**
-     * Normaliza dados antes da validação (garante consistência nos tipos)
-     */
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'cargo_id' => $this->cargo_id ? (int) $this->cargo_id : null,
+            'cargo_id'     => $this->cargo_id ? (int) $this->cargo_id : null,
             'permissao_id' => $this->permissao_id ? (int) $this->permissao_id : null,
-            'scope_id' => $this->scope_id ? (int) $this->scope_id : null,
-            'setor_id' => $this->setor_id ? (int) $this->setor_id : null,
+            'scope_id'     => $this->scope_id ? (int) $this->scope_id : null,
+            'setor_id'     => $this->setor_id ? (int) $this->setor_id : null,
         ]);
     }
 }
