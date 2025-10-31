@@ -6,7 +6,8 @@ import { useState, useMemo, FormEventHandler } from 'react';
 
 interface Permissao {
   id: number;
-  nome: string;
+  chave: string;     // slug (código) técnico, por exemplo: "processos.editar"
+  nome: string;      // nome legível (Ex: "Editar Processos")
   descricao: string;
 }
 
@@ -24,34 +25,41 @@ export default function Permissoes({ permissoes }: Props) {
   const [editingPermissao, setEditingPermissao] = useState<Permissao | null>(null);
   const [query, setQuery] = useState('');
 
+  // 🔁 Agora trabalhamos com chave, nome e descricao
   const { data, setData, post, processing, errors, reset } = useForm({
     id: 0,
-    nome: '',
+    chave: '',     // código (slug)
+    nome: '',      // nome legível (opcional)
     descricao: '',
   });
 
+  // Abrir modal para criar nova permissão
   const openCreateModal = () => {
     reset();
     setEditingPermissao(null);
     setShowModal(true);
   };
 
+  // Abrir modal para editar permissão existente
   const openEditModal = (permissao: Permissao) => {
     setEditingPermissao(permissao);
     setData({
       id: permissao.id,
-      nome: permissao.nome,
+      chave: permissao.chave,
+      nome: permissao.nome || '',
       descricao: permissao.descricao || '',
     });
     setShowModal(true);
   };
 
+  // Fechar modal
   const closeModal = () => {
     setShowModal(false);
     reset();
     setEditingPermissao(null);
   };
 
+  // Enviar formulário
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
     post(editingPermissao ? 'permissoes/editar' : 'permissoes/criar', {
@@ -60,18 +68,25 @@ export default function Permissoes({ permissoes }: Props) {
     });
   };
 
-  const deletePermissao = (id: number, nome: string) => {
-  if (confirm(`Deseja realmente excluir a permissão "${nome}"?`)) {
-    router.delete(`/admin/permissoes/${id}`, { preserveScroll: true });
-  }
-};
+  // Excluir permissão
+  const deletePermissao = (id: number, chave: string) => {
+    if (confirm(`Deseja realmente excluir a permissão "${chave}"?`)) {
+      router.delete(`/admin/permissoes/${id}`, { preserveScroll: true });
+    }
+  };
 
-  // 🔍 Filtro local
+  // 🔍 Filtro local (filtra por chave, nome ou descrição)
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return permissoes
-      .filter((p) => !q || p.nome.toLowerCase().includes(q) || p.descricao?.toLowerCase().includes(q))
-      .sort((a, b) => a.nome.localeCompare(b.nome));
+      .filter(
+        (p) =>
+          !q ||
+          p.chave.toLowerCase().includes(q) ||
+          p.nome?.toLowerCase().includes(q) ||
+          p.descricao?.toLowerCase().includes(q),
+      )
+      .sort((a, b) => a.chave.localeCompare(b.chave));
   }, [permissoes, query]);
 
   return (
@@ -107,7 +122,7 @@ export default function Permissoes({ permissoes }: Props) {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar por nome ou descrição..."
+                  placeholder="Buscar por chave, nome ou descrição..."
                   className="w-80 pl-9 pr-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
                 />
                 <svg
@@ -129,7 +144,8 @@ export default function Permissoes({ permissoes }: Props) {
                 <thead className="bg-[var(--surface-muted)] sticky top-0 z-10">
                   <tr className="[&>th]:px-6 [&>th]:py-3 [&>th]:text-left [&>th]:text-[11px] [&>th]:font-semibold [&>th]:tracking-wider [&>th]:uppercase [&>th]:text-[var(--text-muted)]">
                     <th>ID</th>
-                    <th>Nome (código)</th>
+                    <th>Código (slug)</th>
+                    <th>Nome</th>
                     <th>Descrição</th>
                     <th className="text-right">Ações</th>
                   </tr>
@@ -137,7 +153,7 @@ export default function Permissoes({ permissoes }: Props) {
                 <tbody className="divide-y divide-[var(--gpdl-border)]">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12">
+                      <td colSpan={5} className="px-6 py-12">
                         <div className="flex flex-col items-center justify-center text-center">
                           <svg className="w-10 h-10 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -155,7 +171,8 @@ export default function Permissoes({ permissoes }: Props) {
                         className={idx % 2 === 1 ? 'bg-[color:var(--surface-main)/0.35]' : undefined}
                       >
                         <td className="px-6 py-3 text-[var(--text-strong)]">{permissao.id}</td>
-                        <td className="px-6 py-3 font-mono text-[var(--accent-info)]">{permissao.nome}</td>
+                        <td className="px-6 py-3 font-mono text-[var(--accent-info)]">{permissao.chave}</td>
+                        <td className="px-6 py-3 text-[var(--text-strong)]">{permissao.nome}</td>
                         <td className="px-6 py-3 text-[var(--text-strong)]">
                           {permissao.descricao || <span className="text-[var(--text-muted)]">—</span>}
                         </td>
@@ -172,7 +189,7 @@ export default function Permissoes({ permissoes }: Props) {
                               <span className="hidden sm:inline">Editar</span>
                             </button>
                             <button
-                              onClick={() => deletePermissao(permissao.id, permissao.nome)}
+                              onClick={() => deletePermissao(permissao.id, permissao.chave)}
                               className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-300/60 text-[var(--danger-500)] hover:bg-red-50 dark:hover:bg-red-900/20 transition"
                               title="Excluir permissão"
                             >
@@ -199,7 +216,7 @@ export default function Permissoes({ permissoes }: Props) {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal de criação/edição */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 animate-fadeIn" onClick={closeModal} />
@@ -225,24 +242,43 @@ export default function Permissoes({ permissoes }: Props) {
 
             <form onSubmit={submit}>
               <div className="p-6 space-y-4">
+                {/* Campo de chave (slug) */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
-                    Nome (código) <span className="text-[var(--danger-500)]">*</span>
+                    Código (slug) <span className="text-[var(--danger-500)]">*</span>
+                  </label>
+                    <input
+                      type="text"
+                      value={data.chave}
+                      onChange={(e) => setData('chave', e.target.value.toLowerCase().replace(/\s+/g, '_'))}
+                      className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)] font-mono"
+                      placeholder="Ex: view_dashboard"
+                      required
+                      autoFocus
+                    />
+                    {errors.chave && (
+                      <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.chave}</p>
+                    )}
+                </div>
+
+                {/* Campo opcional de nome (legível) */}
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
+                    Nome legível
                   </label>
                   <input
                     type="text"
                     value={data.nome}
-                    onChange={(e) => setData('nome', e.target.value.toLowerCase().replace(/\s+/g, '_'))}
-                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)] font-mono"
-                    placeholder="Ex: view_dashboard"
-                    required
-                    autoFocus
+                    onChange={(e) => setData('nome', e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    placeholder="Ex: Visualizar Dashboard"
                   />
                   {errors.nome && (
                     <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.nome}</p>
                   )}
                 </div>
 
+                {/* Campo de descrição */}
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
                     Descrição
