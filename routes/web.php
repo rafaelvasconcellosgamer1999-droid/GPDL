@@ -74,8 +74,8 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
 
     // ========== ADMIN ==========
-    Route::prefix('admin')->name('admin.')->group(function () {
-        Route::get('/', [AdminController::class, 'index'])->name('index');
+    Route::middleware(['auth','permission:view_admin'])->prefix('admin')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('admin.index');
 
         // Setores
         Route::get('setores', [SetorController::class, 'index'])->name('setores');

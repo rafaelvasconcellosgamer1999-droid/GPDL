@@ -1,5 +1,6 @@
 import { dashboard } from '@/routes'
 import type { LucideIcon } from 'lucide-react'
+import type { InertiaLinkProps } from '@inertiajs/react';
 import {
   Calendar,
   ChartPie,
@@ -40,15 +41,15 @@ export type NavigationMatch = {
 }
 
 export type NavigationItem = {
-  id: string
-  label: string
-  icon: LucideIcon
-  section?: 'main' | 'monitor'
-  href?: string
-  match?: NavigationMatch
-  permission?: PermissionRequirement
-  children?: NavigationItem[]
-}
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  section?: 'main' | 'monitor';
+  href?: InertiaLinkProps['href']; // aceita string ou RouteDefinition
+  match?: NavigationMatch;
+  permission?: PermissionRequirement;
+  children?: NavigationItem[];
+};
 
 export const navigationItems: NavigationItem[] = [
   {

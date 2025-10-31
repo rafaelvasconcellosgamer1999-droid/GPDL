@@ -24,11 +24,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
 {
     Inertia::share('permissions', function () {
-        $user = auth()->user();
-        if (!$user) {
-            return [];
-        }
-        return app(PermissionService::class)->getUserPermissions($user);
-    });
+    $user = auth()->user();
+    if (!$user) {
+        return [];
+    }
+    if ($user->cargo && $user->cargo->is_administrador) {
+        // Não defina permissões para admin → undefined no JS
+        return null;
+    }
+    return app(PermissionService::class)->getUserPermissions($user);
+});
 }
 }

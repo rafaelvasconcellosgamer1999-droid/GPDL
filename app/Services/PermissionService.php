@@ -11,32 +11,35 @@ class PermissionService
      * @return array<string, mixed> Ex.: ['view_process' => true, 'manage_users' => 'sector']
      */
     public function getUserPermissions(User $user): array
-    {
-        // Administradores têm todas as permissões
-        if ($user->cargo && $user->cargo->is_administrador) {
-            // Retorne um mapa vazio ou com todas as permissões pré‑carregadas
-            // conforme sua regra de negócio. Aqui retornamos vazio e tratamos
-            // admin no método hasPermission().
-            return [];
-        }
-
-        $permissions = [];
-
-        $regras = $user->cargo?->permissoes ?? collect();
-        foreach ($regras as $permissao) {
-            $key = $permissao->chave;
-            $scope = $permissao->pivot->scope_id;  // ex: 1 = próprio, 2 = setor, 3 = todos
-            $setorId = $permissao->pivot->setor_id;
-
-            // Salva a permissão com seu nível. Você pode customizar o formato
-            $permissions[$key] = [
-                'scope' => $scope,
-                'setor_id' => $setorId,
-            ];
-        }
-
-        return $permissions;
+{
+     if ($user->cargo && $user->cargo->is_administrador) {
+        return null;  // Inertia enviará undefined
     }
+
+    $permissions = [];
+    foreach ($user->cargo?->permissoes ?? [] as $permissao) {
+        $key   = $permissao->chave;
+        $scope = $permissao->pivot->scope_id;
+        // Converte o scope numérico para string que o front‑end entende:
+        switch ($scope) {
+            case 3:
+                // todos os níveis: ['all','total',...]
+                $permissions[$key] = 'all';
+                break;
+            case 2:
+                // apenas setor: ['sector','setor']
+                $permissions[$key] = 'sector';
+                break;
+            case 1:
+                // apenas próprio recurso; para itens sem levels pode ser true
+                $permissions[$key] = true;
+                break;
+            default:
+                $permissions[$key] = true;
+        }
+    }
+    return $permissions;
+}
 
     /**
      * Verifica se o usuário possui a permissão informada, considerando escopo e setor.

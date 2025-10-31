@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NavUser } from '@/components/nav-user'
+import type { InertiaLinkProps } from '@inertiajs/react';
+import { resolveUrl } from '@/lib/utils';
 import {
   SidebarContent,
   SidebarFooter,
@@ -38,15 +40,18 @@ export function GpdlSidebar({ className }: Props) {
     return segmentMatch && queryMatch
   }
 
-  const toPathname = (href: string) => {
-    try {
-      const base =
-        typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
-      return new URL(href, base).pathname
-    } catch {
-      return href
-    }
+  const toPathname = (href: InertiaLinkProps['href']) => {
+  if (!href) return '';
+  try {
+    const base =
+      typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+    const url = resolveUrl(href);      // ← converte objeto ou mantém string
+    return new URL(url, base).pathname;
+  } catch {
+    // fallback: retorna a própria string ou a propriedade .url do objeto
+    return typeof href === 'string' ? href : resolveUrl(href);
   }
+};
 
   const matchesItem = (item: NavigationItem): boolean => {
     if (routeMatches(item.match)) {

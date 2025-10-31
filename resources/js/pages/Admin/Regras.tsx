@@ -648,8 +648,8 @@ export default function Regras({
                                                 key={perm.id}
                                                 value={perm.id}
                                             >
-                                                {perm.descricao
-                                                    ? `${perm.descricao}`
+                                                {perm.nome
+                                                    ? `${perm.nome  }`
                                                     : ''}
                                             </option>
                                         ))}
