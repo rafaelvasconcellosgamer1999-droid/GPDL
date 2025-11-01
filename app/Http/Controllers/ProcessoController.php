@@ -268,40 +268,6 @@ class ProcessoController extends Controller
         return back()->with('success', 'Processo finalizado com sucesso.');
     }
 
-    /**
-     * Finaliza um conjunto de processos (IDs).
-     */
-    public function finalizarLote(Request $request)
-    {
-        $data = $request->validate([
-            'ids' => ['required', 'array'],
-            'ids.*' => ['integer'],
-        ]);
-
-        if (!Schema::hasTable('processos') || empty($data['ids'])) {
-            return back()->with('error', 'Entrada inválida.');
-        }
-
-        $updates = [];
-        $agora = now();
-        if (Schema::hasColumn('processos', 'data_finalizacao')) {
-            $updates['data_finalizacao'] = $agora;
-        }
-        if (Schema::hasColumn('processos', 'finalizado_em')) {
-            $updates['finalizado_em'] = $agora;
-        }
-        if (Schema::hasColumn('processos', 'concluido')) {
-            $updates['concluido'] = 1;
-        }
-
-        if (empty($updates)) {
-            return back()->with('error', 'Não há colunas de finalização disponíveis.');
-        }
-
-        DB::table('processos')->whereIn('id', $data['ids'])->update($updates);
-
-        return back()->with('success', 'Processos finalizados com sucesso.');
-    }
 
     private function separarBlocos(string $texto): array
     {

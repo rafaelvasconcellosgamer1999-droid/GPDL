@@ -27,6 +27,17 @@ export type PermissionKey =
   | 'manage_squads'
   | 'view_logs'
   | 'view_audit'
+  // Novas chaves para controle do menu
+  | 'view_dashboard_menu'
+  | 'view_process_menu'
+  | 'create_process_menu'
+  | 'edit_process_menu'
+  | 'view_agenda_menu'
+  | 'view_reports_menu'
+  | 'view_admin_menu'
+  | 'view_squads_menu'
+  | 'view_logs_menu'
+  | 'view_audit_menu'
 
 export type PermissionRequirement = {
   key: PermissionKey
@@ -53,21 +64,21 @@ export type NavigationItem = {
 
 export const navigationItems: NavigationItem[] = [
   {
-    id: 'dashboard',
-    label: 'Início',
-    icon: Home,
-    href: dashboard(),
-    match: { segment: 'dashboard' },
-    permission: { key: 'view_dashboard' },
-    section: 'main',
-  },
+  id: 'dashboard',
+  label: 'Início',
+  icon: Home,
+  href: dashboard(),
+  match: { segment: 'dashboard' },
+  permission: { key: 'view_dashboard_menu' },
+  section: 'main',
+},
   {
     id: 'processos',
     label: 'Processos',
     icon: FileText,
     href: '/processos?view=ativos',
     match: { segment: 'processos' },
-    permission: { key: 'view_process' },
+    permission: { key: 'view_process_menu' },
     section: 'main',
     children: [
       {
@@ -122,7 +133,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Calendar,
     href: '/agenda',
     match: { segment: 'agenda' },
-    permission: { key: 'view_agenda' },
+    permission: { key: 'view_agenda_menu' },
     section: 'main',
   },
   {
@@ -131,7 +142,7 @@ export const navigationItems: NavigationItem[] = [
     icon: ChartPie,
     href: '/relatorios',
     match: { segment: 'relatorios' },
-    permission: { key: 'view_reports' },
+    permission: { key: 'view_reports_menu' },
     section: 'main',
   },
   {
@@ -140,7 +151,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Shield,
     href: '/admin',
     match: { segment: 'admin' },
-    permission: { key: 'view_admin' },
+    permission: { key: 'view_admin_menu' },
     section: 'main',
   },
   {
@@ -149,7 +160,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Users,
     href: '/squads',
     match: { segment: 'squads' },
-    permission: { key: 'view_squads' },
+    permission: { key: 'view_squads_menu' },
     section: 'main',
   },
   {
@@ -158,7 +169,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Shield,
     href: '/logs',
     match: { segment: 'logs' },
-    permission: { key: 'view_logs' },
+    permission: { key: 'view_logs_menu' },
     section: 'monitor',
   },
   {
@@ -167,7 +178,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Shield,
     href: '/auditoria',
     match: { segment: 'auditoria' },
-    permission: { key: 'view_audit' },
+    permission: { key: 'view_audit_menu' },
     section: 'monitor',
   },
 ]

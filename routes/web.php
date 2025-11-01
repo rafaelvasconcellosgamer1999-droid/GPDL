@@ -38,31 +38,19 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     // Navegação principal (estrutura base)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.base');
 
-    Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
+    // Grupo de processos protegido por permissão de visualização
+    Route::middleware(['auth', 'permission:view_process'])->group(function () {
+        Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
+        Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importarLote');
+        Route::post('/processos/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('processos.finalizar');
+    });
+    Route::get('/agenda', function () {return Inertia\Inertia::render('Agenda/Index');})->name('agenda.index');
 
-    Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importarLote');
-    Route::post('/processos/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('processos.finalizar');
-    Route::post('/processos/finalizar-lote', [ProcessoController::class, 'finalizarLote'])->name('processos.finalizarLote');
+    Route::get('/squads', function () {return Inertia\Inertia::render('Squads/Index');})->name('squads.index');
 
-    Route::get('/agenda', function () {
-        return Inertia\Inertia::render('Agenda/Index');
-    })->name('agenda.index');
+    Route::get('/logs', function () {return Inertia\Inertia::render('Logs/Index');})->name('logs.index');
 
-    Route::get('/relatorios', function () {
-        return Inertia\Inertia::render('Relatorios/Index');
-    })->name('relatorios.index');
-
-    Route::get('/squads', function () {
-        return Inertia\Inertia::render('Squads/Index');
-    })->name('squads.index');
-
-    Route::get('/logs', function () {
-        return Inertia\Inertia::render('Logs/Index');
-    })->name('logs.index');
-
-    Route::get('/auditoria', function () {
-        return Inertia\Inertia::render('Auditoria/Index');
-    })->name('auditoria.index');
+    Route::get('/auditoria', function () {return Inertia\Inertia::render('Auditoria/Index');})->name('auditoria.index');
 
 
     Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
