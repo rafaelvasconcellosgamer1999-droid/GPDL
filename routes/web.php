@@ -39,7 +39,7 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.base');
 
     // Grupo de processos protegido por permissão de visualização
-    Route::middleware(['auth', 'permission:view_process'])->group(function () {
+    Route::middleware(['auth', 'permission:view_process_page'])->group(function () {
         Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
         Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importarLote');
         Route::post('/processos/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('processos.finalizar');
@@ -62,7 +62,7 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
 
     // ========== ADMIN ==========
-    Route::middleware(['auth','permission:view_admin'])->prefix('admin')->group(function () {
+    Route::middleware(['auth','permission:view_admin_page'])->prefix('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('admin.index');
 
         // Setores
