@@ -35,35 +35,64 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'force.password.change'])->group(function () {
 
-    // Navegação principal (estrutura base)
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.base');
+    // Dashboard (página inicial)
+    Route::middleware(['permission:view_dashboard_page'])
+        ->get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard.base');
 
-    // Grupo de processos protegido por permissão de visualização
-    Route::middleware(['auth', 'permission:view_process_page'])->group(function () {
+    // ======================
+    // PROCESSOS
+    // ======================
+    Route::middleware(['permission:view_process_page'])->group(function () {
         Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
         Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importarLote');
         Route::post('/processos/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('processos.finalizar');
     });
-    Route::get('/agenda', function () {return Inertia\Inertia::render('Agenda/Index');})->name('agenda.index');
 
-    Route::get('/squads', function () {return Inertia\Inertia::render('Squads/Index');})->name('squads.index');
+    // ======================
+    // AGENDA
+    // ======================
+    Route::middleware(['permission:view_agenda_page'])
+        ->get('/agenda', fn() => Inertia\Inertia::render('Agenda/Index'))
+        ->name('agenda.index');
 
-    Route::get('/logs', function () {return Inertia\Inertia::render('Logs/Index');})->name('logs.index');
+    // ======================
+    // RELATÓRIOS
+    // ======================
+    Route::middleware(['permission:view_reports_page'])->group(function () {
+        Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
+        Route::get('/api/relatorios/total', [RelatoriosController::class, 'total']);
+        Route::get('/api/relatorios/status', [RelatoriosController::class, 'processosPorStatus']);
+        Route::get('/api/relatorios/procurador', [RelatoriosController::class, 'processosPorProcurador']);
+        Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
+    });
 
-    Route::get('/auditoria', function () {return Inertia\Inertia::render('Auditoria/Index');})->name('auditoria.index');
+    // ======================
+    // SQUADS
+    // ======================
+    Route::middleware(['permission:view_squads_page'])
+        ->get('/squads', fn() => Inertia\Inertia::render('Squads/Index'))
+        ->name('squads.index');
 
+    // ======================
+    // LOGS
+    // ======================
+    Route::middleware(['permission:view_logs_page'])
+        ->get('/logs', fn() => Inertia\Inertia::render('Logs/Index'))
+        ->name('logs.index');
 
-    Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
-    Route::get('/api/relatorios/total', [RelatoriosController::class, 'total']);
+    // ======================
+    // AUDITORIA
+    // ======================
+    Route::middleware(['permission:view_audit_page'])
+        ->get('/auditoria', fn() => Inertia\Inertia::render('Auditoria/Index'))
+        ->name('auditoria.index');
 
-    // Rotas AJAX
-    Route::get('/api/relatorios/status', [RelatoriosController::class, 'processosPorStatus']);
-    Route::get('/api/relatorios/procurador', [RelatoriosController::class, 'processosPorProcurador']);
-    Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
-
-    // ========== ADMIN ==========
-    Route::middleware(['auth','permission:view_admin_page'])->prefix('admin')->group(function () {
-    Route::get('/', [AdminController::class, 'index'])->name('admin.index');
+    // ======================
+    // ADMINISTRAÇÃO
+    // ======================
+    Route::middleware(['permission:view_admin_page'])->prefix('admin')->group(function () {
+        Route::get('/', [AdminController::class, 'index'])->name('admin.index');
 
         // Setores
         Route::get('setores', [SetorController::class, 'index'])->name('setores');
@@ -72,19 +101,10 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::post('setores/toggle', [SetorController::class, 'toggleSetor'])->name('setores.toggle');
 
         // Cargos
-        // Listar cargos
         Route::get('cargos', [CargoController::class, 'index'])->name('cargos');
-
-        // Criar cargo
         Route::post('cargos/criar', [CargoController::class, 'criarCargo'])->name('cargos.criar');
-
-        // Editar cargo
         Route::post('cargos/editar', [CargoController::class, 'editarCargo'])->name('cargos.editar');
-
-        // Excluir cargo
         Route::delete('cargos/excluir', [CargoController::class, 'excluirCargo'])->name('cargos.excluir');
-
-        // Alterar status do cargo (ativo/inativo)
         Route::post('cargos/toggle', [CargoController::class, 'toggleStatus'])->name('cargos.toggle');
 
         // Usuários
@@ -104,15 +124,19 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::get('permissoes', [PermissaoController::class, 'index'])->name('permissoes');
         Route::post('permissoes/criar', [PermissaoController::class, 'criarPermissao'])->name('permissoes.criar');
         Route::post('permissoes/editar', [PermissaoController::class, 'editarPermissao'])->name('permissoes.editar');
-        Route::delete('permissoes/{permissao}', [PermissaoController::class, 'excluirPermissao'])
-            ->name('permissoes.excluir');
-        // Regras       
+        Route::delete('permissoes/{permissao}', [PermissaoController::class, 'excluirPermissao'])->name('permissoes.excluir');
+
+        // Regras
         Route::get('regras', [RegraController::class, 'index'])->name('regras.index');
         Route::post('regras/criar', [RegraController::class, 'criarRegra'])->name('regras.criar');
         Route::post('regras/atualizar', [RegraController::class, 'atualizarRegra'])->name('regras.atualizar');
         Route::delete('regras/excluir', [RegraController::class, 'excluirRegra'])->name('regras.excluir');
     });
-    // Configurações de senha (via layout do app)
+
+    // ======================
+    // CONFIGURAÇÕES
+    // ======================
     Route::get('/settings/password', [SettingsPasswordController::class, 'edit'])->name('settings.password.edit');
     Route::put('/settings/password', [SettingsPasswordController::class, 'update'])->name('settings.password.update');
 });
+
