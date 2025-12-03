@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Cargo;
 use App\Models\Setor;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SolicitacaoController extends Controller
@@ -46,11 +47,20 @@ class SolicitacaoController extends Controller
         return back()->with('success', 'Solicitação aprovada e usuário criado!');
     }
 
-    public function rejeitarSolicitacao(SolicitacaoRequest $request) // Usando o SolicitaçãoRequest
-    {
-        Solicitacao::destroy($request->id);
+    public function rejeitarSolicitacao(Request $request)
+{
+    Solicitacao::destroy($request->id);
 
-        return back()->with('success', 'Solicitação rejeitada!');
+    // impede o 303 e evita GET subsequente
+    if ($request->expectsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Solicitação rejeitada com sucesso.'
+        ]);
     }
+
+    // só redireciona se NÃO for uma chamada AJAX/Inertia
+    return back()->with('success', 'Solicitação rejeitada com sucesso.');
+}
 }
 

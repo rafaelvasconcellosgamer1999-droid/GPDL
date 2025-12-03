@@ -62,11 +62,11 @@ export default function Dashboard() {
                 className="gpdl-card metric-card metric-card-neutral w-full p-4 cursor-pointer"
                 role="link"
                 tabIndex={0}
-                onClick={() => router.visit('/processos?view=finalizados')}
+                onClick={() => router.visit('/processos?view=encerrados')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    router.visit('/processos?view=finalizados')
+                    router.visit('/processos?view=encerrados')
                   }
                 }}
               >
