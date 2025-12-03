@@ -415,4 +415,16 @@ class ProcessoController extends Controller
         }
         return $out;
     }
+
+    public function create()
+{
+    $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id','nome']);
+    return Inertia::render('Processos/CadastroIndividual', ['procuradores' => $procuradores]);
+}
+
+public function createLote()
+{
+    $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id','nome']);
+    return Inertia::render('Processos/CadastroLote', ['procuradores' => $procuradores]);
+}
 }

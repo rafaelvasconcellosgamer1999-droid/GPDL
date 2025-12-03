@@ -44,9 +44,16 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     // PROCESSOS
     // ======================
     Route::middleware(['permission:view_process_page'])->group(function () {
+        // Página principal
         Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
-        Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importarLote');
-        Route::post('/processos/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('processos.finalizar');
+
+        // Cadastro individual
+        Route::get('/processos/cadastro', [ProcessoController::class, 'create'])->name('processos.create');
+        Route::post('/processos', [ProcessoController::class, 'store'])->name('processos.store');
+
+        // Cadastro em lote
+        Route::get('/processos/import', [ProcessoController::class, 'createLote'])->name('processos.create-lote');
+        Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importar-lote');
     });
 
     // ======================
@@ -139,4 +146,3 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     Route::get('/settings/password', [SettingsPasswordController::class, 'edit'])->name('settings.password.edit');
     Route::put('/settings/password', [SettingsPasswordController::class, 'update'])->name('settings.password.update');
 });
-
