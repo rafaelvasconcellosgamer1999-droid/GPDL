@@ -8,6 +8,7 @@ use App\Models\Solicitacao;
 use App\Models\User;
 use App\Models\Cargo;
 use App\Models\Setor;
+use App\Services\SendEmail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -41,7 +42,11 @@ class SolicitacaoController extends Controller
             'precisa_trocar_senha' => true,
             'status' => 1
         ]);
-
+        new SendEmail($solicitacao->email,
+         $request->senha,
+         $solicitacao->nome,
+         $solicitacao->usuarioRede
+        );
         $solicitacao->delete();
 
         return back()->with('success', 'Solicitação aprovada e usuário criado!');
