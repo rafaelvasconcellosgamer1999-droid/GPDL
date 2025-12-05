@@ -336,57 +336,7 @@ export default function Solicitacoes({ solicitacoes, cargos, setores }: Props) {
             )}
 
             {/* Modal de Senha Gerada */}
-            {showSenhaModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full">
-                        <div className="p-6">
-                            <div className="text-center">
-                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900">
-                                    <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <h3 className="mt-4 text-lg font-semibold text-[var(--text-strong)]">
-                                    Usuário aprovado com sucesso!
-                                </h3>
-                                <div className="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                    <p className="text-sm text-[var(--text-muted)] mb-2">
-                                        Senha temporária gerada:
-                                    </p>
-                                    <div className="flex items-center justify-center gap-2">
-                                        <code className="text-2xl font-bold text-blue-600 dark:text-blue-400 bg-[var(--surface-card)] px-4 py-2 rounded border-2 border-dashed border-blue-300 dark:border-blue-700">
-                                            {senhaGerada}
-                                        </code>
-                                        <button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(senhaGerada);
-                                                alert('Senha copiada!');
-                                            }}
-                                            className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                            title="Copiar senha"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-                                        Anote essa senha e repasse ao usuário. O usuário precisará alterá-la no primeiro acesso.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="border-t dark:border-gray-700 p-6">
-                            <button
-                                onClick={() => setShowSenhaModal(false)}
-                                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                            >
-                                Fechar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+          
             {/* animações mínimas (Tailwind inline) */}
       <style>{`
         .animate-fadeIn { animation: fadeIn .2s ease-out; }
