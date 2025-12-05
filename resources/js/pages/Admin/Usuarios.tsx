@@ -116,8 +116,9 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                 { id },
                 {
                     preserveScroll: true,
-                    onSuccess: (page: any) => {
-                        const senha = page.props.flash?.senha || 'Temp' + Math.floor(1000 + Math.random() * 9000);
+                    onSuccess: (page) => {
+                        // @ts-expect-error: flash may not be typed in PageProps
+                        const senha = page.props?.flash?.senha || 'Temp' + Math.floor(1000 + Math.random() * 9000);
                         setSenhaGerada(senha);
                         setShowResetModal(true);
                     },
@@ -131,9 +132,10 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
         if (confirm(`Deseja ${acao} o usuário "${nome}"?`)) {
             const url = ativo ? '/admin/usuarios/desabilitar' : '/admin/usuarios/habilitar';
             router.post(url, { id }, {
-                preserveScroll: true,
-                onSuccess: (page: any) => {
-                    if (!ativo && page.props.flash?.senha) {
+                onSuccess: (page) => {
+                    // @ts-expect-error: flash may not be typed in PageProps
+                    if (!ativo && page.props?.flash?.senha) {
+                        // @ts-expect-error: flash may not be typed in PageProps
                         setSenhaGerada(page.props.flash.senha);
                         setShowResetModal(true);
                     }
@@ -149,16 +151,6 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                 preserveScroll: true,
             });
         }
-    };
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    };
-
-    const copiarSenha = () => {
-        navigator.clipboard.writeText(senhaGerada);
-        alert('Senha copiada para a área de transferência!');
     };
 
     const navegarPagina = (page: number) => {
@@ -189,16 +181,16 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Header */}
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-[var(--text-strong)]">
+                        <h1 className="text-2xl font-bold text-(--text-strong)">
                             Usuários
                         </h1>
-                        <p className="text-sm text-[var(--text-muted)] mt-1">
+                        <p className="text-sm text-(--text-muted) mt-1">
                             Gerencie os usuários do sistema
                         </p>
                     </div>
 
                     {/* Filtros */}
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-sm p-4 mb-6">
+                    <div className="bg-(--surface-card) rounded-lg shadow-sm p-4 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -207,7 +199,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <select
                                     value={filterData.cargo_id}
                                     onChange={(e) => setFilterData('cargo_id', e.target.value)}
-                                    className="w-full px-3 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] text-sm focus:ring-2 focus:ring-[var(--brand-500)] focus:border-transparent transition"
+                                    className="w-full px-3 py-2 border border-(--gpdl-border) rounded-lg bg-white dark:bg-gray-700 text-(--text-strong) text-sm focus:ring-2 focus:ring-(--brand-500) focus:border-transparent transition"
                                 >
                                     <option value="">Todos os cargos</option>
                                     {cargos.map((cargo) => (
@@ -223,7 +215,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <select
                                     value={filterData.setor_id}
                                     onChange={(e) => setFilterData('setor_id', e.target.value)}
-                                    className="w-full px-3 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] text-sm focus:ring-2 focus:ring-[var(--brand-500)] focus:border-transparent transition"
+                                    className="w-full px-3 py-2 border border-(--gpdl-border) rounded-lg bg-white dark:bg-gray-700 text-(--text-strong) text-sm focus:ring-2 focus:ring-(--brand-500) focus:border-transparent transition"
                                 >
                                     <option value="">Todos os setores</option>
                                     {setores.map((setor) => (
@@ -241,7 +233,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <select
                                     value={filterData.status}
                                     onChange={(e) => setFilterData('status', e.target.value)}
-                                    className="w-full px-3 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] text-sm focus:ring-2 focus:ring-[var(--brand-500)] focus:border-transparent transition"
+                                    className="w-full px-3 py-2 border border-(--gpdl-border) rounded-lg bg-white dark:bg-gray-700 text-(--text-strong) text-sm focus:ring-2 focus:ring-(--brand-500) focus:border-transparent transition"
                                 >
                                     <option value="">Todos os status</option>
                                     <option value="ativos">Ativos</option>
@@ -253,7 +245,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 <button
                                     type="button"
                                     onClick={applyFilters}
-                                    className="flex-1 px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] transition text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--brand-500)] focus:ring-offset-2"
+                                    className="flex-1 px-4 py-2 bg-(--brand-700) text-white rounded-lg hover:bg-(--brand-600) transition text-sm font-medium focus:outline-none focus:ring-2 focus:ring-(--brand-500) focus:ring-offset-2"
                                 >
                                     Filtrar
                                 </button>
@@ -270,16 +262,16 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
 
                     {/* Informação de resultados */}
                     {usuarios.data.length > 0 && (
-                        <div className="mb-4 text-sm text-[var(--text-muted)]">
+                        <div className="mb-4 text-sm text-(--text-muted)">
                             Mostrando {((usuarios.current_page - 1) * usuarios.per_page) + 1} a {Math.min(usuarios.current_page * usuarios.per_page, usuarios.total)} de {usuarios.total} usuário(s)
                         </div>
                     )}
 
                     {/* Tabela */}
-                    <div className="bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="bg-(--surface-card) overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
-                                <thead className="bg-[var(--surface-muted)]">
+                            <table className="min-w-full divide-y divide-(--gpdl-border)">
+                                <thead className="bg-(--surface-muted)">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Usuário
@@ -298,7 +290,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-[var(--surface-card)] divide-y divide-[var(--gpdl-border)]">
+                                <tbody className="bg-(--surface-card) divide-y divide-(--gpdl-border)">
                                     {usuarios.data.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
@@ -316,13 +308,13 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                             <tr key={usuario.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                                                        <div className="shrink-0 h-10 w-10 bg-linear-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-md">
                                                             <span className="text-white font-semibold text-sm">
                                                                 {usuario.nome.charAt(0).toUpperCase()}
                                                             </span>
                                                         </div>
                                                         <div className="ml-4">
-                                                            <div className="text-sm font-medium text-[var(--text-strong)]">
+                                                            <div className="text-sm font-medium text-(--text-strong)">
                                                                 {usuario.nome}
                                                             </div>
                                                             <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -332,12 +324,12 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-[var(--text-strong)]">
+                                                    <span className="text-sm text-(--text-strong)">
                                                         {usuario.cargo?.nome || '-'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-[var(--text-strong)]">
+                                                    <span className="text-sm text-(--text-strong)">
                                                         {usuario.setor ? (
                                                             <>
                                                                 {usuario.setor.sigla || usuario.setor.nome}
@@ -474,7 +466,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                                         type="button"
                                                         onClick={() => navegarPagina(page)}
                                                         className={`px-3 py-1 rounded transition ${page === usuarios.current_page
-                                                                ? 'bg-[var(--brand-700)] text-white font-semibold'
+                                                                ? 'bg-(--brand-700) text-white font-semibold'
                                                                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                                                             }`}
                                                     >
@@ -515,9 +507,9 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
             {/* Modal Editar */}
             {showEditModal && editingUsuario && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={closeEditModal}>
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-(--surface-card) rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-                            <h3 className="text-xl font-semibold text-[var(--text-strong)]">
+                            <h3 className="text-xl font-semibold text-(--text-strong)">
                                 Editar Usuário
                             </h3>
                             <button 
@@ -534,9 +526,9 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                         <form onSubmit={submitEdit}>
                             <div className="p-6 space-y-4">
                                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
-                                    <p className="text-sm font-medium text-[var(--text-strong)]">{editingUsuario.nome}</p>
-                                    <p className="text-xs text-[var(--text-muted)]">{editingUsuario.email}</p>
-                                    <p className="text-xs text-[var(--text-muted)] mt-1">Usuário de rede: {editingUsuario.usuarioRede}</p>
+                                    <p className="text-sm font-medium text-(--text-strong)">{editingUsuario.nome}</p>
+                                    <p className="text-xs text-(--text-muted)">{editingUsuario.email}</p>
+                                    <p className="text-xs text-(--text-muted) mt-1">Usuário de rede: {editingUsuario.usuarioRede}</p>
                                 </div>
 
                                 <div>
@@ -546,7 +538,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                     <select
                                         value={editData.cargo_id}
                                         onChange={(e) => setEditData('cargo_id', e.target.value)}
-                                        className="w-full px-4 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] focus:ring-2 focus:ring-[var(--brand-500)] focus:border-transparent transition"
+                                        className="w-full px-4 py-2 border border-(--gpdl-border) rounded-lg bg-white dark:bg-gray-700 text-(--text-strong) focus:ring-2 focus:ring-(--brand-500) focus:border-transparent transition"
                                         required
                                     >
                                         <option value="">Selecione um cargo</option>
@@ -566,7 +558,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                     <select
                                         value={editData.setor_id}
                                         onChange={(e) => setEditData('setor_id', e.target.value)}
-                                        className="w-full px-4 py-2 border border-[var(--gpdl-border)] rounded-lg bg-white dark:bg-gray-700 text-[var(--text-strong)] focus:ring-2 focus:ring-[var(--brand-500)] focus:border-transparent transition"
+                                        className="w-full px-4 py-2 border border-(--gpdl-border) rounded-lg bg-white dark:bg-gray-700 text-(--text-strong) focus:ring-2 focus:ring-(--brand-500) focus:border-transparent transition"
                                     >
                                         <option value="">Nenhum setor</option>
                                         {setores.map((setor) => (
@@ -592,7 +584,7 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 focus:ring-[var(--brand-500)] focus:ring-offset-2"
+                                    className="px-4 py-2 bg-(--brand-700) text-white rounded-lg hover:bg-(--brand-600) disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 focus:ring-(--brand-500) focus:ring-offset-2"
                                     disabled={processing}
                                 >
                                     {processing ? (
@@ -614,41 +606,29 @@ export default function Usuarios({ usuarios, cargos, setores, filters }: Props) 
             {/* Modal Senha Gerada */}
             {showResetModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowResetModal(false)}>
-                    <div className="bg-[var(--surface-card)] rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-(--surface-card) rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 text-center">
                             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 mb-4">
                                 <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-[var(--text-strong)] mb-2">
+                            <h3 className="text-lg font-semibold text-(--text-strong) mb-2">
                                 Senha Temporária Gerada
                             </h3>
-                            <p className="text-sm text-[var(--text-muted)] mb-4">
+                            <p className="text-sm text-(--text-muted) mb-4">
                                 A senha foi gerada com sucesso. Anote e repasse ao usuário.
                             </p>
                             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4 border-2 border-dashed border-gray-300 dark:border-gray-600">
-                                <code className="text-2xl font-bold text-[var(--brand-600)] select-all">
+                                <code className="text-2xl font-bold text-(--brand-600) select-all">
                                     {senhaGerada}
                                 </code>
                             </div>
                             <div className="flex gap-3">
                                 <button
                                     type="button"
-                                    onClick={copiarSenha}
-                                    className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                                >
-                                    <span className="flex items-center justify-center">
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                        </svg>
-                                        Copiar
-                                    </span>
-                                </button>
-                                <button
-                                    type="button"
                                     onClick={() => setShowResetModal(false)}
-                                    className="flex-1 px-4 py-2 bg-[var(--brand-700)] text-white rounded-lg hover:bg-[var(--brand-600)] transition focus:outline-none focus:ring-2 focus:ring-[var(--brand-500)] focus:ring-offset-2"
+                                    className="flex-1 px-4 py-2 bg-(--brand-700) text-white rounded-lg hover:bg-(--brand-600) transition focus:outline-none focus:ring-2 focus:ring-(--brand-500) focus:ring-offset-2"
                                 >
                                     Fechar
                                 </button>

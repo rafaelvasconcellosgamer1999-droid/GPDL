@@ -100,14 +100,14 @@ export default function Permissoes({ permissoes }: Props) {
           <div className="mb-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-[var(--text-strong)]">Permissões</h1>
-                <p className="text-sm text-[var(--text-muted)] mt-1">
+                <h1 className="text-2xl font-bold text-(--text-strong)">Permissões</h1>
+                <p className="text-sm text-(--text-muted) mt-1">
                   Crie, edite e remova permissões do sistema.
                 </p>
               </div>
               <button
                 onClick={openCreateModal}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand-700)] text-white shadow-sm hover:bg-[var(--brand-600)] active:scale-[0.99] transition"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--brand-700) text-white shadow-sm hover:bg-(--brand-600) active:scale-[0.99] transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -123,10 +123,10 @@ export default function Permissoes({ permissoes }: Props) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar por chave, nome ou descrição..."
-                  className="w-80 pl-9 pr-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                  className="w-80 pl-9 pr-3 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                 />
                 <svg
-                  className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                  className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -138,11 +138,11 @@ export default function Permissoes({ permissoes }: Props) {
           </div>
 
           {/* Tabela */}
-          <div className="mt-6 bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-xl border border-[var(--gpdl-border)]">
+          <div className="mt-6 bg-(--surface-card) overflow-hidden shadow-sm sm:rounded-xl border border-(--gpdl-border)">
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-[var(--surface-muted)] sticky top-0 z-10">
-                  <tr className="[&>th]:px-6 [&>th]:py-3 [&>th]:text-left [&>th]:text-[11px] [&>th]:font-semibold [&>th]:tracking-wider [&>th]:uppercase [&>th]:text-[var(--text-muted)]">
+                <thead className="bg-(--surface-muted) sticky top-0 z-10">
+                  <tr className="[&>th]:px-6 [&>th]:py-3 [&>th]:text-left [&>th]:text-[11px] [&>th]:font-semibold [&>th]:tracking-wider [&>th]:uppercase [&>th]:text-(--text-muted)">
                     <th>ID</th>
                     <th>Código (slug)</th>
                     <th>Nome</th>
@@ -150,15 +150,15 @@ export default function Permissoes({ permissoes }: Props) {
                     <th className="text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--gpdl-border)]">
+                <tbody className="divide-y divide-(--gpdl-border)">
                   {filtered.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-12">
                         <div className="flex flex-col items-center justify-center text-center">
-                          <svg className="w-10 h-10 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-10 h-10 text-(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
-                          <p className="mt-2 text-[var(--text-muted)]">
+                          <p className="mt-2 text-(--text-muted)">
                             Nenhuma permissão encontrada.
                           </p>
                         </div>
@@ -168,19 +168,19 @@ export default function Permissoes({ permissoes }: Props) {
                     filtered.map((permissao, idx) => (
                       <tr
                         key={permissao.id}
-                        className={idx % 2 === 1 ? 'bg-[color:var(--surface-main)/0.35]' : undefined}
+                        className={idx % 2 === 1 ? 'bg-[var(--surface-main)/0.35]' : undefined}
                       >
-                        <td className="px-6 py-3 text-[var(--text-strong)]">{permissao.id}</td>
-                        <td className="px-6 py-3 font-mono text-[var(--accent-info)]">{permissao.chave}</td>
-                        <td className="px-6 py-3 text-[var(--text-strong)]">{permissao.nome}</td>
-                        <td className="px-6 py-3 text-[var(--text-strong)]">
-                          {permissao.descricao || <span className="text-[var(--text-muted)]">—</span>}
+                        <td className="px-6 py-3 text-(--text-strong)">{permissao.id}</td>
+                        <td className="px-6 py-3 font-mono text-(--accent-info)">{permissao.chave}</td>
+                        <td className="px-6 py-3 text-(--text-strong)">{permissao.nome}</td>
+                        <td className="px-6 py-3 text-(--text-strong)">
+                          {permissao.descricao || <span className="text-(--text-muted)">—</span>}
                         </td>
                         <td className="px-6 py-3 whitespace-nowrap text-right">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openEditModal(permissao)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[var(--gpdl-border)] hover:bg-[var(--surface-muted)] text-[var(--text-strong)] transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-(--gpdl-border) hover:bg-(--surface-muted) text-(--text-strong) transition"
                               title="Editar permissão"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +190,7 @@ export default function Permissoes({ permissoes }: Props) {
                             </button>
                             <button
                               onClick={() => deletePermissao(permissao.id, permissao.chave)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-300/60 text-[var(--danger-500)] hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-300/60 text-(--danger-500) hover:bg-red-50 dark:hover:bg-red-900/20 transition"
                               title="Excluir permissão"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +208,7 @@ export default function Permissoes({ permissoes }: Props) {
             </div>
 
             {/* Rodapé */}
-            <div className="px-6 py-4 border-t border-[var(--gpdl-border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+            <div className="px-6 py-4 border-t border-(--gpdl-border) flex items-center justify-between text-xs text-(--text-muted)">
               <span>Mostrando {filtered.length} de {permissoes.length}</span>
               <span>Página 1 de 1</span>
             </div>
@@ -223,15 +223,15 @@ export default function Permissoes({ permissoes }: Props) {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+            className="relative w-full max-w-md rounded-2xl shadow-xl border border-(--gpdl-border) bg-(--surface-card) animate-scaleIn"
           >
             <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-[var(--text-strong)]">
+              <h3 className="text-xl font-semibold text-(--text-strong)">
                 {editingPermissao ? 'Editar permissão' : 'Nova permissão'}
               </h3>
               <button
                 onClick={closeModal}
-                className="p-2 rounded-lg hover:bg-[var(--surface-muted)] text-[var(--text-muted)]"
+                className="p-2 rounded-lg hover:bg-(--surface-muted) text-(--text-muted)"
                 title="Fechar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,54 +244,53 @@ export default function Permissoes({ permissoes }: Props) {
               <div className="p-6 space-y-4">
                 {/* Campo de chave (slug) */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
-                    Código (slug) <span className="text-[var(--danger-500)]">*</span>
+                  <label className="block text-sm font-medium text-(--text-strong) mb-1">
+                    Código (slug) <span className="text-(--danger-500)">*</span>
                   </label>
                     <input
                       type="text"
                       value={data.chave}
                       onChange={(e) => setData('chave', e.target.value.toLowerCase().replace(/\s+/g, '_'))}
-                      className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)] font-mono"
+                      className="w-full px-4 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600) font-mono"
                       placeholder="Ex: view_dashboard"
                       required
                       autoFocus
                     />
                     {errors.chave && (
-                      <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.chave}</p>
+                      <p className="mt-1 text-xs text-(--danger-500)">{errors.chave}</p>
                     )}
                 </div>
-
                 {/* Campo opcional de nome (legível) */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
+                  <label className="block text-sm font-medium text-(--text-strong) mb-1">
                     Nome legível
                   </label>
                   <input
                     type="text"
                     value={data.nome}
                     onChange={(e) => setData('nome', e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    className="w-full px-4 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                     placeholder="Ex: Visualizar Dashboard"
                   />
                   {errors.nome && (
-                    <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.nome}</p>
+                    <p className="mt-1 text-xs text-(--danger-500)">{errors.nome}</p>
                   )}
                 </div>
 
                 {/* Campo de descrição */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
+                  <label className="block text-sm font-medium text-(--text-strong) mb-1">
                     Descrição
                   </label>
                   <input
                     type="text"
                     value={data.descricao}
                     onChange={(e) => setData('descricao', e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    className="w-full px-4 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                     placeholder="Ex: Permite visualizar o dashboard"
                   />
                   {errors.descricao && (
-                    <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.descricao}</p>
+                    <p className="mt-1 text-xs text-(--danger-500)">{errors.descricao}</p>
                   )}
                 </div>
               </div>
@@ -300,14 +299,14 @@ export default function Permissoes({ permissoes }: Props) {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 rounded-lg bg-[var(--surface-muted)] text-[var(--text-strong)] hover:opacity-90 transition"
+                  className="px-4 py-2 rounded-lg bg-(--surface-muted) text-(--text-strong) hover:opacity-90 transition"
                   disabled={processing}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] disabled:opacity-50 transition"
+                  className="px-4 py-2 rounded-lg bg-(--brand-700) text-white hover:bg-(--brand-600) disabled:opacity-50 transition"
                   disabled={processing}
                 >
                   {processing ? 'Salvando…' : 'Salvar'}

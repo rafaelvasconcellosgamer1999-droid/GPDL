@@ -106,15 +106,15 @@ export default function Setores({ setores }: Props) {
           <div className="mb-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-[var(--text-strong)]">Setores</h1>
-                <p className="text-sm text-[var(--text-muted)] mt-1">
+                <h1 className="text-2xl font-bold text-(--text-strong)">Setores</h1>
+                <p className="text-sm text-(--text-muted) mt-1">
                   Crie, edite e (des)ative setores organizacionais.
                 </p>
               </div>
 
               <button
                 onClick={openCreateModal}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand-700)] text-white shadow-sm hover:bg-[var(--brand-600)] active:scale-[0.99] transition"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-(--brand-700) text-white shadow-sm hover:bg-(--brand-600) active:scale-[0.99] transition"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -131,10 +131,10 @@ export default function Setores({ setores }: Props) {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Buscar por nome, sigla ou ID..."
-                    className="w-72 max-w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    className="w-72 max-w-full pl-9 pr-3 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                   />
                   <svg
-                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -146,7 +146,7 @@ export default function Setores({ setores }: Props) {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                  className="px-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                  className="px-3 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                   title="Filtrar por status"
                 >
                   <option value="all">Todos</option>
@@ -156,8 +156,8 @@ export default function Setores({ setores }: Props) {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-1 text-xs rounded-full bg-[var(--surface-muted)] text-[var(--text-muted)]">
-                  Total: <b className="text-[var(--text-strong)]">{counts.total}</b>
+                <span className="px-2.5 py-1 text-xs rounded-full bg-(--surface-muted) text-(--text-muted)">
+                  Total: <b className="text-(--text-strong)">{counts.total}</b>
                 </span>
                 <span className="px-2.5 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200">
                   Ativos: <b>{counts.active}</b>
@@ -170,11 +170,11 @@ export default function Setores({ setores }: Props) {
           </div>
 
           {/* Tabela */}
-          <div className="bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-xl border border-[var(--gpdl-border)]">
+          <div className="bg-(--surface-card) overflow-hidden shadow-sm sm:rounded-xl border border-(--gpdl-border)">
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-[var(--surface-muted)] sticky top-0 z-10">
-                  <tr className="[&>th]:px-6 [&>th]:py-3 [&>th]:text-left [&>th]:text-[11px] [&>th]:font-semibold [&>th]:tracking-wider [&>th]:uppercase [&>th]:text-[var(--text-muted)]">
+                <thead className="bg-(--surface-muted) sticky top-0 z-10">
+                  <tr className="[&>th]:px-6 [&>th]:py-3 [&>th]:text-left [&>th]:text-[11px] [&>th]:font-semibold [&>th]:tracking-wider [&>th]:uppercase [&>th]:text-(--text-muted)">
                     <th>ID</th>
                     <th>Nome</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Usuários</th>
@@ -183,15 +183,15 @@ export default function Setores({ setores }: Props) {
                     <th className="text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--gpdl-border)]">
+                <tbody className="divide-y divide-(--gpdl-border)">
                   {filtered.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-12">
                         <div className="flex flex-col items-center justify-center text-center">
-                          <svg className="w-10 h-10 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-10 h-10 text-(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l6 6v10a2 2 0 01-2 2z" />
                           </svg>
-                          <p className="mt-2 text-[var(--text-muted)]">
+                          <p className="mt-2 text-(--text-muted)">
                             Nenhum setor encontrado com o filtro atual.
                           </p>
                         </div>
@@ -201,17 +201,17 @@ export default function Setores({ setores }: Props) {
                     filtered.map((setor, idx) => (
                       <tr
                         key={setor.id}
-                        className={idx % 2 === 1 ? 'bg-[color:var(--surface-main)/0.35]' : undefined}
+                        className={idx % 2 === 1 ? 'bg-[var(--surface-main)/0.35]' : undefined}
                       >
-                        <td className="px-6 py-3 whitespace-nowrap text-[var(--text-strong)]">{setor.id}</td>
-                        <td className="px-6 py-3 text-[var(--text-strong)]">{setor.nome}</td>
+                        <td className="px-6 py-3 whitespace-nowrap text-(--text-strong)">{setor.id}</td>
+                        <td className="px-6 py-3 text-(--text-strong)">{setor.nome}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                 {setor.usuarios_count || 0} {setor.usuarios_count === 1 ? 'usuário' : 'usuários'}
                             </span>
                         </td>
-                        <td className="px-6 py-3 whitespace-nowrap text-[var(--text-strong)]">
-                          {setor.sigla || <span className="text-[var(--text-muted)]">—</span>}
+                        <td className="px-6 py-3 whitespace-nowrap text-(--text-strong)">
+                          {setor.sigla || <span className="text-(--text-muted)">—</span>}
                         </td>
                         <td className="px-6 py-3 whitespace-nowrap">
                           <span
@@ -229,7 +229,7 @@ export default function Setores({ setores }: Props) {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => openEditModal(setor)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[var(--gpdl-border)] hover:bg-[var(--surface-muted)] text-[var(--text-strong)] transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-(--gpdl-border) hover:bg-(--surface-muted) text-(--text-strong) transition"
                               title="Editar setor"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,8 +243,8 @@ export default function Setores({ setores }: Props) {
                               className={[
                                 'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition',
                                 setor.status
-                                  ? 'border border-red-300/60 text-[var(--danger-500)] hover:bg-red-50 dark:hover:bg-red-900/20'
-                                  : 'border border-green-300/60 text-[var(--success-500)] hover:bg-green-50 dark:hover:bg-green-900/20',
+                                  ? 'border border-red-300/60 text-(--danger-500) hover:bg-red-50 dark:hover:bg-red-900/20'
+                                  : 'border border-green-300/60 text-(--success-500) hover:bg-green-50 dark:hover:bg-green-900/20',
                               ].join(' ')}
                               title={setor.status ? 'Desativar' : 'Ativar'}
                             >
@@ -274,7 +274,7 @@ export default function Setores({ setores }: Props) {
             </div>
 
             {/* Paginação (placeholder) */}
-            <div className="px-6 py-4 border-t border-[var(--gpdl-border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+            <div className="px-6 py-4 border-t border-(--gpdl-border) flex items-center justify-between text-xs text-(--text-muted)">
               <span>Mostrando {filtered.length} de {counts.total}</span>
               <span>Página 1 de 1</span>
             </div>
@@ -289,16 +289,16 @@ export default function Setores({ setores }: Props) {
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+            className="relative w-full max-w-md rounded-2xl shadow-xl border border-(--gpdl-border) bg-(--surface-card) animate-scaleIn"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-[var(--text-strong)]">
+              <h3 className="text-xl font-semibold text-(--text-strong)">
                 {editingSetor ? 'Editar setor' : 'Novo setor'}
               </h3>
               <button
                 onClick={closeModal}
-                className="p-2 rounded-lg hover:bg-[var(--surface-muted)] text-[var(--text-muted)]"
+                className="p-2 rounded-lg hover:bg-(--surface-muted) text-(--text-muted)"
                 title="Fechar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,38 +312,38 @@ export default function Setores({ setores }: Props) {
               <div className="p-6 space-y-4">
                 {/* Nome */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
-                    Nome do setor <span className="text-[var(--danger-500)]">*</span>
+                  <label className="block text-sm font-medium text-(--text-strong) mb-1">
+                    Nome do setor <span className="text-(--danger-500)">*</span>
                   </label>
                   <input
                     type="text"
                     value={data.nome}
                     onChange={(e) => setData('nome', e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    className="w-full px-4 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                     placeholder="Ex: Diretoria de Tecnologia"
                     required
                     autoFocus
                   />
                   {errors.nome && (
-                    <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.nome}</p>
+                    <p className="mt-1 text-xs text-(--danger-500)">{errors.nome}</p>
                   )}
                 </div>
 
                 {/* Sigla */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-strong)] mb-1">
+                  <label className="block text-sm font-medium text-(--text-strong) mb-1">
                     Sigla
                   </label>
                   <input
                     type="text"
                     value={data.sigla}
                     onChange={(e) => setData('sigla', e.target.value.toUpperCase())}
-                    className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                    className="w-full px-4 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                     placeholder="Ex: DTI"
                     maxLength={20}
                   />
                   {errors.sigla && (
-                    <p className="mt-1 text-xs text-[var(--danger-500)]">{errors.sigla}</p>
+                    <p className="mt-1 text-xs text-(--danger-500)">{errors.sigla}</p>
                   )}
                 </div>
               </div>
@@ -353,14 +353,14 @@ export default function Setores({ setores }: Props) {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 rounded-lg bg-[var(--surface-muted)] text-[var(--text-strong)] hover:opacity-90 transition"
+                  className="px-4 py-2 rounded-lg bg-(--surface-muted) text-(--text-strong) hover:opacity-90 transition"
                   disabled={processing}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] disabled:opacity-50 transition"
+                  className="px-4 py-2 rounded-lg bg-(--brand-700) text-white hover:bg-(--brand-600) disabled:opacity-50 transition"
                   disabled={processing}
                 >
                   {processing ? 'Salvando…' : 'Salvar'}
