@@ -318,27 +318,17 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_julgador} onChange={(e) => setData('orgao_julgador', e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Juízo / Vara</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.juizo_vara} onChange={(e) => setData('juizo_vara', e.target.value)} />
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do agravo</label>
+                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_agravo} onChange={(e) => setData('numero_agravo', e.target.value)} />
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do juízo/vara</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_juizo_vara} onChange={(e) => setData('numero_juizo_vara', e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do agravo</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_agravo} onChange={(e) => setData('numero_agravo', e.target.value)} />
-                </div>
+                
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número da suspensão</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_suspensao} onChange={(e) => setData('numero_suspensao', e.target.value)} />
                 </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do protocolo</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_protocolo} onChange={(e) => setData('numero_protocolo', e.target.value)} />
@@ -347,6 +337,9 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Ano</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.ano} onChange={(e) => setData('ano', e.target.value)} inputMode="numeric" />
                 </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Prazo (data limite)</label>
                   <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.data_limite} onChange={(e) => setData('data_limite', e.target.value)} />
