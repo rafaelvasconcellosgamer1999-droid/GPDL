@@ -36,10 +36,10 @@ const TabelaInterativa = ({
 }) => (
   <div className="mt-4">
     <div className="flex justify-between items-center mb-3">
-      <h4 className="text-sm font-medium text-[var(--text-muted)]">{titulo}</h4>
+      <h4 className="text-sm font-medium text-(--text-muted)">{titulo}</h4>
       <button 
         onClick={onSelectAll}
-        className="text-xs text-[var(--brand-500)] hover:text-[var(--brand-600)]"
+        className="text-xs text-(--brand-500) hover:text-(--brand-600)"
       >
         Mostrar todos
       </button>
@@ -48,19 +48,19 @@ const TabelaInterativa = ({
     <div className="overflow-x-auto" style={{ maxHeight }}>
       <table className="w-full">
         <thead>
-          <tr className="border-b border-[var(--gpdl-border)]">
-            <th className="text-left pb-2 text-[var(--text-muted)] font-medium text-sm">Categoria</th>
-            <th className="text-right pb-2 text-[var(--text-muted)] font-medium text-sm">Total</th>
-            <th className="text-right pb-2 text-[var(--text-muted)] font-medium text-sm">%</th>
+          <tr className="border-b border-(--gpdl-border)">
+            <th className="text-left pb-2 text-(--text-muted) font-medium text-sm">Categoria</th>
+            <th className="text-right pb-2 text-(--text-muted) font-medium text-sm">Total</th>
+            <th className="text-right pb-2 text-(--text-muted) font-medium text-sm">%</th>
           </tr>
         </thead>
         <tbody>
           {dados.map((item) => (
             <tr 
               key={item.name}
-              className={`border-b border-[var(--gpdl-border)] last:border-b-0 cursor-pointer transition-colors ${
+              className={`border-b border-(--gpdl-border) last:border-b-0 cursor-pointer transition-colors ${
                 item.selected 
-                  ? 'bg-[var(--surface-hover)]' 
+                  ? 'bg-(--surface-hover)' 
                   : 'opacity-40'
               }`}
               onClick={() => onToggle(item.name)}
@@ -68,18 +68,18 @@ const TabelaInterativa = ({
               <td className="py-2">
                 <div className="flex items-center gap-3">
                   <div 
-                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    className="w-3 h-3 rounded-full shrink-0"
                     style={{ backgroundColor: item.color }}
                   ></div>
-                  <span className="text-[var(--text-strong)] text-sm break-words">
+                  <span className="text-(--text-strong) text-sm wrap-break-word">
                     {item.name}
                   </span>
                 </div>
               </td>
-              <td className="py-2 text-right text-[var(--text-strong)] font-medium text-sm whitespace-nowrap">
+              <td className="py-2 text-right text-(--text-strong) font-medium text-sm whitespace-nowrap">
                 {item.value}
               </td>
-              <td className="py-2 text-right text-[var(--text-strong)] font-medium text-sm whitespace-nowrap">
+              <td className="py-2 text-right text-(--text-strong) font-medium text-sm whitespace-nowrap">
                 {item.percentual}
               </td>
             </tr>
@@ -355,24 +355,24 @@ export default function RelatoriosIndex() {
 
       <div className="space-y-8">
         {/* ✅ Card de total de processos */}
-        <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--gpdl-border)] p-6 flex items-center justify-between">
+        <div className="rounded-xl bg-(--surface-card) border border-(--gpdl-border) p-6 flex items-center justify-between">
           <div>
-            <h2 className="text-[var(--text-muted)] text-sm font-medium">Total de Processos</h2>
-            <p className="text-5xl font-bold text-[var(--brand-500)]">{totalProcessos}</p>
-            <p className="text-[var(--text-muted)] text-sm">em todo o sistema no período selecionado</p>
+            <h2 className="text-(--text-muted) text-sm font-medium">Total de Processos</h2>
+            <p className="text-5xl font-bold text-(--brand-500)">{totalProcessos}</p>
+            <p className="text-(--text-muted) text-sm">em todo o sistema no período selecionado</p>
           </div>
         </div>
 
         {/* 🧩 Linha de gráficos superiores */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Gráfico por status */}
-          <div className="rounded-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] p-6 shadow-sm">
-            <h2 className="mb-3 text-lg font-semibold text-[var(--text-strong)]">Processos por Status</h2>
+          <div className="rounded-xl border border-(--gpdl-border) bg-(--surface-card) p-6 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-(--text-strong)">Processos por Status</h2>
             
             {chartStatus ? (
               <ReactECharts option={chartStatus} style={{ height: 300 }} />
             ) : (
-              <p className="text-[var(--text-muted)] text-sm">Carregando dados...</p>
+              <p className="text-(--text-muted) text-sm">Carregando dados...</p>
             )}
 
             <TabelaInterativa
@@ -384,13 +384,13 @@ export default function RelatoriosIndex() {
           </div>
 
           {/* Gráfico por procurador */}
-          <div className="rounded-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] p-6 shadow-sm">
-            <h2 className="mb-3 text-lg font-semibold text-[var(--text-strong)]">Processos por Procurador</h2>
+          <div className="rounded-xl border border-(--gpdl-border) bg-(--surface-card) p-6 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-(--text-strong)">Processos por Procurador</h2>
             
             {procuradorData.length > 0 ? (
               <ReactECharts option={chartProcurador} style={{ height: 300 }} />
             ) : (
-              <p className="text-[var(--text-muted)] text-sm">Carregando dados...</p>
+              <p className="text-(--text-muted) text-sm">Carregando dados...</p>
             )}
 
             <TabelaInterativa
@@ -404,13 +404,13 @@ export default function RelatoriosIndex() {
         </div>
 
         {/* Gráfico por assunto */}
-        <div className="rounded-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] p-6 shadow-sm">
-          <h2 className="mb-3 text-lg font-semibold text-[var(--text-strong)]">Processos por Assunto</h2>
+        <div className="rounded-xl border border-(--gpdl-border) bg-(--surface-card) p-6 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold text-(--text-strong)">Processos por Assunto</h2>
           
           {assuntoData.length > 0 ? (
             <ReactECharts option={chartAssunto} style={{ height: 400 }} />
           ) : (
-            <p className="text-[var(--text-muted)] text-sm">Carregando dados...</p>
+            <p className="text-(--text-muted) text-sm">Carregando dados...</p>
           )}
 
           <TabelaInterativa

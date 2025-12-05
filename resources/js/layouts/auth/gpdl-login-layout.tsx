@@ -11,8 +11,8 @@ interface AuthLayoutProps {
 
 export default function GpdlLoginLayout({ children, title, description }: PropsWithChildren<AuthLayoutProps>) {
   return (
-    <div className="min-h-dvh w-full flex items-center justify-center gpdl-background bg-[var(--surface-main)] px-4 py-10">
-      <div className="relative w-full max-w-5xl grid md:grid-cols-2 gap-0 rounded-[28px] overflow-hidden border border-[var(--gpdl-border)] shadow-[var(--shadow-card)]">
+    <div className="min-h-dvh w-full flex items-center justify-center gpdl-background bg-(--surface-main) px-4 py-10">
+      <div className="relative w-full max-w-5xl grid md:grid-cols-2 gap-0 rounded-[28px] overflow-hidden border border-(--gpdl-border) shadow-(--shadow-card)">
         {/* Coluna esquerda (hero) */}
         <div className="gpdl-hero relative">
           <div className="absolute inset-0 pointer-events-none">
@@ -30,9 +30,9 @@ export default function GpdlLoginLayout({ children, title, description }: PropsW
               Centralize atividades, acompanhe prazos e mantenha o time alinhado com o fluxo certo de processos.
             </p>
             <ul className="text-white/90 text-sm space-y-2">
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[var(--success-500)]"></span> Vis&#227;o consolidada das demandas</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[var(--success-500)]"></span> Alertas autom&#225;ticos e integra&#231;&#245;es</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[var(--success-500)]"></span> Dashboards em tempo real</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-(--success-500)"></span> Vis&#227;o consolidada das demandas</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-(--success-500)"></span> Alertas autom&#225;ticos e integra&#231;&#245;es</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-(--success-500)"></span> Dashboards em tempo real</li>
             </ul>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default function GpdlLoginLayout({ children, title, description }: PropsW
         {/* Coluna direita (formulário) */}
         <div className="panel-glass rounded-3xl p-8 md:p-10 m-6">
           <div className="flex items-center justify-between mb-6">
-            <Link href={home()} className="inline-flex items-center gap-2 text-[var(--text-muted)]">
+            <Link href={home()} className="inline-flex items-center gap-2 text-(--text-muted)">
               <AppLogoIcon className="h-6 w-6 fill-current" />
               <span className="sr-only">Voltar ao in&iacute;cio</span>
             </Link>
@@ -56,8 +56,8 @@ export default function GpdlLoginLayout({ children, title, description }: PropsW
               enterTo="opacity-100 translate-y-0"
             >
               <div>
-                <h2 className="text-xl font-semibold text-[var(--text-strong)]">{title ?? 'Bem-vindo de volta!'}</h2>
-                <p className="text-[var(--text-muted)] text-sm">{description ?? 'Use seu utilizador de rede para acessar.'}</p>
+                <h2 className="text-xl font-semibold text-(--text-strong)">{title ?? 'Bem-vindo de volta!'}</h2>
+                <p className="text-(--text-muted) text-sm">{description ?? 'Use seu utilizador de rede para acessar.'}</p>
               </div>
             </Transition>
           </div>

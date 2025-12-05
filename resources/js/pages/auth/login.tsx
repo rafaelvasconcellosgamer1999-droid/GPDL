@@ -44,7 +44,7 @@ export default function Login({ status, canResetPassword, /*canRegister*/ }: Log
           type="button"
           role="tab"
           onClick={() => setView('login')}
-          className={`gpdl-pill font-medium h-9 flex-1 flex items-center justify-center relative z-[1] ${view === 'login' ? 'is-active' : ''}`}
+          className={`gpdl-pill font-medium h-9 flex-1 flex items-center justify-center relative z-1 ${view === 'login' ? 'is-active' : ''}`}
           aria-selected={view === 'login'}
         >
           Entrar
@@ -53,7 +53,7 @@ export default function Login({ status, canResetPassword, /*canRegister*/ }: Log
           type="button"
           role="tab"
           onClick={() => setView('request')}
-          className={`gpdl-pill font-medium h-9 flex-1 flex items-center justify-center relative z-[1] ${view === 'request' ? 'is-active' : ''}`}
+          className={`gpdl-pill font-medium h-9 flex-1 flex items-center justify-center relative z-1 ${view === 'request' ? 'is-active' : ''}`}
           aria-selected={view === 'request'}
         >
           Solicitar acesso

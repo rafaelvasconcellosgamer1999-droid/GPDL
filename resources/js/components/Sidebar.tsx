@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { JSX } from 'react';
 
 interface PageProps {
     auth: {
@@ -8,6 +9,7 @@ interface PageProps {
             email: string;
         };
     };
+    [key: string]: unknown;
 }
 
 interface Props {
@@ -15,7 +17,8 @@ interface Props {
 }
 
 export default function Sidebar({ isOpen }: Props) {
-    const { auth, url } = usePage<PageProps & { url: string }>();
+    const page = usePage<PageProps & { url: string }>();
+    const { auth, url } = page.props;
     const userName = auth.user.nome || auth.user.name || 'Usuário';
     const userInitial = userName.charAt(0).toUpperCase();
 
