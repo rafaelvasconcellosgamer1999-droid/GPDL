@@ -4,6 +4,7 @@ import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Check, Info, UserPlus, FileText, Users, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Errors, type VisitOptions } from '@inertiajs/core';
 
 type Procurador = { id: number; nome: string };
 
@@ -74,7 +75,7 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
 
   // helper to safely read dynamic error keys
   function getErrorByPath(path: string): string | undefined {
-    const errs = errors as unknown as Record<string, any> | undefined;
+    const errs: Errors | undefined = errors;
     if (!errs) return undefined;
     const value = errs[path];
     if (!value) return undefined;
@@ -177,7 +178,7 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
         onError: () => {
           // remain on step to let user fix
         },
-      } as any),
+      } as VisitOptions),
     );
   }
 
