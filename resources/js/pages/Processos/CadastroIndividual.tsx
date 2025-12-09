@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Check, Info, UserPlus, FileText, Users, ArrowLeft, ArrowRight } from 'lucide-react';
 
 type Procurador = { id: number; nome: string };
+type OptionItem = { id: string | number; nome: string }; // para tribunais/orgaos vindos do backend
 
 type ParteItem = {
   id: string;
@@ -13,17 +14,17 @@ type ParteItem = {
   qualificacao: string;
   tipo_qualificacao: string;
   eh_principal: string; // '1' | '0'
-  expediente: string;
+  expediente: string; // '1' | '0'
 };
 
 type FormShape = {
-  setor: string;
+  // setor agora é mostrado somente (prop); removido como input do form
   instancia: string;
   tribunal: string;
   valor_causa: string;
   numero_processo: string;
   tipo_processo: string;
-  is_precatorio: string;
+  tipo_pagamento: string; // renomeado de is_precatorio
   acao: string;
   assunto: string;
   orgao_origem: string;
@@ -41,20 +42,62 @@ type FormShape = {
   tipo_distribuicao: string;
   motivo_distribuicao: string;
   procurador_responsavel_id: string;
+
+  incidencia?: string; // '1' | '0'
+  referencia_numero_processo?: string;
 };
 
-export default function CadastroIndividual({ procuradores = [] as Procurador[] }: { procuradores?: Procurador[] }) {
+export default function CadastroIndividual({
+  procuradores = [] as Procurador[],
+  setorSelecionado = '',
+  tribunais = [] as OptionItem[], // passar do backend
+  acoes = [] as OptionItem[], // passar do backend
+  orgaos = [] as OptionItem[], // passar do backend (origem)
+  orgaosJulgadores = [] as OptionItem[], // passar do backend (julgador)
+}: {
+  procuradores?: Procurador[];
+  setorSelecionado?: string;
+  tribunais?: OptionItem[];
+  acoes?: OptionItem[];
+  orgaos?: OptionItem[];
+  orgaosJulgadores?: OptionItem[];
+}) {
   const [step, setStep] = useState<number>(0);
   const stepTitles = ['Dados básicos', 'Partes', 'Distribuição'];
 
+  const INSTANCIAS = ['1ª', '2ª', 'STJ', 'STF'];
+  const TIPOS_PROCESSO = ['Cível', 'Trabalhista', 'Tributário', 'Administrativo', 'Outros'];
+  const TIPO_PAGAMENTO_OPTIONS = [
+    { id: 'precatorio', nome: 'Precatório' },
+    { id: 'rpv', nome: 'RPV / Outro' },
+  ];
+
+  const QUALIFICACOES = ['Pessoa Física', 'Pessoa Jurídica', 'Entidade Pública', 'Outro'];
+  const TIPO_QUALIFICACAO = ['Autor', 'Réu', 'Interessado', 'Testemunha', 'Outro'];
+  const EXPEDIENTE_OPTIONS = [
+    { id: '1', nome: 'Sim' },
+    { id: '0', nome: 'Não' },
+  ];
+
+  const DIST_TYPES = [
+    { id: 'manual', nome: 'Manual' },
+    { id: 'automatica', nome: 'Automática' },
+    { id: 'equilibrada', nome: 'Equilibrada' },
+  ];
+  const DIST_MOTIVOS = [
+    { id: 'rotina', nome: 'Rotina' },
+    { id: 'urgencia', nome: 'Urgência' },
+    { id: 'competencia', nome: 'Competência' },
+    { id: 'sobrecarga', nome: 'Equilíbrio de carga' },
+  ];
+
   const { data, setData, post, processing, errors, reset } = useForm<FormShape>({
-    setor: '',
     instancia: '',
     tribunal: '',
     valor_causa: '',
     numero_processo: '',
     tipo_processo: '',
-    is_precatorio: '',
+    tipo_pagamento: '',
     acao: '',
     assunto: '',
     orgao_origem: '',
@@ -70,6 +113,8 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
     tipo_distribuicao: '',
     motivo_distribuicao: '',
     procurador_responsavel_id: '',
+    incidencia: '0',
+    referencia_numero_processo: '',
   });
 
   // helper to safely read dynamic error keys
@@ -77,7 +122,7 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
     const errs = errors as unknown as Record<string, any> | undefined;
     if (!errs) return undefined;
     const value = errs[path];
-    if (!value) return undefined;
+    if (value === undefined) return undefined;
     if (Array.isArray(value)) return String(value[0]);
     return String(value);
   }
@@ -85,17 +130,17 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
   // Partes local state (UX)
   const [partes, setPartes] = useState<ParteItem[]>([]);
   useEffect(() => {
-    if (partes.length === 0) setPartes([{ id: 'p0', nome: '', qualificacao: '', tipo_qualificacao: '', eh_principal: '0', expediente: '' }]);
+    if (partes.length === 0) setPartes([{ id: 'p0', nome: '', qualificacao: '', tipo_qualificacao: '', eh_principal: '0', expediente: '0' }]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const emptyParte = (idx: number): ParteItem => ({
     id: `p${Date.now()}-${idx}`,
     nome: '',
-    qualificacao: '',
-    tipo_qualificacao: '',
+    qualificacao: QUALIFICACOES[0] ?? '',
+    tipo_qualificacao: TIPO_QUALIFICACAO[0] ?? '',
     eh_principal: '0',
-    expediente: '',
+    expediente: '0',
   });
 
   function addParte() {
@@ -117,7 +162,7 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
           qualificacao: p.qualificacao,
           tipo_qualificacao: p.tipo_qualificacao,
           eh_principal: p.eh_principal === '1' ? 1 : 0,
-          expediente: p.expediente || null,
+          expediente: p.expediente === '1' ? 1 : 0,
         })),
       ),
     );
@@ -163,12 +208,12 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
     syncPartesToForm();
 
     // coerce values (keeping strings for useForm compatibility)
-    setData('is_precatorio', String(data.is_precatorio));
+    setData('tipo_pagamento', String(data.tipo_pagamento));
     setData('valor_causa', String(data.valor_causa || ''));
 
     post(
       '/processos',
-      ({
+      {
         preserveScroll: true,
         onSuccess: () => {
           reset();
@@ -177,7 +222,7 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
         onError: () => {
           // remain on step to let user fix
         },
-      } as any),
+      },
     );
   }
 
@@ -200,13 +245,21 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
   }
 
   return (
-    <GPDLLayout breadcrumbs={[{ title: 'Processos', href: '/processos' }, { title: 'Cadastro individual', href: '' }]}>
+    <GPDLLayout breadcrumbs={[{ title: 'Processos', href: '/processos' }, { title: 'Cadastro individual', href: '/processos/cadastro' }]}>
       <Head title="Processos - Cadastro por etapas" />
       <div className="mt-6 pb-10">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-strong)' }}>Cadastrar processo (por etapas)</h1>
             <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>Preencha as etapas; a distribuição (procurador) é a etapa final.</p>
+
+            {/* setor selecionado — apenas visual */}
+            {setorSelecionado && (
+              <div className="mt-3 inline-flex items-center gap-3 rounded-full border px-3 py-1 bg-[var(--surface-muted)]" style={{ borderColor: 'var(--gpdl-border)' }}>
+                <strong style={{ color: 'var(--text-strong)' }}>{setorSelecionado}</strong>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Setor selecionado</span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <Link href="/processos" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)', color: 'var(--text-strong)' }}>
@@ -242,25 +295,23 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Setor de atuação <span className="text-xs" style={{ color: 'var(--text-muted)' }}>(opcional)</span></label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.setor} onChange={(e) => setData('setor', e.target.value)} placeholder="Ex.: Contencioso" />
-                  <InputError message={getErrorByPath('setor')} className="mt-1" />
-                </div>
-
-                <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Instância</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.instancia} onChange={(e) => setData('instancia', e.target.value)} placeholder="1ª / 2ª / STJ / STF" />
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.instancia} onChange={(e) => setData('instancia', e.target.value)}>
+                    <option value="">Selecione</option>
+                    {INSTANCIAS.map((it) => <option key={it} value={it}>{it}</option>)}
+                  </select>
                   <InputError message={getErrorByPath('instancia')} className="mt-1" />
                 </div>
 
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tribunal</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tribunal} onChange={(e) => setData('tribunal', e.target.value)} placeholder="Ex.: TJPA" />
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tribunal} onChange={(e) => setData('tribunal', e.target.value)}>
+                    <option value="">Selecione um tribunal</option>
+                    {tribunais.map((t) => <option key={t.id} value={String(t.id)}>{t.nome}</option>)}
+                  </select>
                   <InputError message={getErrorByPath('tribunal')} className="mt-1" />
                 </div>
-              </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Valor da causa</label>
                   <div className="mt-1 flex items-center gap-2">
@@ -269,65 +320,72 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                   </div>
                   <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Preview: <span style={{ color: 'var(--text-strong)', fontWeight: 600 }}>{formatCurrencyPreview(data.valor_causa)}</span></div>
                 </div>
+              </div>
 
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="md:col-span-2">
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do processo (CNJ)</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_processo} onChange={(e) => setData('numero_processo', e.target.value)} placeholder="0000000-00.0000.0.00.0000" />
                   <div className="mt-1 flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}><Info className="h-3 w-3" /> <span>Sem formatação obrigatória — o backend valida.</span></div>
                   <InputError message={getErrorByPath('numero_processo')} className="mt-1" />
                 </div>
+
+                <div>
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tipo de processo</label>
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tipo_processo} onChange={(e) => setData('tipo_processo', e.target.value)}>
+                    <option value="">Selecione</option>
+                    {TIPOS_PROCESSO.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <InputError message={getErrorByPath('tipo_processo')} className="mt-1" />
+                </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tipo de processo</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tipo_processo} onChange={(e) => setData('tipo_processo', e.target.value)} />
-                  <InputError message={getErrorByPath('tipo_processo')} className="mt-1" />
-                </div>
-
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Precatório / RPV</label>
-                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.is_precatorio} onChange={(e) => setData('is_precatorio', e.target.value)}>
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tipo de pagamento</label>
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tipo_pagamento} onChange={(e) => setData('tipo_pagamento', e.target.value)}>
                     <option value="">Indeterminado</option>
-                    <option value="precatorio">Precatório</option>
-                    <option value="rpv">RPV / Outro</option>
+                    {TIPO_PAGAMENTO_OPTIONS.map((op) => <option key={op.id} value={op.id}>{op.nome}</option>)}
                   </select>
-                  <InputError message={getErrorByPath('is_precatorio')} className="mt-1" />
+                  <InputError message={getErrorByPath('tipo_pagamento')} className="mt-1" />
                 </div>
 
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Ação</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.acao} onChange={(e) => setData('acao', e.target.value)} />
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.acao} onChange={(e) => setData('acao', e.target.value)}>
+                    <option value="">Selecione</option>
+                    {acoes.map((a) => <option key={a.id} value={String(a.id)}>{a.nome}</option>)}
+                  </select>
                   <InputError message={getErrorByPath('acao')} className="mt-1" />
                 </div>
-              </div>
 
-              <div className="mt-4">
-                <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Assunto</label>
-                <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.assunto} onChange={(e) => setData('assunto', e.target.value)} placeholder="Resumo do assunto" />
-                <InputError message={getErrorByPath('assunto')} className="mt-1" />
+                <div>
+                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Assunto</label>
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.assunto} onChange={(e) => setData('assunto', e.target.value)}>
+                    <option value="">Selecione</option>
+                    </select>
+                  <InputError message={getErrorByPath('assunto')} className="mt-1" />
+                </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Órgão de origem</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_origem} onChange={(e) => setData('orgao_origem', e.target.value)} />
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_origem} onChange={(e) => setData('orgao_origem', e.target.value)}>
+                    <option value="">Selecione</option>
+                    {orgaos.map((o) => <option key={o.id} value={String(o.id)}>{o.nome}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Órgão julgador</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_julgador} onChange={(e) => setData('orgao_julgador', e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Juízo / Vara</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.juizo_vara} onChange={(e) => setData('juizo_vara', e.target.value)} />
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_julgador} onChange={(e) => setData('orgao_julgador', e.target.value)}>
+                    <option value="">Selecione</option>
+                    {orgaosJulgadores.map((o) => <option key={o.id} value={String(o.id)}>{o.nome}</option>)}
+                  </select>
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do juízo/vara</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_juizo_vara} onChange={(e) => setData('numero_juizo_vara', e.target.value)} />
-                </div>
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do agravo</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_agravo} onChange={(e) => setData('numero_agravo', e.target.value)} />
@@ -345,12 +403,25 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                 </div>
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Ano</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.ano} onChange={(e) => setData('ano', e.target.value)} inputMode="numeric" />
+                  <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.ano} onChange={(e) => setData('ano', e.target.value)} />
                 </div>
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Prazo (data limite)</label>
                   <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.data_limite} onChange={(e) => setData('data_limite', e.target.value)} />
                 </div>
+              </div>
+
+              <div className="mt-4 flex items-center gap-4">
+                <label className="inline-flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <input type="checkbox" checked={data.incidencia === '1'} onChange={(e) => setData('incidencia', e.target.checked ? '1' : '0')} /> 
+                  Incidência (referenciar outro processo)
+                </label>
+                {data.incidencia === '1' && (
+                  <div className="flex-1 min-w-[280px]">
+                    <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número CNJ referenciado</label>
+                    <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.referencia_numero_processo} onChange={(e) => setData('referencia_numero_processo', e.target.value)} placeholder="0000000-00.0000.0.00.0000" />
+                  </div>
+                )}
               </div>
 
               <div className="mt-6 flex items-center justify-between">
@@ -382,17 +453,21 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                       <div className="flex-1 min-w-[220px]">
                         <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Nome</label>
                         <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.nome} onChange={(e) => updateParte(par.id, 'nome', e.target.value)} />
-                        <InputError message={getErrorByPath(`partes.${idx}.nome`)} className="mt-1" />
+                        <InputError message={getErrorByPath(`partes.${idx}.nome`) || getErrorByPath(`partes_json.${idx}.nome`)} className="mt-1" />
                       </div>
 
                       <div className="w-56">
                         <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Qualificação</label>
-                        <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.qualificacao} onChange={(e) => updateParte(par.id, 'qualificacao', e.target.value)} />
+                        <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.qualificacao} onChange={(e) => updateParte(par.id, 'qualificacao', e.target.value)}>
+                          {QUALIFICACOES.map((q) => <option key={q} value={q}>{q}</option>)}
+                        </select>
                       </div>
 
                       <div className="w-48">
                         <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tipo de qualificação</label>
-                        <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.tipo_qualificacao} onChange={(e) => updateParte(par.id, 'tipo_qualificacao', e.target.value)} />
+                        <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.tipo_qualificacao} onChange={(e) => updateParte(par.id, 'tipo_qualificacao', e.target.value)}>
+                          {TIPO_QUALIFICACAO.map((tq) => <option key={tq} value={tq}>{tq}</option>)}
+                        </select>
                       </div>
 
                       <div className="w-28">
@@ -410,8 +485,10 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                       </div>
 
                       <div className="w-44">
-                        <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Expediente (opcional)</label>
-                        <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.expediente} onChange={(e) => updateParte(par.id, 'expediente', e.target.value)} />
+                        <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Expediente (sim/não)</label>
+                        <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.expediente} onChange={(e) => updateParte(par.id, 'expediente', e.target.value)}>
+                          {EXPEDIENTE_OPTIONS.map((op) => <option key={op.id} value={op.id}>{op.nome}</option>)}
+                        </select>
                       </div>
 
                       <div className="flex items-start">
@@ -458,16 +535,17 @@ export default function CadastroIndividual({ procuradores = [] as Procurador[] }
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tipo de distribuição</label>
                   <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tipo_distribuicao} onChange={(e) => setData('tipo_distribuicao', e.target.value)}>
                     <option value="">Selecione</option>
-                    <option value="manual">Manual</option>
-                    <option value="automatica">Automática</option>
-                    <option value="equilibrada">Equilibrada</option>
+                    {DIST_TYPES.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
                   </select>
                   <InputError message={getErrorByPath('tipo_distribuicao')} className="mt-1" />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Motivo da distribuição (opcional)</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.motivo_distribuicao} onChange={(e) => setData('motivo_distribuicao', e.target.value)} />
+                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.motivo_distribuicao} onChange={(e) => setData('motivo_distribuicao', e.target.value)}>
+                    <option value="">Selecione</option>
+                    {DIST_MOTIVOS.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                  </select>
                 </div>
               </div>
 
