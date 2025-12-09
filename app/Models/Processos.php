@@ -23,12 +23,14 @@ class Processos extends Model
         'valor_causa',
         'tipo_pagamento', //precatorio / rpv
         'numero_agravo',
+        'numero_suspensao',
         'numero_protocolo',
         'tipo_distribuição',
         'motivo_distribuição',
         'usuario_cadastro_id', //quem cadastrou
         'procurador_responsavel_id', //user_id where cargo == procurador
         'status', //finalizado, em andamento...
+        'prazo',
 
     ];
 
