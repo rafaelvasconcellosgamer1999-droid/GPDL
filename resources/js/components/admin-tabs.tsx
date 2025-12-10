@@ -7,6 +7,8 @@ const items = [
   { href: '/admin/cargos', label: 'Cargos' },
   { href: '/admin/permissoes', label: 'Permissões' },
   { href: '/admin/regras', label: 'Regras' },
+  { href: '/admin/tematicas', label: 'Tematicas' },
+  { href: '/admin/entidades-juridicas', label: 'Entidades' },
 ];
 
 export function AdminTabs() {

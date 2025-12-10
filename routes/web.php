@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\SolicitacaoController;
 use App\Http\Controllers\SolicitarController;
 use App\Http\Controllers\Admin\PermissaoController;
 use App\Http\Controllers\Admin\RegraController;
+use App\Http\Controllers\Admin\EntidadeJuridicaController;
+use App\Http\Controllers\Admin\TematicaController;
 
 
 use App\Http\Controllers\Settings\PasswordController as SettingsPasswordController;
@@ -138,6 +140,20 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::post('regras/criar', [RegraController::class, 'criarRegra'])->name('regras.criar');
         Route::post('regras/atualizar', [RegraController::class, 'atualizarRegra'])->name('regras.atualizar');
         Route::delete('regras/excluir', [RegraController::class, 'excluirRegra'])->name('regras.excluir');
+
+        // Temáticas
+        Route::get('tematicas', [TematicaController::class, 'index']);
+        Route::post('tematicas/criar', [TematicaController::class, 'criarTematica']);
+        Route::post('tematicas/editar', [TematicaController::class, 'editarTematica']);
+        Route::post('tematicas/deletar', [TematicaController::class, 'deletarTematica']);
+
+        // Entidades Jurídicas
+        Route::get('entidades-juridicas', [EntidadeJuridicaController::class, 'index']);
+        Route::post('entidades-juridicas/criar', [EntidadeJuridicaController::class, 'criarEntidade']);
+        Route::post('entidades-juridicas/editar', [EntidadeJuridicaController::class, 'editarEntidade']);
+        Route::post('entidades-juridicas/deletar', [EntidadeJuridicaController::class, 'deletarEntidade']);
+        Route::post('entidades-juridicas/toggle', [EntidadeJuridicaController::class, 'toggleEntidade']);
+
     });
 
     // ======================
