@@ -221,7 +221,7 @@ export default function AutocompleteSearch({
                         backgroundColor:
                           String(option.id) === String(value)
                             ? 'var(--surface-muted)'
-                            : 'transparent',
+                            : 'var(--surface-muted)',
                         fontWeight:
                           String(option.id) === String(value)
                             ? 600
