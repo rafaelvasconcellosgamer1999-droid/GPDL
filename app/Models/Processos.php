@@ -8,7 +8,7 @@ class Processos extends Model
 {
     protected $table = 'processos2';
 
-    protected $fillable = [,
+    protected $fillable = [
         'area_atuacao',
         'tipo_processo', //pje, fedral, fazenda
         'cnj',
@@ -31,7 +31,8 @@ class Processos extends Model
         'procurador_responsavel_id', //user_id where cargo == procurador
         'status', //finalizado, em andamento...
         'prazo',
-
+        'ano',
+        'data_limite',
     ];
 
     public function processoRef(){

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Processo;
+use App\Models\Processos;
+use App\Models\Partes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -426,5 +428,97 @@ public function createLote()
 {
     $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id','nome']);
     return Inertia::render('Processos/CadastroLote', ['procuradores' => $procuradores]);
+}
+public function store(Request $request)
+{
+    $data = $request->validate([
+        'instancia' => ['nullable', 'string', 'max:50'],
+        'tribunal' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
+        'valor_causa' => ['nullable', 'string'],
+        'numero_processo' => ['nullable', 'string', 'max:50'],
+        'tipo_processo' => ['nullable', 'string', 'max:100'],
+        'tipo_pagamento' => ['nullable', 'string', 'in:precatorio,rpv'],
+        'acao' => ['nullable', 'integer', 'exists:tematicas,id'],
+        'assunto' => ['nullable', 'integer', 'exists:tematicas,id'],
+        'orgao_origem' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
+        'orgao_julgador' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
+        'juizo_vara' => ['nullable', 'string', 'max:150'],
+        'numero_juizo_vara' => ['nullable', 'string', 'max:50'],
+        'numero_agravo' => ['nullable', 'string', 'max:50'],
+        'numero_suspensao' => ['nullable', 'string', 'max:50'],
+        'numero_protocolo' => ['nullable', 'string', 'max:50'],
+        'ano' => ['nullable', 'date'],
+        'data_limite' => ['nullable', 'date'],
+        'partes_json' => ['nullable', 'json'],
+        'tipo_distribuicao' => ['nullable', 'string', 'in:manual,automatica,equilibrada'],
+        'motivo_distribuicao' => ['nullable', 'string', 'in:rotina,urgencia,competencia,sobrecarga'],
+        'procurador_responsavel_id' => ['required', 'integer', 'exists:usuarios,id'],
+        'incidencia' => ['nullable', 'in:0,1'],
+        'referencia_numero_processo' => ['nullable', 'string', 'max:50'],
+    ]);
+
+    $usuario = Auth::user();
+    
+    // Processar partes JSON se fornecido
+    $partes = [];
+    if (!empty($data['partes_json'])) {
+        try {
+            $partes = json_decode($data['partes_json'], true) ?? [];
+        } catch (\Exception $e) {
+            $partes = [];
+        }
+    }
+
+    // Criar o processo principal
+    $processo = Processos::create([
+        'area_atuacao' => 'teste',
+        'municipio' => 'Belém',
+        'instancia' => $data['instancia'] ?? null,
+        'tribunal_id' => 1 ?? null,
+        'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
+        'cnj' => $data['numero_processo'] ?? null,
+        'tipo_processo' => $data['tipo_processo'] ?? null,
+        'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
+        'acao_id' => 3 ?? null,
+        'assunto_id' => 4 ?? null,
+        'orgao_origem_id' => 2 ?? null,
+        'orgao_julgador_id' => 3 ?? null,
+        //'juizo_vara' => $data['juizo_vara'] ?? null,
+        //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
+        'numero_agravo' => $data['numero_agravo'] ?? null,
+        'numero_suspensao' => $data['numero_suspensao'] ?? null,
+        'numero_protocolo' => $data['numero_protocolo'] ?? null,
+        //'data_limite' => $data['data_limite'] ?? null,
+        'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
+        'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
+        'procurador_responsavel_id' => $data['procurador_responsavel_id'],
+        'processo_ref_id' => 10 ?? null,
+        'usuario_cadastro_id' => optional($usuario)->id,
+    ]);
+
+    // Se há incidência (referência a outro processo), criar relacionamento
+    if ($data['incidencia'] === '1' && !empty($data['referencia_numero_processo'])) {
+        $processoRef = Processos::where('cnj', $data['referencia_numero_processo'])->first();
+        if ($processoRef) {
+            $processo->update(['processo_ref_id' => $processoRef->id]);
+        }
+    }
+
+    // Cadastrar as partes
+    if (!empty($partes)) {
+        foreach ($partes as $parte) {
+            Partes::create([
+                'processo_id' => $processo->id,
+                'nome' => $parte['nome'] ?? null,
+                'qualificacao' => $parte['qualificacao'] ?? null,
+                'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
+                'parte_principal' => (int)($parte['eh_principal'] ?? 0),
+                'expediente' => (int)($parte['expediente'] ?? 0),
+            ]);
+        }
+    }
+
+    return redirect()->to('/processos?view=ativos')
+        ->with('success', 'Processo cadastrado com sucesso.');
 }
 }
