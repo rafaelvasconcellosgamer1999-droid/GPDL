@@ -479,10 +479,10 @@ public function store(Request $request)
         'cnj' => $data['numero_processo'] ?? null,
         'tipo_processo' => $data['tipo_processo'] ?? null,
         'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
-        'acao_id' => 3 ?? null,
-        'assunto_id' => 4 ?? null,
-        'orgao_origem_id' => 2 ?? null,
-        'orgao_julgador_id' => 3 ?? null,
+        'acao_id' => $data['acao'] ?? null,
+        'assunto_id' => $data['assunto'] ?? null,
+        'orgao_origem_id' => $data['orgao_origem'] ?? null,
+        'orgao_julgador_id' => $data['orgao_julgador'] ?? null,
         //'juizo_vara' => $data['juizo_vara'] ?? null,
         //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
         'numero_agravo' => $data['numero_agravo'] ?? null,
@@ -513,12 +513,11 @@ public function store(Request $request)
                 'qualificacao' => $parte['qualificacao'] ?? null,
                 'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
                 'parte_principal' => (int)($parte['eh_principal'] ?? 0),
-                'expediente' => (int)($parte['expediente'] ?? 0),
             ]);
         }
     }
 
-    return redirect()->to('/processos?view=ativos')
+    return redirect()->to('/processos/cadastro')
         ->with('success', 'Processo cadastrado com sucesso.');
 }
 
@@ -554,7 +553,7 @@ public function store(Request $request)
         $search = $request->query('search', '');
         
         $query = \App\Models\EntidadesJuridicas::query()
-            ->where('tipo', 'Órgão de Origem');
+            ->where('tipo', 'orgao_origem');
         
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
