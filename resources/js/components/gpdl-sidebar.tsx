@@ -122,7 +122,7 @@ export function GpdlSidebar({ className }: Props) {
       className={clsx(
         // ⚙️ Base
         'fixed left-0 top-0 bottom-0 z-40 flex flex-col h-screen',
-        'bg-[var(--gpdl-sidebar)] border-r border-white/10 shadow-lg',
+        'bg-(--gpdl-sidebar) border-r border-white/10 shadow-lg',
         'overflow-hidden overflow-x-hidden', // 🚫 impede scroll lateral
         'gpdl-shell-sidebar',
         className

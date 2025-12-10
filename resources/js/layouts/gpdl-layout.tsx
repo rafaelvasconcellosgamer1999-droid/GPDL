@@ -35,7 +35,7 @@ export default function GpdlLayout({
       <GpdlSidebar />
       <AppContent
         variant="sidebar"
-        className="overflow-x-hidden bg-[var(--surface-main)] gpdl-background"
+        className="overflow-x-hidden bg-(--surface-main) gpdl-background"
         style={{
           marginLeft: sidebarCollapsed ? '80px' : '260px',
           transition: 'margin-left 0.3s ease',
@@ -44,7 +44,7 @@ export default function GpdlLayout({
         <AppSidebarHeader breadcrumbs={breadcrumbs} />
         <div
           id="page-content"
-          className="flex min-h-[100vh] flex-1 flex-col gap-8 p-8"
+          className="flex min-h-screen flex-1 flex-col gap-8 p-8"
         >
           {children}
         </div>

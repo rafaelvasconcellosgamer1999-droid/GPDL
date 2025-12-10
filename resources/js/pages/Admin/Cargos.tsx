@@ -123,12 +123,12 @@ export default function Cargos({ cargos }: Props) {
                     <div className="mb-6">
                         <div className="flex items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-2xl font-bold text-[var(--text-strong)]">Cargos</h1>
-                                <p className="text-sm text-[var(--text-muted)] mt-1">Gerencie os cargos do sistema</p>
+                                <h1 className="text-2xl font-bold text-(--text-strong)">Cargos</h1>
+                                <p className="text-sm text-(--text-muted) mt-1">Gerencie os cargos do sistema</p>
                             </div>
                             <button
                                 onClick={openCreateModal}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] transition"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-(--brand-700) text-white hover:bg-(--brand-600) transition"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -147,10 +147,10 @@ export default function Cargos({ cargos }: Props) {
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder="Buscar por nome ou ID..."
-                                    className="w-72 max-w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                                    className="w-72 max-w-full pl-9 pr-3 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                                 />
                                 <svg
-                                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -163,7 +163,7 @@ export default function Cargos({ cargos }: Props) {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                                className="px-3 py-2 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-card)] text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                                className="px-3 py-2 rounded-lg border border-(--gpdl-border) bg-(--surface-card) text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                                 title="Filtrar por status"
                             >
                                 <option value="all">Todos</option>
@@ -174,8 +174,8 @@ export default function Cargos({ cargos }: Props) {
 
                         {/* Contadores */}
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="px-2.5 py-1 text-xs rounded-full bg-[var(--surface-muted)] text-[var(--text-muted)]">
-                                Total: <b className="text-[var(--text-strong)]">{counts.total}</b>
+                            <span className="px-2.5 py-1 text-xs rounded-full bg-(--surface-muted) text-(--text-muted)">
+                                Total: <b className="text-(--text-strong)">{counts.total}</b>
                             </span>
                             <span className="px-2.5 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200">
                                 Ativos: <b>{counts.active}</b>
@@ -187,31 +187,31 @@ export default function Cargos({ cargos }: Props) {
                     </div>
 
                     {/* Tabela */}
-                    <div className="mt-6 bg-[var(--surface-card)] overflow-hidden shadow-sm sm:rounded-xl border border-[var(--gpdl-border)]">
+                    <div className="mt-6 bg-(--surface-card) overflow-hidden shadow-sm sm:rounded-xl border border-(--gpdl-border)">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
-                                <thead className="bg-[var(--surface-muted)] sticky top-0 z-10">
+                            <table className="min-w-full divide-y divide-(--gpdl-border)">
+                                <thead className="bg-(--surface-muted) sticky top-0 z-10">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">ID</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Nome</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Usuários</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ações</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-(--text-muted) uppercase tracking-wider">ID</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-(--text-muted) uppercase tracking-wider">Nome</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-(--text-muted) uppercase tracking-wider">Usuários</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-(--text-muted) uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-(--text-muted) uppercase tracking-wider">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[var(--gpdl-border)]">
+                                <tbody className="divide-y divide-(--gpdl-border)">
                                     {filtered.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan={5} className="px-6 py-4 text-center text-(--text-muted) dark:text-(--text-muted)">
                                                 Nenhum cargo encontrado com o filtro atual.
                                             </td>
                                         </tr>
                                     ) : (
                                         filtered.map((cargo) => (
                                             <tr key={cargo.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-300">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-strong)]">{cargo.id}</td>
-                                                <td className="px-6 py-4 text-sm text-[var(--text-strong)]">{cargo.nome}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-(--text-strong)">{cargo.id}</td>
+                                                <td className="px-6 py-4 text-sm text-(--text-strong)">{cargo.nome}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-(--text-strong)">
                                                     <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                                         {cargo.usuarios_count || 0} {cargo.usuarios_count === 1 ? 'usuário' : 'usuários'}
                                                     </span>
@@ -231,7 +231,7 @@ export default function Cargos({ cargos }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                                                     <button
                                                         onClick={() => openEditModal(cargo)}
-                                                        className="text-[var(--brand-600)] hover:opacity-80 inline-flex items-center"
+                                                        className="text-(--brand-600) hover:opacity-80 inline-flex items-center"
                                                     >
                                                         <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -240,7 +240,7 @@ export default function Cargos({ cargos }: Props) {
                                                     </button>
                                                     <button
                                                         onClick={() => deleteCargo(cargo.id, cargo.nome, cargo.usuarios_count || 0)}
-                                                        className="text-[var(--danger-500)] hover:opacity-80 inline-flex items-center"
+                                                        className="text-(--danger-500) hover:opacity-80 inline-flex items-center"
                                                     >
                                                         <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -252,8 +252,8 @@ export default function Cargos({ cargos }: Props) {
                                                         className={[
                                                             'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition',
                                                             cargo.status
-                                                                ? 'border border-red-300/60 text-[var(--danger-500)] hover:bg-red-50 dark:hover:bg-red-900/20'
-                                                                : 'border border-green-300/60 text-[var(--success-500)] hover:bg-green-50 dark:hover:bg-green-900/20',
+                                                                ? 'border border-red-300/60 text-(--danger-500) hover:bg-red-50 dark:hover:bg-red-900/20'
+                                                                : 'border border-green-300/60 text-(--success-500) hover:bg-green-50 dark:hover:bg-green-900/20',
                                                         ].join(' ')}
                                                         title={cargo.status ? 'Desativar' : 'Ativar'}
                                                     >
@@ -282,7 +282,7 @@ export default function Cargos({ cargos }: Props) {
                         </div>
 
                         {/* Paginação (placeholder) */}
-                        <div className="px-6 py-4 border-t border-[var(--gpdl-border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+                        <div className="px-6 py-4 border-t border-(--gpdl-border) flex items-center justify-between text-xs text-(--text-muted)">
                             <span>Mostrando {filtered.length} de {counts.total}</span>
                             <span>Página 1 de 1</span>
                         </div>
@@ -297,16 +297,16 @@ export default function Cargos({ cargos }: Props) {
                     <div
                         role="dialog"
                         aria-modal="true"
-                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-(--gpdl-border) bg-(--surface-card) animate-scaleIn"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-                            <h3 className="text-xl font-semibold text-[var(--text-strong)]">
+                            <h3 className="text-xl font-semibold text-(--text-strong)">
                                 {editingCargo ? 'Editar Cargo' : 'Novo Cargo'}
                             </h3>
                             <button
                                 onClick={closeModal}
-                                className="p-2 rounded-lg hover:bg-[var(--surface-muted)] text-[var(--text-muted)]"
+                                className="p-2 rounded-lg hover:bg-(--surface-muted) text-(--text-muted)"
                                 title="Fechar"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,19 +320,19 @@ export default function Cargos({ cargos }: Props) {
                             <div className="p-6 space-y-4">
                                 {/* Nome */}
                                 <div>
-                                    <label className="block text-sm font-medium text-[var(--text-strong)] mb-2">
-                                        Nome do Cargo <span className="text-[var(--danger-500)]">*</span>
+                                    <label className="block text-sm font-medium text-(--text-strong) mb-2">
+                                        Nome do Cargo <span className="text-(--danger-500)">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={data.nome}
                                         onChange={(e) => setData('nome', e.target.value)}
-                                        className="w-full px-4 py-2 rounded-lg border border-[var(--gpdl-border)] bg-white dark:bg-gray-700 text-[var(--text-strong)] outline-none focus:ring-2 focus:ring-[var(--brand-600)]"
+                                        className="w-full px-4 py-2 rounded-lg border border-(--gpdl-border) bg-white dark:bg-gray-700 text-(--text-strong) outline-none focus:ring-2 focus:ring-(--brand-600)"
                                         placeholder="Ex: Procurador, Analista, etc."
                                         required
                                     />
                                     {errors.nome && (
-                                        <p className="mt-1 text-sm text-[var(--danger-500)]">{errors.nome}</p>
+                                        <p className="mt-1 text-sm text-(--danger-500)">{errors.nome}</p>
                                     )}
                                 </div>
                             </div>
@@ -342,14 +342,14 @@ export default function Cargos({ cargos }: Props) {
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 rounded-lg bg-[var(--surface-muted)] text-[var(--text-strong)] hover:opacity-90 transition"
+                                    className="px-4 py-2 rounded-lg bg-(--surface-muted) text-(--text-strong) hover:opacity-90 transition"
                                     disabled={processing}
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 rounded-lg bg-[var(--brand-700)] text-white hover:bg-[var(--brand-600)] disabled:opacity-50 transition"
+                                    className="px-4 py-2 rounded-lg bg-(--brand-700) text-white hover:bg-(--brand-600) disabled:opacity-50 transition"
                                     disabled={processing}
                                 >
                                     {processing ? 'Salvando…' : 'Salvar'}

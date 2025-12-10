@@ -207,8 +207,8 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-strong)]">Processos</h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">Central de cadastros e acompanhamento</p>
+          <h1 className="text-2xl font-bold text-(--text-strong)">Processos</h1>
+          <p className="mt-1 text-sm text-(--text-muted)">Central de cadastros e acompanhamento</p>
         </div>
       </div>
 

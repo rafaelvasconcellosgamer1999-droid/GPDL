@@ -12,10 +12,10 @@ import { Label } from '@/components/ui/label'
 
 export default function ForgotPassword({ status }: { status?: string }) {
   return (
-    <div className="min-h-dvh w-full flex items-center justify-center gpdl-background bg-[var(--surface-main)] px-4 py-10">
+    <div className="min-h-dvh w-full flex items-center justify-center gpdl-background bg-(--surface-main) px-4 py-10">
       <Head title="Recuperar senha" />
 
-      <div className="panel-glass rounded-3xl p-6 md:p-8 w-full max-w-md border border-[var(--gpdl-border)] shadow-[var(--shadow-card)]">
+      <div className="panel-glass rounded-3xl p-6 md:p-8 w-full max-w-md border border-(--gpdl-border) shadow-(--shadow-card)">
         <div className="space-y-1 mb-6">
           <h2 className="text-2xl font-semibold text-white">Recuperar senha</h2>
           <p className="text-white/80 text-sm">Informe seu e-mail corporativo ou usu&aacute;rio de rede. Geraremos uma nova senha tempor&aacute;ria para voc&ecirc;.</p>
