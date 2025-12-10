@@ -111,8 +111,24 @@ export default function AutocompleteSearch({
 
   function handleFocus() {
     setIsOpen(true);
-    if (inputValue === '' && options.length > 0) {
-      setFilteredOptions(options);
+    // Carregar opções iniciais ao focar, se não houver busca ativa
+    if (inputValue.trim().length === 0) {
+      if (options.length > 0) {
+        setFilteredOptions(options);
+      } else {
+        // Buscar opções vazias ao clicar
+        setIsFetching(true);
+        onSearch('')
+          .then((results) => {
+            setFilteredOptions(results);
+          })
+          .catch(() => {
+            setFilteredOptions([]);
+          })
+          .finally(() => {
+            setIsFetching(false);
+          });
+      }
     }
   }
 
@@ -142,8 +158,8 @@ export default function AutocompleteSearch({
             onChange={handleInputChange}
             onFocus={handleFocus}
             placeholder={placeholder}
-            className="flex-1 bg-transparent outline-none text-sm"
-            style={{ color: 'var(--text-strong)' }}
+            className="flex-1 outline-none text-sm"
+            style={{ color: 'var(--text-strong)', background: 'var(--surface-elevate)' }}
             autoComplete="off"
           />
 
