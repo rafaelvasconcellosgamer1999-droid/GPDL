@@ -6,20 +6,20 @@ export default function LogsIndex() {
     return (
         <GPDLLayout breadcrumbs={breadcrumbs}>
             <Head title="Logs do Sistema" />
-            <h1 className="text-2xl font-bold text-[var(--text-strong)]">Logs do Sistema</h1>
-            <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-sm">
+            <h1 className="text-2xl font-bold text-(--text-strong)">Logs do Sistema</h1>
+            <div className="bg-(--surface-card) p-6 rounded-lg shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
+                    <table className="min-w-full divide-y divide-(--gpdl-border)">
                         <thead>
-                            <tr className="bg-[var(--surface-muted)]">
-                                <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Data</th>
-                                <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Nível</th>
-                                <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Mensagem</th>
+                            <tr className="bg-(--surface-muted)">
+                                <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Data</th>
+                                <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Nível</th>
+                                <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Mensagem</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[var(--gpdl-border)]">
+                        <tbody className="divide-y divide-(--gpdl-border)">
                             {[1,2,3,4].map((i) => (
-                                <tr key={i} className="hover:bg-[var(--surface-muted)]">
+                                <tr key={i} className="hover:bg-(--surface-muted)">
                                     <td className="px-4 py-2 text-sm">2025-10-25 09:{10 + i}</td>
                                     <td className="px-4 py-2 text-sm"><span className="gpdl-badge">INFO</span></td>
                                     <td className="px-4 py-2 text-sm">Placeholder de log {i}</td>

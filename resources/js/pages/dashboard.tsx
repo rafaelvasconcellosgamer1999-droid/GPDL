@@ -70,7 +70,7 @@ export default function Dashboard() {
                   }
                 }}
               >
-                <div className="text-xs text-[var(--text-muted)] mb-2">Processos finalizados no mês</div>
+                <div className="text-xs text-(--text-muted) mb-2">Processos finalizados no mês</div>
                 <div className="text-3xl font-semibold text-white">{stats.finalizadosMes}</div>
                 <div className="mt-1 text-xs text-white/80">
                   +{stats.finalizados7d} nos últimos 7 dias
@@ -99,8 +99,8 @@ export default function Dashboard() {
         <Card className="gpdl-card metric-card metric-card-blue relative hover:opacity-95 transition cursor-pointer">
           <CardHeader>
             <CardDescription className="metric-label">Processos ativos</CardDescription>
-            <CardTitle className="metric-value text-[var(--brand-600)]">{stats.ativos}</CardTitle>
-            <LineChart className="metric-icon text-[var(--brand-600)] h-4 w-4" />
+            <CardTitle className="metric-value text-(--brand-600)">{stats.ativos}</CardTitle>
+            <LineChart className="metric-icon text-(--brand-600) h-4 w-4" />
           </CardHeader>
           <CardContent>
             <p className="metric-trend">
@@ -116,8 +116,8 @@ export default function Dashboard() {
         <Card className="gpdl-card metric-card metric-card-red relative hover:opacity-95 transition cursor-pointer">
           <CardHeader>
             <CardDescription className="metric-label">Processos vencidos</CardDescription>
-            <CardTitle className="metric-value text-[var(--danger-500)]">{stats.vencidos}</CardTitle>
-            <AlertTriangle className="metric-icon text-[var(--danger-500)] h-4 w-4" />
+            <CardTitle className="metric-value text-(--danger-500)">{stats.vencidos}</CardTitle>
+            <AlertTriangle className="metric-icon text-(--danger-500) h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="mt-2">
@@ -141,15 +141,15 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             {emAndamento.length === 0 && (
-              <div className="text-sm text-[var(--text-muted)]">Sem dados disponíveis.</div>
+              <div className="text-sm text-(--text-muted)">Sem dados disponíveis.</div>
             )}
             {emAndamento.map((p, i) => (
-              <div key={i} className="rounded-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)]/80 p-4">
+              <div key={i} className="rounded-xl border border-(--gpdl-border) bg-(--surface-card)/80 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-semibold text-white">{p.titulo}</div>
                     {(p.entidade || p.responsavel) && (
-                      <div className="text-xs text-[var(--text-muted)]">{p.entidade}{p.entidade && p.responsavel ? ' • ' : ''}{p.responsavel ? ` Responsável: ${p.responsavel}` : ''}</div>
+                      <div className="text-xs text-(--text-muted)">{p.entidade}{p.entidade && p.responsavel ? ' • ' : ''}{p.responsavel ? ` Responsável: ${p.responsavel}` : ''}</div>
                     )}
                     <a className="gpdl-link text-xs mt-1 inline-block" href="#">Ver detalhes</a>
                   </div>
@@ -191,11 +191,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             {capacidade.length === 0 && (
-              <div className="text-sm text-[var(--text-muted)]">Sem dados disponíveis.</div>
+              <div className="text-sm text-(--text-muted)">Sem dados disponíveis.</div>
             )}
 
             {capacidade.map((p, idx) => (
-              <div key={idx} className="rounded-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)]/80 p-4">
+              <div key={idx} className="rounded-xl border border-(--gpdl-border) bg-(--surface-card)/80 p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-white/10 text-white/90 flex items-center justify-center text-xs font-semibold">
@@ -203,7 +203,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-sm text-white/90">
                       <div className="font-medium">{p.nome}</div>
-                      <div className="text-[var(--text-muted)] text-xs">
+                      <div className="text-(--text-muted) text-xs">
                         {p.processos} {labelPorView[capView] || 'processos'}
                       </div>
                     </div>

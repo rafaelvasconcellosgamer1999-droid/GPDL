@@ -8,13 +8,13 @@ export default function AgendaIndex() {
             <Head title="Agenda" />
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-[var(--text-strong)]">Agenda</h1>
-                    <p className="text-sm text-[var(--text-muted)] mt-1">Visão de calendário e tarefas (placeholder)</p>
+                    <h1 className="text-2xl font-bold text-(--text-strong)">Agenda</h1>
+                    <p className="text-sm text-(--text-muted) mt-1">Visão de calendário e tarefas (placeholder)</p>
                 </div>
             </div>
 
-            <div className="bg-[var(--surface-card)] p-6 rounded-lg shadow-sm min-h-[360px] flex items-center justify-center">
-                <p className="text-[var(--text-muted)]">Calendário será renderizado aqui…</p>
+            <div className="bg-(--surface-card) p-6 rounded-lg shadow-sm min-h-[360px] flex items-center justify-center">
+                <p className="text-(--text-muted)">Calendário será renderizado aqui…</p>
             </div>
         </GPDLLayout>
     );

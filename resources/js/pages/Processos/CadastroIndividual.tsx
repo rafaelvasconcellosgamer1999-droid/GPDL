@@ -4,6 +4,7 @@ import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Check, Info, UserPlus, FileText, Users, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Errors, type VisitOptions } from '@inertiajs/core';
 
 type Procurador = { id: number; nome: string };
 type OptionItem = { id: string | number; nome: string }; // para tribunais/orgaos vindos do backend
@@ -119,7 +120,7 @@ export default function CadastroIndividual({
 
   // helper to safely read dynamic error keys
   function getErrorByPath(path: string): string | undefined {
-    const errs = errors as unknown as Record<string, any> | undefined;
+    const errs: Errors | undefined = errors;
     if (!errs) return undefined;
     const value = errs[path];
     if (value === undefined) return undefined;
@@ -394,9 +395,6 @@ export default function CadastroIndividual({
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número da suspensão</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_suspensao} onChange={(e) => setData('numero_suspensao', e.target.value)} />
                 </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do protocolo</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_protocolo} onChange={(e) => setData('numero_protocolo', e.target.value)} />
@@ -405,6 +403,9 @@ export default function CadastroIndividual({
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Ano</label>
                   <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.ano} onChange={(e) => setData('ano', e.target.value)} />
                 </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Prazo (data limite)</label>
                   <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.data_limite} onChange={(e) => setData('data_limite', e.target.value)} />

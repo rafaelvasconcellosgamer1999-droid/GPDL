@@ -1,5 +1,5 @@
 // resources/js/Pages/Processos/components/ListHelpers.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 
 /* -------------------------- Tipos exportados -------------------------- */
@@ -54,9 +54,9 @@ export function Toolbar({
 }) {
   return (
     <div className="mb-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-elevate)] p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-(--gpdl-border) bg-(--surface-elevate) p-3">
         <div className="min-w-[220px]">
-          <label className="mb-1 block text-xs text-[var(--text-muted)]">Responsável</label>
+          <label className="mb-1 block text-xs text-(--text-muted)">Responsável</label>
           <select
             value={filtros.responsavel_id}
             onChange={(e) => {
@@ -82,7 +82,7 @@ export function Toolbar({
         </div>
 
         <div className="min-w-[220px]">
-          <label className="mb-1 block text-xs text-[var(--text-muted)]">Ordenar por</label>
+          <label className="mb-1 block text-xs text-(--text-muted)">Ordenar por</label>
           <select
             value={filtros.order}
             onChange={(e) => {
@@ -95,7 +95,7 @@ export function Toolbar({
           </select>
         </div>
 
-        <button onClick={onClear} className="rounded-lg border border-[var(--gpdl-border)] bg-[var(--surface-muted)] px-3 py-2 hover:border-[var(--brand-600)]/40">
+        <button onClick={onClear} className="rounded-lg border border-(--gpdl-border) bg-(--surface-muted) px-3 py-2 hover:border-(--brand-600)/40">
           Limpar
         </button>
       </div>
@@ -167,29 +167,29 @@ export function TableList({
     return String(value);
   }
 
-  if (!itens || itens.length === 0) return <p className="text-sm text-[var(--text-muted)]">{empty}</p>;
+  if (!itens || itens.length === 0) return <p className="text-sm text-(--text-muted)">{empty}</p>;
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
+      <table className="min-w-full divide-y divide-(--gpdl-border)">
         <thead>
-          <tr className="bg-[var(--surface-muted)]">
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Orgao</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Acao</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Numero</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Assunto</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Vara/Juizo</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Partes envolvidas</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Prazo</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Ciencia</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Ultimo movimento</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Responsavel</th>
-            {showActions && <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Acoes</th>}
+          <tr className="bg-(--surface-muted)">
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Orgao</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Acao</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Numero</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Assunto</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Vara/Juizo</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Partes envolvidas</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Prazo</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Ciencia</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Ultimo movimento</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Responsavel</th>
+            {showActions && <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Acoes</th>}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--gpdl-border)]">
+        <tbody className="divide-y divide-(--gpdl-border)">
           {itens.map((p) => (
-            <tr key={p.id} className="hover:bg-[var(--surface-muted)]">
+            <tr key={p.id} className="hover:bg-(--surface-muted)">
               <td className="px-4 py-2 text-sm">{p.orgao ?? '-'}</td>
               <td className="px-4 py-2 text-sm">{p.acao ?? '-'}</td>
               <td className="px-4 py-2 text-sm">{p.numero ?? p.id}</td>
@@ -215,7 +215,7 @@ export function TableList({
                   <button
                     onClick={() => onFinalize && onFinalize(p.id)}
                     disabled={!!finalizingId && finalizingId === p.id}
-                    className="rounded bg-[var(--brand-700)] px-3 py-1 text-white hover:bg-[var(--brand-600)] disabled:opacity-50"
+                    className="rounded bg-(--brand-700) px-3 py-1 text-white hover:bg-(--brand-600) disabled:opacity-50"
                   >
                     {finalizingId === p.id ? 'Finalizando...' : 'Finalizar'}
                   </button>
@@ -233,19 +233,19 @@ export function TableList({
 export function TablePlaceholder() {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-[var(--gpdl-border)]">
+      <table className="min-w-full divide-y divide-(--gpdl-border)">
         <thead>
-          <tr className="bg-[var(--surface-muted)]">
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">No</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Assunto</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Interessado</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Setor</th>
-            <th className="px-4 py-2 text-left text-xs text-[var(--text-muted)] uppercase">Status</th>
+          <tr className="bg-(--surface-muted)">
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">No</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Assunto</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Interessado</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Setor</th>
+            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--gpdl-border)]">
+        <tbody className="divide-y divide-(--gpdl-border)">
           {[1, 2, 3].map((i) => (
-            <tr key={i} className="hover:bg-[var(--surface-muted)]">
+            <tr key={i} className="hover:bg-(--surface-muted)">
               <td className="px-4 py-2 text-sm">2025.00{i}</td>
               <td className="px-4 py-2 text-sm">Lorem ipsum dolor {i}</td>
               <td className="px-4 py-2 text-sm">-</td>
@@ -260,7 +260,7 @@ export function TablePlaceholder() {
 }
 
 /* -------------------------- Pager -------------------------- */
-export function Pager({ meta }: { meta?: Paginator<any> }) {
+export function Pager({ meta }: { meta?: Paginator<unknown> }) {
   if (!meta) return null;
   const showing = meta.to && meta.from ? meta.to - meta.from + 1 : meta.data.length;
   const go = (url?: string | null) => {
@@ -268,7 +268,7 @@ export function Pager({ meta }: { meta?: Paginator<any> }) {
     router.get(url, {}, { preserveScroll: true, preserveState: false, replace: true });
   };
   return (
-    <div className="mt-3 flex items-center justify-between text-sm text-[var(--text-muted)]">
+    <div className="mt-3 flex items-center justify-between text-sm text-(--text-muted)">
       <div>Mostrando {showing} de {meta.total} processos</div>
       <div className="flex items-center gap-2">
         <button onClick={() => go(meta.prev_page_url)} disabled={!meta.prev_page_url} className={`rounded px-3 py-1 ${meta.prev_page_url ? 'gpdl-link' : 'pointer-events-none opacity-50'}`}>Anterior</button>

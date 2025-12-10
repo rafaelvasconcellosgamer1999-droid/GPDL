@@ -121,7 +121,7 @@
      💠 Identidade visual (Brand)
   --------------------------------------------------- */
     .brand-icon {
-        @apply flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg;
+        @apply flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-lg;
     }
 
     .brand-copy {
@@ -163,7 +163,7 @@
     }
 
     .sidebar-card {
-        @apply relative rounded-lg border border-white/20 bg-gradient-to-br from-white/10 to-white/5 p-4 shadow-inner backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15;
+        @apply relative rounded-lg border border-white/20 bg-linear-to-br from-white/10 to-white/5 p-4 shadow-inner backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15;
     }
 
     .sidebar-card h3 {

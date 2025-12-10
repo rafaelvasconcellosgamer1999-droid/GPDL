@@ -207,17 +207,17 @@ export default function Regras({
                     {/* Header */}
                     <div className="mb-6 flex items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-[var(--text-strong)]">
+                            <h1 className="text-2xl font-bold text-(--text-strong)">
                                 Regras de Permissão
                             </h1>
-                            <p className="mt-1 text-sm text-[var(--text-muted)]">
+                            <p className="mt-1 text-sm text-(--text-muted)">
                                 Vincule permissões aos cargos com escopos
                                 específicos
                             </p>
                         </div>
                         <button
                             onClick={openCreateModal}
-                            className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand-700)] px-4 py-2 text-white transition hover:bg-[var(--brand-600)]"
+                            className="inline-flex items-center gap-2 rounded-lg bg-(--brand-700) px-4 py-2 text-white transition hover:bg-(--brand-600)"
                         >
                             <svg
                                 className="h-5 w-5"
@@ -237,10 +237,10 @@ export default function Regras({
                     </div>
 
                     {/* Info Box */}
-                    <div className="mb-6 rounded-lg border border-[var(--accent-info-border)] bg-[var(--accent-info-soft)] p-4">
+                    <div className="mb-6 rounded-lg border border-(--accent-info-border) bg-(--accent-info-soft) p-4">
                         <div className="flex">
                             <svg
-                                className="mt-0.5 mr-3 h-5 w-5 text-[var(--accent-info)]"
+                                className="mt-0.5 mr-3 h-5 w-5 text-(--accent-info)"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -251,12 +251,12 @@ export default function Regras({
                                 />
                             </svg>
                             <div>
-                                <p className="text-sm text-[var(--accent-info)]">
+                                <p className="text-sm text-(--accent-info)">
                                     <strong>Como funciona:</strong> As regras
                                     definem QUAIS permissões cada CARGO possui e
                                     em QUAL ESCOPO.
                                 </p>
-                                <ul className="mt-2 ml-4 list-disc space-y-1 text-xs text-[var(--accent-info)]">
+                                <ul className="mt-2 ml-4 list-disc space-y-1 text-xs text-(--accent-info)">
                                     <li>
                                         <strong>Own (Próprio):</strong> Acesso
                                         apenas aos próprios dados
@@ -276,11 +276,11 @@ export default function Regras({
                     </div>
 
                     {/* Filtros */}
-                    <div className="mb-6 rounded-lg bg-[var(--surface-card)] p-4 shadow-sm">
+                    <div className="mb-6 rounded-lg bg-(--surface-card) p-4 shadow-sm">
                         <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-4">
                             {/* Cargo */}
                             <div className="flex flex-col">
-                                <label className="mb-1 block text-sm font-medium text-[var(--text-strong)]">
+                                <label className="mb-1 block text-sm font-medium text-(--text-strong)">
                                     Cargo
                                 </label>
                                 <select
@@ -291,7 +291,7 @@ export default function Regras({
                                             e.target.value,
                                         )
                                     }
-                                    className="w-full rounded-lg border border-[var(--gpdl-border)] bg-[color:var(--surface-card)] px-4 py-2 text-[color:var(--text-strong)] transition-colors duration-150"
+                                    className="w-full rounded-lg border border-(--gpdl-border) bg-(--surface-card) px-4 py-2 text-(--text-strong) transition-colors duration-150"
                                 >
                                     <option value="">Todos os cargos</option>
                                     {cargos.map((cargo) => (
@@ -304,7 +304,7 @@ export default function Regras({
 
                             {/* Permissão */}
                             <div className="flex flex-col">
-                                <label className="mb-1 block text-sm font-medium text-[var(--text-strong)]">
+                                <label className="mb-1 block text-sm font-medium text-(--text-strong)">
                                     Permissão
                                 </label>
                                 <select
@@ -315,7 +315,7 @@ export default function Regras({
                                             e.target.value,
                                         )
                                     }
-                                    className="w-full rounded-lg border border-[var(--gpdl-border)] bg-[color:var(--surface-card)] px-4 py-2 text-[color:var(--text-strong)] transition-colors duration-150"
+                                    className="w-full rounded-lg border border-(--gpdl-border) bg-(--surface-card) px-4 py-2 text-(--text-strong) transition-colors duration-150"
                                 >
                                     <option value="">
                                         Todas as permissões
@@ -330,7 +330,7 @@ export default function Regras({
 
                             {/* Escopo */}
                             <div className="flex flex-col">
-                                <label className="mb-1 block text-sm font-medium text-[var(--text-strong)]">
+                                <label className="mb-1 block text-sm font-medium text-(--text-strong)">
                                     Escopo
                                 </label>
                                 <select
@@ -341,7 +341,7 @@ export default function Regras({
                                             e.target.value,
                                         )
                                     }
-                                    className="w-full rounded-lg border border-[var(--gpdl-border)] bg-[color:var(--surface-card)] px-4 py-2 text-[color:var(--text-strong)] transition-colors duration-150"
+                                    className="w-full rounded-lg border border-(--gpdl-border) bg-(--surface-card) px-4 py-2 text-(--text-strong) transition-colors duration-150"
                                 >
                                     <option value="">Todos os escopos</option>
                                     {scopes.map((s) => (
@@ -354,7 +354,7 @@ export default function Regras({
 
                             {/* Setor */}
                             <div className="flex flex-col">
-                                <label className="mb-1 block text-sm font-medium text-[var(--text-strong)]">
+                                <label className="mb-1 block text-sm font-medium text-(--text-strong)">
                                     Setor
                                 </label>
                                 <select
@@ -365,7 +365,7 @@ export default function Regras({
                                             e.target.value,
                                         )
                                     }
-                                    className="w-full rounded-lg border border-[var(--gpdl-border)] bg-[color:var(--surface-card)] px-4 py-2 text-[color:var(--text-strong)] transition-colors duration-150"
+                                    className="w-full rounded-lg border border-(--gpdl-border) bg-(--surface-card) px-4 py-2 text-(--text-strong) transition-colors duration-150"
                                 >
                                     <option value="">Todos os setores</option>
                                     {setores.map((setor) => (
@@ -384,14 +384,14 @@ export default function Regras({
                         <div className="mt-4 flex justify-end gap-3">
                             <button
                                 onClick={applyFilters}
-                                className="rounded-lg bg-[var(--brand-700)] px-4 py-2 text-sm text-white transition hover:bg-[var(--brand-600)]"
+                                className="rounded-lg bg-(--brand-700) px-4 py-2 text-sm text-white transition hover:bg-(--brand-600)"
                             >
                                 Filtrar
                             </button>
 
                             <button
                                 onClick={clearFilters}
-                                className="rounded-lg bg-[var(--surface-muted)] px-4 py-2 text-sm text-[var(--text-strong)] transition hover:bg-gray-300 dark:hover:bg-gray-600"
+                                className="rounded-lg bg-(--surface-muted) px-4 py-2 text-sm text-(--text-strong) transition hover:bg-gray-300 dark:hover:bg-gray-600"
                             >
                                 Limpar
                             </button>
@@ -401,7 +401,7 @@ export default function Regras({
                     {/* Listagem agrupada por cargo */}
                     <div className="space-y-6">
                         {Object.keys(regrasPorCargo).length === 0 ? (
-                            <div className="rounded-lg bg-[var(--surface-card)] p-12 text-center shadow-sm">
+                            <div className="rounded-lg bg-(--surface-card) p-12 text-center shadow-sm">
                                 <svg
                                     className="mx-auto h-12 w-12 text-gray-400"
                                     fill="none"
@@ -415,10 +415,10 @@ export default function Regras({
                                         d="M9 12l2 2 4-4"
                                     />
                                 </svg>
-                                <h3 className="mt-2 text-lg font-medium text-[var(--text-strong)]">
+                                <h3 className="mt-2 text-lg font-medium text-(--text-strong)">
                                     Nenhuma regra cadastrada
                                 </h3>
-                                <p className="mt-1 text-sm text-[var(--text-muted)]">
+                                <p className="mt-1 text-sm text-(--text-muted)">
                                     Comece criando uma nova regra de permissão.
                                 </p>
                             </div>
@@ -427,12 +427,12 @@ export default function Regras({
                                 ([cargoNome, regrasGrupo]) => (
                                     <div
                                         key={cargoNome}
-                                        className="overflow-hidden rounded-lg bg-[var(--surface-card)] shadow-sm"
+                                        className="overflow-hidden rounded-lg bg-(--surface-card) shadow-sm"
                                     >
-                                        <div className="border-b border-[var(--gpdl-border)] bg-[var(--surface-muted)] px-6 py-4">
-                                            <h3 className="flex items-center gap-2 text-lg font-semibold text-[var(--text-strong)]">
+                                        <div className="border-b border-(--gpdl-border) bg-(--surface-muted) px-6 py-4">
+                                            <h3 className="flex items-center gap-2 text-lg font-semibold text-(--text-strong)">
                                                 {cargoNome}
-                                                <span className="ml-2 rounded-full bg-[var(--accent-info-soft)] px-2 py-1 text-xs font-medium text-[var(--accent-info)]">
+                                                <span className="ml-2 rounded-full bg-(--accent-info-soft) px-2 py-1 text-xs font-medium text-(--accent-info)">
                                                     {regrasGrupo.length}{' '}
                                                     {regrasGrupo.length === 1
                                                         ? 'regra'
@@ -440,11 +440,11 @@ export default function Regras({
                                                 </span>
                                             </h3>
                                         </div>
-                                        <div className="divide-y divide-[var(--gpdl-border)]">
+                                        <div className="divide-y divide-(--gpdl-border)">
                                             {regrasGrupo.map((regra) => (
                                                 <div
                                                     key={regra.id}
-                                                    className="p-6 transition hover:bg-[var(--surface-muted)]"
+                                                    className="p-6 transition hover:bg-(--surface-muted)"
                                                 >
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex-1">
@@ -493,7 +493,7 @@ export default function Regras({
                                                             </div>
                                                             {regra.permissao
                                                                 ?.descricao && (
-                                                                    <p className="mt-2 text-sm text-[var(--text-muted)]">
+                                                                    <p className="mt-2 text-sm text-(--text-muted)">
                                                                         {
                                                                             regra
                                                                                 .permissao
@@ -509,7 +509,7 @@ export default function Regras({
                                                                         regra,
                                                                     )
                                                                 }
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[var(--gpdl-border)] hover:bg-[var(--surface-muted)] text-[var(--text-strong)] transition"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-(--gpdl-border) hover:bg-(--surface-muted) text-(--text-strong) transition"
                                                                 title="Editar"
                                                             >
                                                                 <svg
@@ -528,7 +528,7 @@ export default function Regras({
                                                                         regra.id,
                                                                     )
                                                                 }
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-300/60 text-[var(--danger-500)] hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-300/60 text-(--danger-500) hover:bg-red-50 dark:hover:bg-red-900/20 transition"
                                                                 title="Excluir"
                                                             >
                                                                 <svg
@@ -561,10 +561,10 @@ export default function Regras({
                     <div
                         role="dialog"
                         aria-modal="true"
-                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-[var(--gpdl-border)] bg-[var(--surface-card)] animate-scaleIn"
+                        className="relative w-full max-w-md rounded-2xl shadow-xl border border-(--gpdl-border) bg-(--surface-card) animate-scaleIn"
                     >
-                        <div className="flex items-center justify-between border-b border-[var(--gpdl-border)] p-6">
-                            <h3 className="text-xl font-semibold text-[var(--text-strong)]">
+                        <div className="flex items-center justify-between border-b border-(--gpdl-border) p-6">
+                            <h3 className="text-xl font-semibold text-(--text-strong)">
                                 {editingRegra ? 'Editar Regra' : 'Nova Regra'}
                             </h3>
                             <button
@@ -591,7 +591,7 @@ export default function Regras({
                             <div className="space-y-4 p-6">
                                 {/* CARGO */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-[var(--text-strong)]">
+                                    <label className="mb-2 block text-sm font-medium text-(--text-strong)">
                                         Cargo *
                                     </label>
                                     <select
@@ -602,7 +602,7 @@ export default function Regras({
                                                 Number(e.target.value),
                                             )
                                         }
-                                        className="w-full border border-[var(--gpdl-border)] bg-[var(--surface-main)] px-4 py-2 text-[var(--text-strong)]"
+                                        className="w-full border border-(--gpdl-border) bg-(--surface-main) px-4 py-2 text-(--text-strong)"
                                         required
                                     >
                                         <option value="">
@@ -626,7 +626,7 @@ export default function Regras({
 
                                 {/* PERMISSÃO */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-[var(--text-strong)]">
+                                    <label className="mb-2 block text-sm font-medium text-(--text-strong)">
                                         Permissão *
                                     </label>
                                     <select
@@ -637,7 +637,7 @@ export default function Regras({
                                                 Number(e.target.value),
                                             )
                                         }
-                                        className="w-full border border-[var(--gpdl-border)] bg-[var(--surface-main)] px-4 py-2 text-[var(--text-strong)]"
+                                        className="w-full border border-(--gpdl-border) bg-(--surface-main) px-4 py-2 text-(--text-strong)"
                                         required
                                     >
                                         <option value="">
@@ -663,7 +663,7 @@ export default function Regras({
 
                                 {/* ESCOPO */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-[var(--text-strong)]">
+                                    <label className="mb-2 block text-sm font-medium text-(--text-strong)">
                                         Escopo (Scope) *
                                     </label>
                                     <select
@@ -674,7 +674,7 @@ export default function Regras({
                                                 Number(e.target.value),
                                             )
                                         }
-                                        className="w-full border border-[var(--gpdl-border)] bg-[var(--surface-main)] px-4 py-2 text-[var(--text-strong)]"
+                                        className="w-full border border-(--gpdl-border) bg-(--surface-main) px-4 py-2 text-(--text-strong)"
                                         required
                                     >
                                         <option value="">
@@ -723,11 +723,11 @@ export default function Regras({
                                                 setData('setor_id', null);
                                             }
                                         }}
-                                        className="h-4 w-4 rounded border-gray-300 text-[var(--brand-700)] focus:ring-[var(--brand-600)]"
+                                        className="h-4 w-4 rounded border-gray-300 text-(--brand-700) focus:ring-(--brand-600)"
                                     />
                                     <label
                                         htmlFor="checkbox-setor"
-                                        className="text-sm font-medium text-[var(--text-strong)] select-none"
+                                        className="text-sm font-medium text-(--text-strong) select-none"
                                     >
                                         Aplicar a um setor específico
                                     </label>
@@ -736,7 +736,7 @@ export default function Regras({
                                 {/* SETOR — aparece só se o checkbox estiver ativo */}
                                 {data.setor_especifico && (
                                     <div className="mt-2">
-                                        <label className="mb-2 block text-sm font-medium text-[var(--text-strong)]">
+                                        <label className="mb-2 block text-sm font-medium text-(--text-strong)">
                                             Setor {scopeNeedsSetor() && '*'}
                                         </label>
                                         <select
@@ -749,7 +749,7 @@ export default function Regras({
                                                         : null,
                                                 )
                                             }
-                                            className="w-full border border-[var(--gpdl-border)] bg-[var(--surface-main)] px-4 py-2 text-[var(--text-strong)]"
+                                            className="w-full border border-(--gpdl-border) bg-(--surface-main) px-4 py-2 text-(--text-strong)"
                                             required={scopeNeedsSetor()}
                                         >
                                             <option value="">
@@ -782,7 +782,7 @@ export default function Regras({
                             </div>
 
                             {/* BOTÕES */}
-                            <div className="flex items-center justify-end gap-3 border-t border-[var(--gpdl-border)] p-6">
+                            <div className="flex items-center justify-end gap-3 border-t border-(--gpdl-border) p-6">
                                 <button
                                     type="button"
                                     onClick={closeModal}
@@ -793,7 +793,7 @@ export default function Regras({
                                 </button>
                                 <button
                                     type="submit"
-                                    className="rounded-lg bg-[var(--brand-700)] px-4 py-2 text-white hover:bg-[var(--brand-600)] disabled:opacity-50"
+                                    className="rounded-lg bg-(--brand-700) px-4 py-2 text-white hover:bg-(--brand-600) disabled:opacity-50"
                                     disabled={processing}
                                 >
                                     {processing ? 'Salvando...' : 'Salvar'}

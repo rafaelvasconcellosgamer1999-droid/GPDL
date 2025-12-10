@@ -7,10 +7,10 @@ import InputError from '@/components/input-error'
 
 export default function ForcePassword() {
   return (
-    <div className="min-h-dvh w-full flex items-center justify-center gpdl-background bg-[var(--surface-main)] px-4 py-10">
+    <div className="min-h-dvh w-full flex items-center justify-center gpdl-background bg-(--surface-main) px-4 py-10">
       <Head title="Crie uma nova senha" />
 
-      <div className="panel-glass rounded-3xl p-6 md:p-8 w-full max-w-md border border-[var(--gpdl-border)] shadow-[var(--shadow-card)]">
+      <div className="panel-glass rounded-3xl p-6 md:p-8 w-full max-w-md border border-(--gpdl-border) shadow-(--shadow-card)">
         <div className="space-y-1 mb-6">
           <h2 className="text-2xl font-semibold text-white">Crie uma nova senha</h2>
           <p className="text-white/80 text-sm">Por seguran&ccedil;a, voc&ecirc; precisa definir uma nova senha para o seu primeiro acesso.</p>
