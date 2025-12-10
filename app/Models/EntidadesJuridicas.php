@@ -10,6 +10,8 @@ class EntidadesJuridicas extends Model
     protected $fillable = [
         'nome',
         'tipo',
+        'sigla',
+        'ativo',
     ];
 
     public function tribunal(){
