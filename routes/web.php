@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     // PROCESSOS
     // ======================
     Route::middleware(['permission:view_process_page'])->group(function () {
+        Route::post('/processos/set-setor', [ProcessoController::class, 'setSetor'])->name('processos.set-setor');
         // Página principal
         Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
 

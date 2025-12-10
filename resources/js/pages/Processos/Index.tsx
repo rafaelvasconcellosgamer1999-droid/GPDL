@@ -25,23 +25,10 @@ const views = [
 ] as const;
 type View = (typeof views)[number];
 
-interface Procurador {
-  id: number;
-  nome: string;
-}
-interface Paginator<T> {
-  data: T[];
-  current_page: number;
-  last_page: number;
-  total: number;
-  per_page: number;
-  from?: number;
-  to?: number;
-  next_page_url?: string | null;
-  prev_page_url?: string | null;
-}
+export type Procurador = { id: number; nome: string };
+export type OptionItem = { id: string | number; nome: string };
 
-interface ProcessoRow {
+export interface ProcessoRow {
   id: number;
   orgao?: string | null;
   acao?: string | null;
@@ -55,25 +42,68 @@ interface ProcessoRow {
   responsavel_nome?: string | null;
 }
 
-interface FiltersForm {
+export interface Paginator<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  total: number;
+  per_page: number;
+  from?: number;
+  to?: number;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+}
+
+export interface FiltersForm {
   responsavel_id: string;
   order: string;
   per_page: string;
   view?: View;
 }
 
+/**
+ * Tipagem do objeto page.props vindo do Inertia.
+ * Adicione aqui as propriedades que o backend retorna (ex.: tribunais, acoes, orgaos, setores).
+ */
+interface PageProps extends Record<string, unknown> {
+  processos?: Paginator<ProcessoRow>;
+  flash?: { success?: string; error?: string };
+  filters?: FiltersForm;
+  procuradores?: Procurador[];
+  setorSelecionado?: string;
+  setores?: { id: string; nome: string }[];
+  tribunais?: OptionItem[];
+  acoes?: OptionItem[];
+  orgaos?: OptionItem[];
+  orgaosJulgadores?: OptionItem[];
+}
+
 export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { procuradores?: Procurador[] }) {
-  const page = usePage<{
-    processos?: Paginator<ProcessoRow>;
-    flash?: { success?: string; error?: string };
-    filters?: FiltersForm;
-  }>();
+  // Inertia page props (tipado corretamente)
+  const page = usePage<PageProps>();
+  const processos = page.props?.processos;
+  const flashSuccess = page.props?.flash?.success;
+  const flashError = page.props?.flash?.error;
+  const backendFilters = page.props?.filters;
 
-  const processos = page?.props?.processos;
-  const flashSuccess = page?.props?.flash?.success;
-  const flashError = page?.props?.flash?.error;
-  const backendFilters = page?.props?.filters;
+  // setores (opcional) — caso o backend envie uma lista de setores use-a; caso contrário fallback hardcoded
+  const setoresFromBackend = page.props?.setores;
+  const DEFAULT_SETORS = [
+    { id: 'contencioso', nome: 'Contencioso' },
+    { id: 'previdencia', nome: 'Previdência' },
+    { id: 'administrativo', nome: 'Administrativo' },
+    { id: 'tributario', nome: 'Tributário' },
+  ];
+  const setores = setoresFromBackend && setoresFromBackend.length > 0 ? setoresFromBackend : DEFAULT_SETORS;
 
+  // initial setor: from server session (page.props.setorSelecionado) or localStorage fallback
+  const initialSetor =
+    (page.props?.setorSelecionado as string | undefined) ??
+    (typeof window !== 'undefined' ? localStorage.getItem('setorSelecionado') ?? '' : '');
+
+  const [setorSelecionado, setSetorSelecionado] = useState<string>(initialSetor);
+
+  // derive current view preferring backend filters, falling back to query string
   const currentView: View = useMemo(() => {
     const backendView = (backendFilters?.view as View | undefined) ?? undefined;
     if (backendView && (views as readonly string[]).includes(backendView)) return backendView;
@@ -201,14 +231,42 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
     });
   }
 
+  // Persistir setor selecionado (salva em session via route no backend e localStorage)
+  async function persistSetor(setorId: string) {
+    // persist instantaneamente na UI/localStorage
+    setSetorSelecionado(setorId);
+    if (typeof window !== 'undefined') localStorage.setItem('setorSelecionado', setorId);
+
+    try {
+      // usa Inertia router.post para integrar com sessão/CSRF/cookies
+      await router.post('/processos/set-setor', { setor: setorId }, {
+        preserveState: true,
+        onError: (err) => {
+          console.error('Falha ao persistir setor no servidor (inertia):', err);
+        },
+      });
+    } catch (err) {
+      console.error('Erro ao persistir setor (router.post):', err);
+    }
+  }
+
   return (
     <GPDLLayout breadcrumbs={breadcrumb}>
       <Head title={`Processos - ${currentView}`} />
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-(--text-strong)">Processos</h1>
-          <p className="mt-1 text-sm text-(--text-muted)">Central de cadastros e acompanhamento</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-strong)' }}>Processos</h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>Central de cadastros e acompanhamento</p>
+        </div>
+
+        {/* selector de setor (apenas na UI; chama persistSetor para salvar) */}
+        <div>
+          <label className="text-xs block mb-1" style={{ color: 'var(--text-muted)' }}>Área de atuação</label>
+          <select value={setorSelecionado} onChange={(e) => persistSetor(e.target.value)} className="gpdl-input-contrast px-3 py-2 rounded-md">
+            <option value="">Selecione</option>
+            {setores.map((s) => <option key={s.id} value={String(s.id)}>{s.nome}</option>)}
+          </select>
         </div>
       </div>
 
@@ -226,7 +284,21 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
       )}
 
       {/* Cadastro view separated */}
-      {currentView === 'cadastro' && <CadastroView />}
+      {currentView === 'cadastro' && (() => {
+        const setorNome =
+          setores.find((s) => String(s.id) === String(setorSelecionado))?.nome ?? '';
+
+        return (
+          <CadastroView
+            setorSelecionado={setorNome}
+            procuradores={page.props?.procuradores ?? procuradores}
+            tribunais={page.props?.tribunais ?? []}
+            acoes={page.props?.acoes ?? []}
+            orgaos={page.props?.orgaos ?? []}
+            orgaosJulgadores={page.props?.orgaosJulgadores ?? []}
+          />
+        );
+      })()}
 
       {/* route to the chosen view component */}
       {currentView === 'ativos' && (
@@ -236,7 +308,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
           setF={setF}
           onApply={applyFilters}
           onClear={clearFilters}
-          procuradores={procuradores}
+          procuradores={page.props?.procuradores ?? procuradores}
           onFinalize={finalizeOne}
           finalizingId={finalizingId}
         />
@@ -249,7 +321,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
           setF={setF}
           onApply={applyFilters}
           onClear={clearFilters}
-          procuradores={procuradores}
+          procuradores={page.props?.procuradores ?? procuradores}
         />
       )}
 
@@ -260,7 +332,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
           setF={setF}
           onApply={applyFilters}
           onClear={clearFilters}
-          procuradores={procuradores}
+          procuradores={page.props?.procuradores ?? procuradores}
         />
       )}
 
@@ -273,7 +345,7 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
           setF={setF}
           onApply={applyFilters}
           onClear={clearFilters}
-          procuradores={procuradores}
+          procuradores={page.props?.procuradores ?? procuradores}
         />
       )}
     </GPDLLayout>

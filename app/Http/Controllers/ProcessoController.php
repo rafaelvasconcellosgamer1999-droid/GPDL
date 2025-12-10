@@ -158,18 +158,34 @@ class ProcessoController extends Controller
         }
 
         $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
+        // --- montar lista de setores (se existir tabela 'setores') ou fallback ---
+        $setores = \App\Models\Setor::ativos()->orderBy('nome')->get(['id','nome'])->map(function($s) {
+        return ['id' => (string)$s->id, 'nome' => $s->nome];
+        });
+
+        // setor selecionado salvo na sessão (padrão null)
+        $setorSelecionado = session('setorSelecionado', null);
 
         return Inertia::render('Processos/Index', [
-            'procuradores' => $procuradores,
-            'processos' => $lista,
-            'filters' => [
-                'responsavel_id' => $request->query('responsavel_id', null) ?? '',
-                'order' => $request->query('order', 'prazo_asc'),
-                'per_page' => (int) $request->query('per_page', 10),
-                'view' => $view,
-            ],
-        ]);
+    'procuradores' => $procuradores,
+    'processos' => $lista,
+    'filters' => [],
+    'setores' => $setores,
+    'setorSelecionado' => $setorSelecionado,
+    // ...
+]);
+
     }
+
+
+    // app/Http/Controllers/ProcessoController.php
+
+    public function setSetor(Request $request)
+{
+    $data = $request->validate(['setor' => 'nullable|string']);
+    session(['setorSelecionado' => $data['setor'] ?? null]);
+}
+
 
     /**
      * Importa processos em lote a partir de um texto colado.
@@ -419,108 +435,151 @@ class ProcessoController extends Controller
     }
 
     public function create()
-{
-    $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id','nome']);
-    return Inertia::render('Processos/CadastroIndividual', ['procuradores' => $procuradores]);
-}
+    {
+        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
 
-public function createLote()
-{
-    $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id','nome']);
-    return Inertia::render('Processos/CadastroLote', ['procuradores' => $procuradores]);
-}
-public function store(Request $request)
-{
-    $data = $request->validate([
-        'instancia' => ['nullable', 'string', 'max:50'],
-        'tribunal' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
-        'valor_causa' => ['nullable', 'string'],
-        'numero_processo' => ['nullable', 'string', 'max:50'],
-        'tipo_processo' => ['nullable', 'string', 'max:100'],
-        'tipo_pagamento' => ['nullable', 'string', 'in:precatorio,rpv'],
-        'acao' => ['nullable', 'integer', 'exists:tematicas,id'],
-        'assunto' => ['nullable', 'integer', 'exists:tematicas,id'],
-        'orgao_origem' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
-        'orgao_julgador' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
-        'juizo_vara' => ['nullable', 'string', 'max:150'],
-        'numero_juizo_vara' => ['nullable', 'string', 'max:50'],
-        'numero_agravo' => ['nullable', 'string', 'max:50'],
-        'numero_suspensao' => ['nullable', 'string', 'max:50'],
-        'numero_protocolo' => ['nullable', 'string', 'max:50'],
-        'ano' => ['nullable', 'date'],
-        'data_limite' => ['nullable', 'date'],
-        'partes_json' => ['nullable', 'json'],
-        'tipo_distribuicao' => ['nullable', 'string', 'in:manual,automatica,equilibrada'],
-        'motivo_distribuicao' => ['nullable', 'string', 'in:rotina,urgencia,competencia,sobrecarga'],
-        'procurador_responsavel_id' => ['required', 'integer', 'exists:usuarios,id'],
-        'incidencia' => ['nullable', 'in:0,1'],
-        'referencia_numero_processo' => ['nullable', 'string', 'max:50'],
-    ]);
-
-    $usuario = Auth::user();
-    
-    // Processar partes JSON se fornecido
-    $partes = [];
-    if (!empty($data['partes_json'])) {
-        try {
-            $partes = json_decode($data['partes_json'], true) ?? [];
-        } catch (\Exception $e) {
-            $partes = [];
+        // montar setores (mesma lógica do index)
+        $setores = [];
+        if (Schema::hasTable('setores')) {
+            $setores = DB::table('setores')->select('id', 'nome')->orderBy('nome')->get()->map(function ($s) {
+                return ['id' => $s->id, 'nome' => $s->nome];
+            })->toArray();
+        } else {
+            $setores = [
+                ['id' => 'contencioso', 'nome' => 'Contencioso'],
+                ['id' => 'previdencia',  'nome' => 'Previdência'],
+                ['id' => 'administrativo', 'nome' => 'Administrativo'],
+                ['id' => 'tributario',   'nome' => 'Tributário'],
+            ];
         }
+
+        $setorSelecionado = session('setorSelecionado', null);
+
+        return Inertia::render('Processos/CadastroIndividual', [
+            'procuradores' => $procuradores,
+            'setores' => $setores,
+            'setorSelecionado' => $setorSelecionado,
+        ]);
     }
 
-    // Criar o processo principal
-    $processo = Processos::create([
-        'area_atuacao' => 'teste',
-        'municipio' => 'Belém',
-        'instancia' => $data['instancia'] ?? null,
-        'tribunal_id' => $data['tribunal'] ?? null,
-        'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
-        'cnj' => $data['numero_processo'] ?? null,
-        'tipo_processo' => $data['tipo_processo'] ?? null,
-        'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
-        'acao_id' => 3 ?? null,
-        'assunto_id' => 4 ?? null,
-        'orgao_origem_id' => 2 ?? null,
-        'orgao_julgador_id' => 3 ?? null,
-        //'juizo_vara' => $data['juizo_vara'] ?? null,
-        //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
-        'numero_agravo' => $data['numero_agravo'] ?? null,
-        'numero_suspensao' => $data['numero_suspensao'] ?? null,
-        'numero_protocolo' => $data['numero_protocolo'] ?? null,
-        //'data_limite' => $data['data_limite'] ?? null,
-        'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
-        'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
-        'procurador_responsavel_id' => $data['procurador_responsavel_id'],
-        'processo_ref_id' => 10 ?? null,
-        'usuario_cadastro_id' => optional($usuario)->id,
-    ]);
+    public function createLote()
+    {
+        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
 
-    // Se há incidência (referência a outro processo), criar relacionamento
-    if ($data['incidencia'] === '1' && !empty($data['referencia_numero_processo'])) {
-        $processoRef = Processos::where('cnj', $data['referencia_numero_processo'])->first();
-        if ($processoRef) {
-            $processo->update(['processo_ref_id' => $processoRef->id]);
+        $setores = [];
+        if (Schema::hasTable('setores')) {
+            $setores = DB::table('setores')->select('id', 'nome')->orderBy('nome')->get()->map(function ($s) {
+                return ['id' => $s->id, 'nome' => $s->nome];
+            })->toArray();
+        } else {
+            $setores = [
+                ['id' => 'contencioso', 'nome' => 'Contencioso'],
+                ['id' => 'previdencia',  'nome' => 'Previdência'],
+                ['id' => 'administrativo', 'nome' => 'Administrativo'],
+                ['id' => 'tributario',   'nome' => 'Tributário'],
+            ];
         }
-    }
 
-    // Cadastrar as partes
-    if (!empty($partes)) {
-        foreach ($partes as $parte) {
-            Partes::create([
-                'processo_id' => $processo->id,
-                'nome' => $parte['nome'] ?? null,
-                'qualificacao' => $parte['qualificacao'] ?? null,
-                'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
-                'parte_principal' => (int)($parte['eh_principal'] ?? 0),
-                'expediente' => (int)($parte['expediente'] ?? 0),
-            ]);
+        $setorSelecionado = session('setorSelecionado', null);
+
+        return Inertia::render('Processos/CadastroLote', [
+            'procuradores' => $procuradores,
+            'setores' => $setores,
+            'setorSelecionado' => $setorSelecionado,
+        ]);
+    }
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'instancia' => ['nullable', 'string', 'max:50'],
+            'tribunal' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
+            'valor_causa' => ['nullable', 'string'],
+            'numero_processo' => ['nullable', 'string', 'max:50'],
+            'tipo_processo' => ['nullable', 'string', 'max:100'],
+            'tipo_pagamento' => ['nullable', 'string', 'in:precatorio,rpv'],
+            'acao' => ['nullable', 'integer', 'exists:tematicas,id'],
+            'assunto' => ['nullable', 'integer', 'exists:tematicas,id'],
+            'orgao_origem' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
+            'orgao_julgador' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
+            'juizo_vara' => ['nullable', 'string', 'max:150'],
+            'numero_juizo_vara' => ['nullable', 'string', 'max:50'],
+            'numero_agravo' => ['nullable', 'string', 'max:50'],
+            'numero_suspensao' => ['nullable', 'string', 'max:50'],
+            'numero_protocolo' => ['nullable', 'string', 'max:50'],
+            'ano' => ['nullable', 'date'],
+            'data_limite' => ['nullable', 'date'],
+            'partes_json' => ['nullable', 'json'],
+            'tipo_distribuicao' => ['nullable', 'string', 'in:manual,automatica,equilibrada'],
+            'motivo_distribuicao' => ['nullable', 'string', 'in:rotina,urgencia,competencia,sobrecarga'],
+            'procurador_responsavel_id' => ['required', 'integer', 'exists:usuarios,id'],
+            'incidencia' => ['nullable', 'in:0,1'],
+            'referencia_numero_processo' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $usuario = Auth::user();
+
+        // Processar partes JSON se fornecido
+        $partes = [];
+        if (!empty($data['partes_json'])) {
+            try {
+                $partes = json_decode($data['partes_json'], true) ?? [];
+            } catch (\Exception $e) {
+                $partes = [];
+            }
         }
-    }
 
-    return redirect()->to('/processos?view=ativos')
-        ->with('success', 'Processo cadastrado com sucesso.');
-}
+        // Criar o processo principal
+        $processo = Processos::create([
+            'area_atuacao' => 'teste',
+            'municipio' => 'Belém',
+            'instancia' => $data['instancia'] ?? null,
+            'tribunal_id' => $data['tribunal'] ?? null,
+            'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
+            'cnj' => $data['numero_processo'] ?? null,
+            'tipo_processo' => $data['tipo_processo'] ?? null,
+            'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
+            'acao_id' => 3 ?? null,
+            'assunto_id' => 4 ?? null,
+            'orgao_origem_id' => 2 ?? null,
+            'orgao_julgador_id' => 3 ?? null,
+            //'juizo_vara' => $data['juizo_vara'] ?? null,
+            //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
+            'numero_agravo' => $data['numero_agravo'] ?? null,
+            'numero_suspensao' => $data['numero_suspensao'] ?? null,
+            'numero_protocolo' => $data['numero_protocolo'] ?? null,
+            //'data_limite' => $data['data_limite'] ?? null,
+            'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
+            'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
+            'procurador_responsavel_id' => $data['procurador_responsavel_id'],
+            'processo_ref_id' => 10 ?? null,
+            'usuario_cadastro_id' => optional($usuario)->id,
+        ]);
+
+        // Se há incidência (referência a outro processo), criar relacionamento
+        if ($data['incidencia'] === '1' && !empty($data['referencia_numero_processo'])) {
+            $processoRef = Processos::where('cnj', $data['referencia_numero_processo'])->first();
+            if ($processoRef) {
+                $processo->update(['processo_ref_id' => $processoRef->id]);
+            }
+        }
+
+        // Cadastrar as partes
+        if (!empty($partes)) {
+            foreach ($partes as $parte) {
+                Partes::create([
+                    'processo_id' => $processo->id,
+                    'nome' => $parte['nome'] ?? null,
+                    'qualificacao' => $parte['qualificacao'] ?? null,
+                    'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
+                    'parte_principal' => (int)($parte['eh_principal'] ?? 0),
+                    'expediente' => (int)($parte['expediente'] ?? 0),
+                ]);
+            }
+        }
+
+        return redirect()->to('/processos?view=ativos')
+            ->with('success', 'Processo cadastrado com sucesso.');
+    }
 
     /**
      * Buscar tribunais (EntidadesJuridicas) por termo de busca.
@@ -528,21 +587,21 @@ public function store(Request $request)
     public function searchTribunais(Request $request)
     {
         $search = $request->query('search', '');
-        
+
         $query = \App\Models\EntidadesJuridicas::query()
             ->where('tipo', 'Tribunal');
-        
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', '%' . $search . '%')
-                  ->orWhere('sigla', 'like', '%' . $search . '%');
+                    ->orWhere('sigla', 'like', '%' . $search . '%');
             });
         }
-        
+
         $tribunais = $query->limit(10)->get(['id', 'nome']);
-        
+
         return response()->json([
-            'data' => $tribunais->map(fn ($t) => ['id' => $t->id, 'nome' => $t->nome])
+            'data' => $tribunais->map(fn($t) => ['id' => $t->id, 'nome' => $t->nome])
         ]);
     }
 
@@ -552,21 +611,21 @@ public function store(Request $request)
     public function searchOrgaoOrigem(Request $request)
     {
         $search = $request->query('search', '');
-        
+
         $query = \App\Models\EntidadesJuridicas::query()
             ->where('tipo', 'Órgão de Origem');
-        
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', '%' . $search . '%')
-                  ->orWhere('sigla', 'like', '%' . $search . '%');
+                    ->orWhere('sigla', 'like', '%' . $search . '%');
             });
         }
-        
+
         $orgaos = $query->limit(10)->get(['id', 'nome']);
-        
+
         return response()->json([
-            'data' => $orgaos->map(fn ($o) => ['id' => $o->id, 'nome' => $o->nome])
+            'data' => $orgaos->map(fn($o) => ['id' => $o->id, 'nome' => $o->nome])
         ]);
     }
 
@@ -576,21 +635,21 @@ public function store(Request $request)
     public function searchOrgaoJulgador(Request $request)
     {
         $search = $request->query('search', '');
-        
+
         $query = \App\Models\EntidadesJuridicas::query()
             ->where('tipo', 'Órgão Julgador');
-        
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', '%' . $search . '%')
-                  ->orWhere('sigla', 'like', '%' . $search . '%');
+                    ->orWhere('sigla', 'like', '%' . $search . '%');
             });
         }
-        
+
         $orgaos = $query->limit(10)->get(['id', 'nome']);
-        
+
         return response()->json([
-            'data' => $orgaos->map(fn ($o) => ['id' => $o->id, 'nome' => $o->nome])
+            'data' => $orgaos->map(fn($o) => ['id' => $o->id, 'nome' => $o->nome])
         ]);
     }
 
@@ -600,18 +659,18 @@ public function store(Request $request)
     public function searchAcoes(Request $request)
     {
         $search = $request->query('search', '');
-        
+
         $query = \App\Models\Tematicas::query()
             ->where('tipo', 'acao');
-        
+
         if (!empty($search)) {
             $query->where('nome', 'like', '%' . $search . '%');
         }
-        
+
         $acoes = $query->limit(10)->get(['id', 'nome']);
-        
+
         return response()->json([
-            'data' => $acoes->map(fn ($a) => ['id' => $a->id, 'nome' => $a->nome])
+            'data' => $acoes->map(fn($a) => ['id' => $a->id, 'nome' => $a->nome])
         ]);
     }
 
@@ -621,18 +680,18 @@ public function store(Request $request)
     public function searchAssuntos(Request $request)
     {
         $search = $request->query('search', '');
-        
+
         $query = \App\Models\Tematicas::query()
             ->where('tipo', 'assunto');
-        
+
         if (!empty($search)) {
             $query->where('nome', 'like', '%' . $search . '%');
         }
-        
+
         $assuntos = $query->limit(10)->get(['id', 'nome']);
-        
+
         return response()->json([
-            'data' => $assuntos->map(fn ($a) => ['id' => $a->id, 'nome' => $a->nome])
+            'data' => $assuntos->map(fn($a) => ['id' => $a->id, 'nome' => $a->nome])
         ]);
     }
 }

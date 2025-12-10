@@ -1,14 +1,14 @@
 // resources/js/Pages/Processos/CadastroIndividual.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import AutocompleteSearch from '@/components/autocomplete-search';
 import { Check, Info, UserPlus, FileText, Users, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Errors, type VisitOptions } from '@inertiajs/core';
+import { Errors } from '@inertiajs/core';
 
 type Procurador = { id: number; nome: string };
-type OptionItem = { id: string | number; nome: string }; // para tribunais/orgaos vindos do backend
+export type OptionItem = { id: string | number; nome: string }; // para tribunais/orgaos vindos do backend
 
 type ParteItem = {
   id: string;
@@ -51,6 +51,7 @@ type FormShape = {
 export default function CadastroIndividual({
   procuradores = [] as Procurador[],
   setorSelecionado = '',
+  setores = [] as OptionItem[], // <-- ADICIONADO: lista de setores do backend / fallback
   tribunais = [] as OptionItem[], // passar do backend
   acoes = [] as OptionItem[], // passar do backend
   orgaos = [] as OptionItem[], // passar do backend (origem)
@@ -58,6 +59,7 @@ export default function CadastroIndividual({
 }: {
   procuradores?: Procurador[];
   setorSelecionado?: string;
+  setores?: OptionItem[]; // <-- tipagem adicionada
   tribunais?: OptionItem[];
   acoes?: OptionItem[];
   orgaos?: OptionItem[];
@@ -126,6 +128,20 @@ export default function CadastroIndividual({
     if (Array.isArray(value)) return String(value[0]);
     return String(value);
   }
+
+  // resolve display name for selected setor (setorSelecionado may be id or name)
+  const displaySetor = useMemo(() => {
+    if (!setorSelecionado) return '';
+    // try find in setores list by id or nome
+    try {
+      const found = (setores || []).find((s) => String(s.id) === String(setorSelecionado) || String(s.nome) === String(setorSelecionado));
+      if (found) return found.nome;
+    } catch (e) {
+      // ignore
+    }
+    // fallback: show as provided
+    return String(setorSelecionado);
+  }, [setorSelecionado, setores]);
 
   // Partes local state (UX)
   const [partes, setPartes] = useState<ParteItem[]>([]);
@@ -253,16 +269,16 @@ export default function CadastroIndividual({
             <h1 className="text-2xl font-semibold" style={{ color: 'var(--text-strong)' }}>Cadastrar processo (por etapas)</h1>
             <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>Preencha as etapas; a distribuição (procurador) é a etapa final.</p>
 
-            {/* setor selecionado — apenas visual */}
-            {setorSelecionado && (
-              <div className="mt-3 inline-flex items-center gap-3 rounded-full border px-3 py-1 bg-[var(--surface-muted)]" style={{ borderColor: 'var(--gpdl-border)' }}>
-                <strong style={{ color: 'var(--text-strong)' }}>{setorSelecionado}</strong>
+            {/* setor selecionado — apenas visual (exibe nome resolvido a partir de `setores` quando possível) */}
+            {displaySetor && (
+              <div className="mt-3 inline-flex items-center gap-3 rounded-full border px-3 py-1 bg-(--surface-muted)" style={{ borderColor: 'var(--gpdl-border)' }}>
+                <strong style={{ color: 'var(--text-strong)' }}>{displaySetor}</strong>
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Setor selecionado</span>
               </div>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/processos" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)', color: 'var(--text-strong)' }}>
+            <Link href="/processos?view=cadastro" className="inline-flex items-center gap-2 rounded-lg border px-3 py-2" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)', color: 'var(--text-strong)' }}>
               <ArrowLeft className="h-4 w-4" /> Voltar
             </Link>
           </div>
@@ -477,7 +493,7 @@ export default function CadastroIndividual({
 
               <div className="mt-4 flex items-center gap-4">
                 <label className="inline-flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-                  <input type="checkbox" checked={data.incidencia === '1'} onChange={(e) => setData('incidencia', e.target.checked ? '1' : '0')} /> 
+                  <input type="checkbox" checked={data.incidencia === '1'} onChange={(e) => setData('incidencia', e.target.checked ? '1' : '0')} />
                   Incidência (referenciar outro processo)
                 </label>
                 {data.incidencia === '1' && (
