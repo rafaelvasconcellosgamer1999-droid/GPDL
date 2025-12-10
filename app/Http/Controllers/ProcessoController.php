@@ -474,7 +474,7 @@ public function store(Request $request)
         'area_atuacao' => 'teste',
         'municipio' => 'Belém',
         'instancia' => $data['instancia'] ?? null,
-        'tribunal_id' => 1 ?? null,
+        'tribunal_id' => $data['tribunal'] ?? null,
         'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
         'cnj' => $data['numero_processo'] ?? null,
         'tipo_processo' => $data['tipo_processo'] ?? null,
@@ -521,4 +521,118 @@ public function store(Request $request)
     return redirect()->to('/processos?view=ativos')
         ->with('success', 'Processo cadastrado com sucesso.');
 }
+
+    /**
+     * Buscar tribunais (EntidadesJuridicas) por termo de busca.
+     */
+    public function searchTribunais(Request $request)
+    {
+        $search = $request->query('search', '');
+        
+        $query = \App\Models\EntidadesJuridicas::query()
+            ->where('tipo', 'Tribunal');
+        
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nome', 'like', '%' . $search . '%')
+                  ->orWhere('sigla', 'like', '%' . $search . '%');
+            });
+        }
+        
+        $tribunais = $query->limit(10)->get(['id', 'nome']);
+        
+        return response()->json([
+            'data' => $tribunais->map(fn ($t) => ['id' => $t->id, 'nome' => $t->nome])
+        ]);
+    }
+
+    /**
+     * Buscar órgão de origem por termo de busca.
+     */
+    public function searchOrgaoOrigem(Request $request)
+    {
+        $search = $request->query('search', '');
+        
+        $query = \App\Models\EntidadesJuridicas::query()
+            ->where('tipo', 'Órgão de Origem');
+        
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nome', 'like', '%' . $search . '%')
+                  ->orWhere('sigla', 'like', '%' . $search . '%');
+            });
+        }
+        
+        $orgaos = $query->limit(10)->get(['id', 'nome']);
+        
+        return response()->json([
+            'data' => $orgaos->map(fn ($o) => ['id' => $o->id, 'nome' => $o->nome])
+        ]);
+    }
+
+    /**
+     * Buscar órgão julgador por termo de busca.
+     */
+    public function searchOrgaoJulgador(Request $request)
+    {
+        $search = $request->query('search', '');
+        
+        $query = \App\Models\EntidadesJuridicas::query()
+            ->where('tipo', 'Órgão Julgador');
+        
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nome', 'like', '%' . $search . '%')
+                  ->orWhere('sigla', 'like', '%' . $search . '%');
+            });
+        }
+        
+        $orgaos = $query->limit(10)->get(['id', 'nome']);
+        
+        return response()->json([
+            'data' => $orgaos->map(fn ($o) => ['id' => $o->id, 'nome' => $o->nome])
+        ]);
+    }
+
+    /**
+     * Buscar ações (Tematicas) por termo de busca.
+     */
+    public function searchAcoes(Request $request)
+    {
+        $search = $request->query('search', '');
+        
+        $query = \App\Models\Tematicas::query()
+            ->where('tipo', 'acao');
+        
+        if (!empty($search)) {
+            $query->where('nome', 'like', '%' . $search . '%');
+        }
+        
+        $acoes = $query->limit(10)->get(['id', 'nome']);
+        
+        return response()->json([
+            'data' => $acoes->map(fn ($a) => ['id' => $a->id, 'nome' => $a->nome])
+        ]);
+    }
+
+    /**
+     * Buscar assuntos (Tematicas) por termo de busca.
+     */
+    public function searchAssuntos(Request $request)
+    {
+        $search = $request->query('search', '');
+        
+        $query = \App\Models\Tematicas::query()
+            ->where('tipo', 'assunto');
+        
+        if (!empty($search)) {
+            $query->where('nome', 'like', '%' . $search . '%');
+        }
+        
+        $assuntos = $query->limit(10)->get(['id', 'nome']);
+        
+        return response()->json([
+            'data' => $assuntos->map(fn ($a) => ['id' => $a->id, 'nome' => $a->nome])
+        ]);
+    }
 }

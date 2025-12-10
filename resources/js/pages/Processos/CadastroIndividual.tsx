@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import AutocompleteSearch from '@/components/autocomplete-search';
 import { Check, Info, UserPlus, FileText, Users, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Errors, type VisitOptions } from '@inertiajs/core';
 
@@ -35,7 +36,6 @@ type FormShape = {
   numero_agravo: string;
   numero_suspensao: string;
   numero_protocolo: string;
-  ano: string;
   data_limite: string;
 
   partes_json: string;
@@ -108,7 +108,6 @@ export default function CadastroIndividual({
     numero_agravo: '',
     numero_suspensao: '',
     numero_protocolo: '',
-    ano: '',
     data_limite: '',
     partes_json: '[]',
     tipo_distribuicao: '',
@@ -305,12 +304,25 @@ export default function CadastroIndividual({
                 </div>
 
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Tribunal</label>
-                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.tribunal} onChange={(e) => setData('tribunal', e.target.value)}>
-                    <option value="">Selecione um tribunal</option>
-                    {tribunais.map((t) => <option key={t.id} value={String(t.id)}>{t.nome}</option>)}
-                  </select>
-                  <InputError message={getErrorByPath('tribunal')} className="mt-1" />
+                  <AutocompleteSearch
+                    label="Tribunal"
+                    placeholder="Buscar tribunal..."
+                    value={data.tribunal}
+                    onChange={(value) => setData('tribunal', String(value))}
+                    onSearch={async (query) => {
+                      try {
+                        const response = await fetch(`/api/tribunais?search=${encodeURIComponent(query)}`);
+                        if (!response.ok) return [];
+                        const result = await response.json();
+                        return result.data || [];
+                      } catch (error) {
+                        console.error('Erro ao buscar tribunais:', error);
+                        return [];
+                      }
+                    }}
+                    options={tribunais}
+                    error={getErrorByPath('tribunal')}
+                  />
                 </div>
 
                 <div>
@@ -352,37 +364,92 @@ export default function CadastroIndividual({
                 </div>
 
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Ação</label>
-                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.acao} onChange={(e) => setData('acao', e.target.value)}>
-                    <option value="">Selecione</option>
-                    {acoes.map((a) => <option key={a.id} value={String(a.id)}>{a.nome}</option>)}
-                  </select>
-                  <InputError message={getErrorByPath('acao')} className="mt-1" />
+                  <AutocompleteSearch
+                    label="Ação"
+                    placeholder="Buscar ação..."
+                    value={data.acao}
+                    onChange={(value) => setData('acao', String(value))}
+                    onSearch={async (query) => {
+                      try {
+                        const response = await fetch(`/api/acoes?search=${encodeURIComponent(query)}`);
+                        if (!response.ok) return [];
+                        const result = await response.json();
+                        return result.data || [];
+                      } catch (error) {
+                        console.error('Erro ao buscar ações:', error);
+                        return [];
+                      }
+                    }}
+                    options={acoes}
+                    error={getErrorByPath('acao')}
+                  />
                 </div>
 
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Assunto</label>
-                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.assunto} onChange={(e) => setData('assunto', e.target.value)}>
-                    <option value="">Selecione</option>
-                    </select>
-                  <InputError message={getErrorByPath('assunto')} className="mt-1" />
+                  <AutocompleteSearch
+                    label="Assunto"
+                    placeholder="Buscar assunto..."
+                    value={data.assunto}
+                    onChange={(value) => setData('assunto', String(value))}
+                    onSearch={async (query) => {
+                      try {
+                        const response = await fetch(`/api/assuntos?search=${encodeURIComponent(query)}`);
+                        if (!response.ok) return [];
+                        const result = await response.json();
+                        return result.data || [];
+                      } catch (error) {
+                        console.error('Erro ao buscar assuntos:', error);
+                        return [];
+                      }
+                    }}
+                    options={[]}
+                    error={getErrorByPath('assunto')}
+                  />
                 </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Órgão de origem</label>
-                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_origem} onChange={(e) => setData('orgao_origem', e.target.value)}>
-                    <option value="">Selecione</option>
-                    {orgaos.map((o) => <option key={o.id} value={String(o.id)}>{o.nome}</option>)}
-                  </select>
+                  <AutocompleteSearch
+                    label="Órgão de origem"
+                    placeholder="Buscar órgão de origem..."
+                    value={data.orgao_origem}
+                    onChange={(value) => setData('orgao_origem', String(value))}
+                    onSearch={async (query) => {
+                      try {
+                        const response = await fetch(`/api/orgao-origem?search=${encodeURIComponent(query)}`);
+                        if (!response.ok) return [];
+                        const result = await response.json();
+                        return result.data || [];
+                      } catch (error) {
+                        console.error('Erro ao buscar órgão de origem:', error);
+                        return [];
+                      }
+                    }}
+                    options={[]}
+                    error={getErrorByPath('orgao_origem')}
+                  />
                 </div>
                 <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Órgão julgador</label>
-                  <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.orgao_julgador} onChange={(e) => setData('orgao_julgador', e.target.value)}>
-                    <option value="">Selecione</option>
-                    {orgaosJulgadores.map((o) => <option key={o.id} value={String(o.id)}>{o.nome}</option>)}
-                  </select>
+                  <AutocompleteSearch
+                    label="Órgão julgador"
+                    placeholder="Buscar órgão julgador..."
+                    value={data.orgao_julgador}
+                    onChange={(value) => setData('orgao_julgador', String(value))}
+                    onSearch={async (query) => {
+                      try {
+                        const response = await fetch(`/api/orgao-julgador?search=${encodeURIComponent(query)}`);
+                        if (!response.ok) return [];
+                        const result = await response.json();
+                        return result.data || [];
+                      } catch (error) {
+                        console.error('Erro ao buscar órgão julgador:', error);
+                        return [];
+                      }
+                    }}
+                    options={[]}
+                    error={getErrorByPath('orgao_julgador')}
+                  />
                 </div>
               </div>
 
@@ -398,10 +465,6 @@ export default function CadastroIndividual({
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do protocolo</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_protocolo} onChange={(e) => setData('numero_protocolo', e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Ano</label>
-                  <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.ano} onChange={(e) => setData('ano', e.target.value)} />
                 </div>
               </div>
 

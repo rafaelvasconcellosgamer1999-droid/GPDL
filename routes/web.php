@@ -77,6 +77,15 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     });
 
     // ======================
+    // APIs
+    // ======================
+    Route::get('/api/tribunais', [ProcessoController::class, 'searchTribunais']);
+    Route::get('/api/orgao-origem', [ProcessoController::class, 'searchOrgaoOrigem']);
+    Route::get('/api/orgao-julgador', [ProcessoController::class, 'searchOrgaoJulgador']);
+    Route::get('/api/acoes', [ProcessoController::class, 'searchAcoes']);
+    Route::get('/api/assuntos', [ProcessoController::class, 'searchAssuntos']);
+
+    // ======================
     // SQUADS
     // ======================
     Route::middleware(['permission:view_squads_page'])
