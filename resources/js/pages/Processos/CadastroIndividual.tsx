@@ -146,7 +146,7 @@ export default function CadastroIndividual({
   // Partes local state (UX)
   const [partes, setPartes] = useState<ParteItem[]>([]);
   useEffect(() => {
-    if (partes.length === 0) setPartes([{ id: 'p0', nome: '', qualificacao: '', tipo_qualificacao: '', eh_principal: '0', expediente: '0' }]);
+    if (partes.length === 0) setPartes([emptyParte(0)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -219,6 +219,54 @@ export default function CadastroIndividual({
     }
   }
 
+  // Mascara para número de processo (CNJ) no formato 0000000-00.0000.0.00.0000
+  function formatCNJInput(raw?: string) {
+    if (!raw) return '';
+    const digits = String(raw).replace(/\D/g, '').slice(0, 20); // CNJ tem 20 dígitos
+    const partsLen = [7, 2, 4, 1, 2, 4];
+    const separators = ['-', '.', '.', '.', '.'];
+    let idx = 0;
+    const parts: string[] = [];
+    for (let len of partsLen) {
+      if (idx >= digits.length) break;
+      parts.push(digits.slice(idx, idx + len));
+      idx += len;
+    }
+    if (parts.length === 0) return '';
+    // Rebuild with separators between parts
+    let out = parts[0] ?? '';
+    for (let i = 1; i < parts.length; i++) {
+      const sep = separators[i - 1] || '.';
+      out += sep + parts[i];
+    }
+    return out;
+  }
+
+  function handleNumeroProcessoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const masked = formatCNJInput(e.target.value);
+    setData('numero_processo', masked);
+  }
+
+  function handleNumeroProcessoPaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const pasted = e.clipboardData.getData('text');
+    e.preventDefault();
+    const masked = formatCNJInput(pasted);
+    setData('numero_processo', masked);
+  }
+
+  // Handlers para o campo de referência CNJ (aplica mesma máscara)
+  function handleReferenciaNumeroProcessoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const masked = formatCNJInput(e.target.value);
+    setData('referencia_numero_processo', masked);
+  }
+
+  function handleReferenciaNumeroProcessoPaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const pasted = e.clipboardData.getData('text');
+    e.preventDefault();
+    const masked = formatCNJInput(pasted);
+    setData('referencia_numero_processo', masked);
+  }
+
   function handleFinalSubmit(e: React.FormEvent) {
     e.preventDefault();
     syncPartesToForm();
@@ -232,8 +280,9 @@ export default function CadastroIndividual({
       {
         preserveScroll: true,
         onSuccess: () => {
+          setStep(0);
           reset();
-          router.get('/processos?view=ativos', {}, { replace: true });
+          router.get('/processos/cadastro', {}, { replace: true });
         },
         onError: () => {
           // remain on step to let user fix
@@ -354,7 +403,13 @@ export default function CadastroIndividual({
               <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="md:col-span-2">
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do processo (CNJ)</label>
-                  <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_processo} onChange={(e) => setData('numero_processo', e.target.value)} placeholder="0000000-00.0000.0.00.0000" />
+                  <input
+                    className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md"
+                    value={data.numero_processo}
+                    onChange={handleNumeroProcessoChange}
+                    onPaste={handleNumeroProcessoPaste}
+                    placeholder="0000000-00.0000.0.00.0000"
+                  />
                   <div className="mt-1 flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}><Info className="h-3 w-3" /> <span>Sem formatação obrigatória — o backend valida.</span></div>
                   <InputError message={getErrorByPath('numero_processo')} className="mt-1" />
                 </div>
@@ -499,7 +554,13 @@ export default function CadastroIndividual({
                 {data.incidencia === '1' && (
                   <div className="flex-1 min-w-[280px]">
                     <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número CNJ referenciado</label>
-                    <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.referencia_numero_processo} onChange={(e) => setData('referencia_numero_processo', e.target.value)} placeholder="0000000-00.0000.0.00.0000" />
+                    <input
+                      className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md"
+                      value={data.referencia_numero_processo}
+                      onChange={handleReferenciaNumeroProcessoChange}
+                      onPaste={handleReferenciaNumeroProcessoPaste}
+                      placeholder="0000000-00.0000.0.00.0000"
+                    />
                   </div>
                 )}
               </div>

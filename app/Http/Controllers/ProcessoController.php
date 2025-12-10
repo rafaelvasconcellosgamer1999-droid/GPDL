@@ -528,32 +528,32 @@ class ProcessoController extends Controller
             }
         }
 
-        // Criar o processo principal
-        $processo = Processos::create([
-            'area_atuacao' => 'teste',
-            'municipio' => 'Belém',
-            'instancia' => $data['instancia'] ?? null,
-            'tribunal_id' => $data['tribunal'] ?? null,
-            'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
-            'cnj' => $data['numero_processo'] ?? null,
-            'tipo_processo' => $data['tipo_processo'] ?? null,
-            'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
-            'acao_id' => 3 ?? null,
-            'assunto_id' => 4 ?? null,
-            'orgao_origem_id' => 2 ?? null,
-            'orgao_julgador_id' => 3 ?? null,
-            //'juizo_vara' => $data['juizo_vara'] ?? null,
-            //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
-            'numero_agravo' => $data['numero_agravo'] ?? null,
-            'numero_suspensao' => $data['numero_suspensao'] ?? null,
-            'numero_protocolo' => $data['numero_protocolo'] ?? null,
-            //'data_limite' => $data['data_limite'] ?? null,
-            'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
-            'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
-            'procurador_responsavel_id' => $data['procurador_responsavel_id'],
-            'processo_ref_id' => 10 ?? null,
-            'usuario_cadastro_id' => optional($usuario)->id,
-        ]);
+    // Criar o processo principal
+    $processo = Processos::create([
+        'area_atuacao' => 'teste',
+        'municipio' => 'Belém',
+        'instancia' => $data['instancia'] ?? null,
+        'tribunal_id' => $data['tribunal'] ?? null,
+        'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
+        'cnj' => $data['numero_processo'] ?? null,
+        'tipo_processo' => $data['tipo_processo'] ?? null,
+        'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
+        'acao_id' => $data['acao'] ?? null,
+        'assunto_id' => $data['assunto'] ?? null,
+        'orgao_origem_id' => $data['orgao_origem'] ?? null,
+        'orgao_julgador_id' => $data['orgao_julgador'] ?? null,
+        //'juizo_vara' => $data['juizo_vara'] ?? null,
+        //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
+        'numero_agravo' => $data['numero_agravo'] ?? null,
+        'numero_suspensao' => $data['numero_suspensao'] ?? null,
+        'numero_protocolo' => $data['numero_protocolo'] ?? null,
+        //'data_limite' => $data['data_limite'] ?? null,
+        'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
+        'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
+        'procurador_responsavel_id' => $data['procurador_responsavel_id'],
+        'processo_ref_id' => 10 ?? null,
+        'usuario_cadastro_id' => optional($usuario)->id,
+    ]);
 
         // Se há incidência (referência a outro processo), criar relacionamento
         if ($data['incidencia'] === '1' && !empty($data['referencia_numero_processo'])) {
@@ -563,23 +563,22 @@ class ProcessoController extends Controller
             }
         }
 
-        // Cadastrar as partes
-        if (!empty($partes)) {
-            foreach ($partes as $parte) {
-                Partes::create([
-                    'processo_id' => $processo->id,
-                    'nome' => $parte['nome'] ?? null,
-                    'qualificacao' => $parte['qualificacao'] ?? null,
-                    'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
-                    'parte_principal' => (int)($parte['eh_principal'] ?? 0),
-                    'expediente' => (int)($parte['expediente'] ?? 0),
-                ]);
-            }
+    // Cadastrar as partes
+    if (!empty($partes)) {
+        foreach ($partes as $parte) {
+            Partes::create([
+                'processo_id' => $processo->id,
+                'nome' => $parte['nome'] ?? null,
+                'qualificacao' => $parte['qualificacao'] ?? null,
+                'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
+                'parte_principal' => (int)($parte['eh_principal'] ?? 0),
+            ]);
         }
-
-        return redirect()->to('/processos?view=ativos')
-            ->with('success', 'Processo cadastrado com sucesso.');
     }
+
+    return redirect()->to('/processos/cadastro')
+        ->with('success', 'Processo cadastrado com sucesso.');
+}
 
     /**
      * Buscar tribunais (EntidadesJuridicas) por termo de busca.
@@ -613,8 +612,8 @@ class ProcessoController extends Controller
         $search = $request->query('search', '');
 
         $query = \App\Models\EntidadesJuridicas::query()
-            ->where('tipo', 'Órgão de Origem');
-
+            ->where('tipo', 'orgao_origem');
+        
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', '%' . $search . '%')

@@ -25,8 +25,8 @@ class Processos extends Model
         'numero_agravo',
         'numero_suspensao',
         'numero_protocolo',
-        'tipo_distribuição',
-        'motivo_distribuição',
+        'tipo_distribuicao',
+        'motivo_distribuicao',
         'usuario_cadastro_id', //quem cadastrou
         'procurador_responsavel_id', //user_id where cargo == procurador
         'status', //finalizado, em andamento...
