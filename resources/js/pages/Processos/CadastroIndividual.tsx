@@ -230,7 +230,7 @@ export default function CadastroIndividual({
     const separators = ['-', '.', '.', '.', '.'];
     let idx = 0;
     const parts: string[] = [];
-    for (let len of partsLen) {
+    for (const len of partsLen) {
       if (idx >= digits.length) break;
       parts.push(digits.slice(idx, idx + len));
       idx += len;
