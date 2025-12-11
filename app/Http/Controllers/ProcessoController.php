@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Session;
 
 class ProcessoController extends Controller
 {
@@ -530,7 +531,7 @@ class ProcessoController extends Controller
 
     // Criar o processo principal
     $processo = Processos::create([
-        'area_atuacao' => 'teste',
+        'area_atuacao' => Session::get('setorSelecionado', null),
         'municipio' => 'Belém',
         'instancia' => $data['instancia'] ?? null,
         'tribunal_id' => $data['tribunal'] ?? null,
@@ -551,7 +552,7 @@ class ProcessoController extends Controller
         'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
         'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
         'procurador_responsavel_id' => $data['procurador_responsavel_id'],
-        'processo_ref_id' => 10 ?? null,
+        'processo_ref_id' => null,
         'usuario_cadastro_id' => optional($usuario)->id,
     ]);
 
@@ -569,6 +570,7 @@ class ProcessoController extends Controller
             Partes::create([
                 'processo_id' => $processo->id,
                 'nome' => $parte['nome'] ?? null,
+                'cpf_cnpj' => $parte['cpf'] ?? null,
                 'qualificacao' => $parte['qualificacao'] ?? null,
                 'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
                 'parte_principal' => (int)($parte['eh_principal'] ?? 0),

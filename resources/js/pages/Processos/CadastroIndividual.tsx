@@ -13,6 +13,7 @@ export type OptionItem = { id: string | number; nome: string }; // para tribunai
 type ParteItem = {
   id: string;
   nome: string;
+  cpf: string;
   qualificacao: string;
   tipo_qualificacao: string;
   eh_principal: string; // '1' | '0'
@@ -153,6 +154,7 @@ export default function CadastroIndividual({
   const emptyParte = (idx: number): ParteItem => ({
     id: `p${Date.now()}-${idx}`,
     nome: '',
+    cpf: '',
     qualificacao: QUALIFICACOES[0] ?? '',
     tipo_qualificacao: TIPO_QUALIFICACAO[0] ?? '',
     eh_principal: '0',
@@ -175,6 +177,7 @@ export default function CadastroIndividual({
       JSON.stringify(
         partes.map((p) => ({
           nome: p.nome,
+          cpf: p.cpf,
           qualificacao: p.qualificacao,
           tipo_qualificacao: p.tipo_qualificacao,
           eh_principal: p.eh_principal === '1' ? 1 : 0,
@@ -265,6 +268,22 @@ export default function CadastroIndividual({
     e.preventDefault();
     const masked = formatCNJInput(pasted);
     setData('referencia_numero_processo', masked);
+  }
+
+  // Máscara para CPF: 000.000.000-00
+  function formatCPFInput(raw?: string) {
+    if (!raw) return '';
+    const digits = String(raw).replace(/\D/g, '').slice(0, 11);
+    if (digits.length === 0) return '';
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+
+  function handleParteCPFChange(id: string, value: string) {
+    const formatted = formatCPFInput(value);
+    updateParte(id, 'cpf', formatted);
   }
 
   function handleFinalSubmit(e: React.FormEvent) {
@@ -595,6 +614,11 @@ export default function CadastroIndividual({
                         <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Nome</label>
                         <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.nome} onChange={(e) => updateParte(par.id, 'nome', e.target.value)} />
                         <InputError message={getErrorByPath(`partes.${idx}.nome`) || getErrorByPath(`partes_json.${idx}.nome`)} className="mt-1" />
+                      </div>
+
+                      <div className="w-48">
+                        <label className="text-xs" style={{ color: 'var(--text-muted)' }}>CPF</label>
+                        <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" />
                       </div>
 
                       <div className="w-56">

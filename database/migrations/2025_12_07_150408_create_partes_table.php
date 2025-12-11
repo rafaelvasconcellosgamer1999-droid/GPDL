@@ -17,9 +17,10 @@ return new class extends Migration
           
             $table->foreignId('processo_id')
                   ->constrained('processos2') 
-                  ->onDelete('cascade');
+                  ->onDelete('set null');
 
             $table->string('nome');
+            $table->string('cpf_cnpj')->unique();
             $table->string('qualificacao'); 
             $table->string('tipo_qualificacao'); 
             $table->boolean('parte_principal')->default(false);

@@ -10,6 +10,7 @@ class Partes extends Model
     protected  $fillable = [
         'processo_id',
         'nome',
+        'cpf_cnpj',
         'qualificacao',
         'tipo_qualificacao',
         'parte_principal',
