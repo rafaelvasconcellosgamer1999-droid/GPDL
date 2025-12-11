@@ -89,10 +89,9 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
   // setores (opcional) — caso o backend envie uma lista de setores use-a; caso contrário fallback hardcoded
   const setoresFromBackend = page.props?.setores;
   const DEFAULT_SETORS = [
-    { id: 'contencioso', nome: 'Contencioso' },
-    { id: 'previdencia', nome: 'Previdência' },
-    { id: 'administrativo', nome: 'Administrativo' },
-    { id: 'tributario', nome: 'Tributário' },
+    { id: 'civel', nome: 'Cível' },
+    { id: 'trabalhista', nome: 'Trabalhista' },
+
   ];
   const setores = setoresFromBackend && setoresFromBackend.length > 0 ? setoresFromBackend : DEFAULT_SETORS;
 
@@ -284,21 +283,16 @@ export default function ProcessosIndex({ procuradores = [] as Procurador[] }: { 
       )}
 
       {/* Cadastro view separated */}
-      {currentView === 'cadastro' && (() => {
-        const setorNome =
-          setores.find((s) => String(s.id) === String(setorSelecionado))?.nome ?? '';
-
-        return (
-          <CadastroView
-            setorSelecionado={setorNome}
-            procuradores={page.props?.procuradores ?? procuradores}
-            tribunais={page.props?.tribunais ?? []}
-            acoes={page.props?.acoes ?? []}
-            orgaos={page.props?.orgaos ?? []}
-            orgaosJulgadores={page.props?.orgaosJulgadores ?? []}
-          />
-        );
-      })()}
+      {currentView === 'cadastro' && (
+        <CadastroView
+          setorSelecionado={setorSelecionado}
+          procuradores={page.props?.procuradores ?? procuradores}
+          tribunais={page.props?.tribunais ?? []}
+          acoes={page.props?.acoes ?? []}
+          orgaos={page.props?.orgaos ?? []}
+          orgaosJulgadores={page.props?.orgaosJulgadores ?? []}
+        />
+      )}
 
       {/* route to the chosen view component */}
       {currentView === 'ativos' && (

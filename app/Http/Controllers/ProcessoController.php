@@ -170,7 +170,7 @@ class ProcessoController extends Controller
     'procuradores' => $procuradores,
     'processos' => $lista,
     'filters' => [],
-    'setores' => $setores,
+    // 'setores' => $setores,
     'setorSelecionado' => $setorSelecionado,
     // ...
 ]);
