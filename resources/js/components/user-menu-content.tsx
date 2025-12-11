@@ -21,9 +21,24 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
   const cleanup = useMobileNavigation();
   const [loading, setLoading] = useState(false);
 
+  const doLocalCleanup = () => {
+    try {
+      localStorage.removeItem('setorSelecionado');
+      localStorage.setItem('app_logout', String(Date.now()));
+
+    } catch (err) {
+      console.error('Erro no doLocalCleanup:', err);
+    }
+  };
+
   const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
+
     cleanup();
+
+    doLocalCleanup();
+
     setLoading(true);
 
     router.post(
@@ -32,10 +47,15 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
       {
         preserveScroll: false,
         preserveState: false,
-        replace: true, // 🔥 evita criar histórico extra (previne flash 404)
+        replace: true,
         onFinish: () => {
           setLoading(false);
-          window.location.href = '/login';
+          router.visit('/login', { replace: true, preserveState: false });
+        },
+        onError: () => {
+          setLoading(false);
+          doLocalCleanup();
+          router.visit('/login', { replace: true, preserveState: false });
         },
       }
     );
