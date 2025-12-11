@@ -21,24 +21,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
   const cleanup = useMobileNavigation();
   const [loading, setLoading] = useState(false);
 
-  const doLocalCleanup = () => {
-    try {
-      localStorage.removeItem('setorSelecionado');
-      localStorage.setItem('app_logout', String(Date.now()));
-
-    } catch (err) {
-      console.error('Erro no doLocalCleanup:', err);
-    }
-  };
-
   const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-
-
     cleanup();
-
-    doLocalCleanup();
-
     setLoading(true);
 
     router.post(
@@ -50,11 +35,13 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         replace: true,
         onFinish: () => {
           setLoading(false);
+          // navegação Inertia — mantém comportamento esperado
           router.visit('/login', { replace: true, preserveState: false });
         },
         onError: () => {
           setLoading(false);
-          doLocalCleanup();
+          // garantir limpeza e navegação mesmo em erro
+          cleanup();
           router.visit('/login', { replace: true, preserveState: false });
         },
       }
