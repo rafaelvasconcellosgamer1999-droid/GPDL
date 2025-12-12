@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Processo;
 use App\Models\Processos;
+use App\Http\Resources\ProcessoResource;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\Partes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -288,21 +291,18 @@ class ProcessoController extends Controller
     }
 
     public function visualizar(Request $request)
-    {
-        // Se quiser passar processos iniciais (opcional):
-        // $initial = \App\Models\Processos::with(['assunto','acao','tribunal','procuradorResponsavel'])
-        //     ->withCount(['incidencias','andamentos'])
-        //     ->orderBy('prazo')
-        //     ->limit(10)
-        //     ->get();
-        //
-        // return Inertia::render('Processos/Visualizar', [
-        //     'initialProcesses' => $initial,
-        // ]);
+{
+    $initial = \App\Models\Processos::with(['tribunal','acao','assunto','procuradorResponsavel'])
+        /*->withCount(['andamentos','incidencias']) // só se relações existem*/
+        /*->orderBy('data_limite')*/
+        ->limit(20)
+        ->get();
 
-        // Simples: apenas renderiza a página — o componente buscará /api/processos
-        return Inertia::render('Processos/Visualizar');
-    }
+    return Inertia::render('Processos/Visualizar', [
+        'initialProcesses' => $initial,
+        'fetchUrl' => url('/api/processos'), // opcional
+    ]);
+}
 
 
     private function separarBlocos(string $texto): array
@@ -712,4 +712,92 @@ class ProcessoController extends Controller
             'data' => $assuntos->map(fn($a) => ['id' => $a->id, 'nome' => $a->nome])
         ]);
     }
+
+    /**
+ * API: lista paginada de processos (JSON)
+ * Suporta: ?page=, ?per_page=, ?q= (busca por CNJ/acao/assunto), ?responsavel_id=
+ */
+public function apiIndex(Request $request)
+{
+    // cria instância para checar métodos de relação
+    $modelInstance = new Processos();
+
+    $q = Processos::query()
+        ->with(['tribunal:id,nome', 'acao:id,nome', 'assunto:id,nome', 'procuradorResponsavel:id,nome']);
+
+    // se o model define relações andamentos/incidencias, adicionar withCount
+    if (method_exists($modelInstance, 'andamentos')) {
+        $q->withCount('andamentos');
+    }
+    if (method_exists($modelInstance, 'incidencias')) {
+        $q->withCount('incidencias');
+    }
+
+    // filtros simples
+    $search = trim((string) $request->query('q', ''));
+    if ($search !== '') {
+        $q->where(function (Builder $qq) use ($search) {
+            $qq->where('cnj', 'like', "%{$search}%")
+               ->orWhere('municipio', 'like', "%{$search}%")
+               ->orWhereHas('acao', fn($r) => $r->where('nome', 'like', "%{$search}%"))
+               ->orWhereHas('assunto', fn($r) => $r->where('nome', 'like', "%{$search}%"));
+        });
+    }
+
+    $responsavelId = (int) $request->query('responsavel_id', 0);
+    if ($responsavelId > 0) {
+        $q->where('procurador_responsavel_id', $responsavelId);
+    }
+
+    // ordenação: por data_limite se existir, senão por id desc
+    if (Schema::hasColumn($modelInstance->getTable(), 'data_limite')) {
+        $q->orderByRaw('CASE WHEN data_limite IS NULL THEN 1 ELSE 0 END ASC')
+          ->orderBy('data_limite', 'asc');
+    } else {
+        $q->orderByDesc('id');
+    }
+
+    $perPage = max(5, min(100, (int) $request->query('per_page', 12)));
+    $paginator = $q->paginate($perPage)->appends($request->query());
+
+    return ProcessoResource::collection($paginator)
+        ->additional(['meta' => [
+            'total' => $paginator->total(),
+            'per_page' => $paginator->perPage(),
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+        ]]);
 }
+
+/**
+ * API: detalhe de processo por id (inclui andamentos/incidencias se relações estiverem definidas)
+ */
+public function apiShow(Request $request, $id)
+{
+    $modelInstance = new Processos();
+
+    $with = [
+        'tribunal:id,nome',
+        'acao:id,nome',
+        'assunto:id,nome',
+        'procuradorResponsavel:id,nome',
+    ];
+
+    if (method_exists($modelInstance, 'andamentos')) {
+        $with[] = 'andamentos';
+    }
+    if (method_exists($modelInstance, 'incidencias')) {
+        $with[] = 'incidencias';
+    }
+
+    $processo = Processos::with($with)->find($id);
+
+    if (!$processo) {
+        return response()->json(['message' => 'Processo não encontrado.'], 404);
+    }
+
+    return new ProcessoResource($processo);
+}
+}
+
+

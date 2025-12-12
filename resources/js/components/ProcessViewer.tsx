@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 // ProcessViewer.tsx
 // Versão adaptada ao design system GPDL (usa variáveis CSS e classes utilitárias fornecidas)
-// - Não faz chamadas à API; recebe os processos via prop `processes`.
-// - Usa classes como `gpdl-card`, `gpdl-input-contrast`, `btn-gradient`, `deadline-tag` etc.
+// - Faz fetch de dados se `fetchUrl` for fornecido; caso contrário usa `processes` (prop) ou mock.
+// - Carrega detalhe on-demand em /api/processos/{id} ao abrir o drawer.
 
 export type Andamento = { id: number | string; titulo?: string; data?: string; descricao?: string };
 export type Incidencia = { id: number | string; tipo?: string; data?: string; descricao?: string };
@@ -213,39 +213,81 @@ export default function ProcessViewer({ fetchUrl, processes }: { fetchUrl?: stri
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // if server-side provided processes prop changes, update list
   useEffect(() => {
     if (processes) setList(processes);
   }, [processes]);
 
+  // fetch remote list when fetchUrl provided
   useEffect(() => {
     if (!fetchUrl) return;
-    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
 
-    fetch(fetchUrl, { credentials: 'same-origin' })
-      .then(async res => {
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const data = await res.json();
-        if (!cancelled) {
-          setList(Array.isArray(data) ? data : data.data ?? []);
-        }
-      })
-      .catch(err => {
-        if (!cancelled) setError(String(err));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    (async () => {
+      try {
+        const res = await fetch(fetchUrl, {
+          credentials: 'same-origin', // send cookies for auth/session
+          signal: controller.signal,
+          headers: { Accept: 'application/json' },
+        });
 
-    return () => {
-      cancelled = true;
-    };
+        const ct = res.headers.get('content-type') || '';
+
+        if (!res.ok) {
+          const body = ct.includes('application/json') ? await res.json().catch(() => null) : await res.text().catch(() => '');
+          throw new Error(`HTTP ${res.status} — ${res.statusText} — ${typeof body === 'string' ? body.slice(0, 300) : JSON.stringify(body).slice(0,300)}`);
+        }
+
+        if (!ct.includes('application/json')) {
+          const text = await res.text().catch(() => '');
+          throw new Error(`Resposta inesperada (não JSON). Possível redirect para login. Conteúdo inicial: ${text.slice(0,300)}`);
+        }
+
+        const json = await res.json();
+        const items: Processo[] = Array.isArray(json) ? json : (json.data ?? json);
+        setList(items);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setError(String(err.message ?? err));
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
   }, [fetchUrl]);
 
-  function openDrawer(p: Processo) {
+  // open drawer and try to fetch detailed object for the selected process
+  async function openDrawer(p: Processo) {
     setSelected(p);
     setDrawerOpen(true);
+
+    // if there's no fetchUrl we assume parent provided full objects
+    if (!fetchUrl) return;
+
+    try {
+      const res = await fetch(`/api/processos/${p.id}`, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+
+      if (!res.ok) {
+        // quietly ignore detail fetch failures (you can set error if desired)
+        console.warn('Detalhe não carregado', res.status, res.statusText);
+        return;
+      }
+
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) return;
+
+      const json = await res.json().catch(() => null);
+      const detail = json ? (json.data ?? json) : null;
+      if (detail) setSelected(detail);
+    } catch (e) {
+      console.warn('Erro ao carregar detalhe:', e);
+    }
   }
 
   function closeDrawer() {

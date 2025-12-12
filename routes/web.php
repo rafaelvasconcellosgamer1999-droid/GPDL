@@ -53,6 +53,11 @@ Route::middleware(['permission:view_process_page'])->group(function () {
 
     // Nova página de visualização (adicionar aqui)
     Route::get('/processos/visualizar', [ProcessoController::class, 'visualizar'])->name('processos.visualizar');
+    Route::get('/api/processos', [ProcessoController::class, 'apiIndex']);
+    Route::get('/api/processos/{id}', [ProcessoController::class, 'apiShow']);
+    Route::get('/debug/processos-test', function () {
+    return \App\Models\Processos::query()->limit(5)->get();
+});
 
     // Cadastro individual
     Route::get('/processos/cadastro', [ProcessoController::class, 'create'])->name('processos.create');
