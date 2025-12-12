@@ -43,21 +43,26 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         ->name('dashboard.base');
 
     // ======================
-    // PROCESSOS
-    // ======================
-    Route::middleware(['permission:view_process_page'])->group(function () {
-        Route::post('/processos/set-setor', [ProcessoController::class, 'setSetor'])->name('processos.set-setor');
-        // Página principal
-        Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
+// PROCESSOS
+// ======================
+Route::middleware(['permission:view_process_page'])->group(function () {
+    Route::post('/processos/set-setor', [ProcessoController::class, 'setSetor'])->name('processos.set-setor');
 
-        // Cadastro individual
-        Route::get('/processos/cadastro', [ProcessoController::class, 'create'])->name('processos.create');
-        Route::post('/processos', [ProcessoController::class, 'store'])->name('processos.store');
+    // Página principal
+    Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
 
-        // Cadastro em lote
-        Route::get('/processos/import', [ProcessoController::class, 'createLote'])->name('processos.create-lote');
-        Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importar-lote');
-    });
+    // Nova página de visualização (adicionar aqui)
+    Route::get('/processos/visualizar', [ProcessoController::class, 'visualizar'])->name('processos.visualizar');
+
+    // Cadastro individual
+    Route::get('/processos/cadastro', [ProcessoController::class, 'create'])->name('processos.create');
+    Route::post('/processos', [ProcessoController::class, 'store'])->name('processos.store');
+
+    // Cadastro em lote
+    Route::get('/processos/import', [ProcessoController::class, 'createLote'])->name('processos.create-lote');
+    Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importar-lote');
+});
+
 
     // ======================
     // AGENDA

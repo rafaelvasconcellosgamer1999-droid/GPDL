@@ -287,6 +287,23 @@ class ProcessoController extends Controller
         return back()->with('success', 'Processo finalizado com sucesso.');
     }
 
+    public function visualizar(Request $request)
+    {
+        // Se quiser passar processos iniciais (opcional):
+        // $initial = \App\Models\Processos::with(['assunto','acao','tribunal','procuradorResponsavel'])
+        //     ->withCount(['incidencias','andamentos'])
+        //     ->orderBy('prazo')
+        //     ->limit(10)
+        //     ->get();
+        //
+        // return Inertia::render('Processos/Visualizar', [
+        //     'initialProcesses' => $initial,
+        // ]);
+
+        // Simples: apenas renderiza a página — o componente buscará /api/processos
+        return Inertia::render('Processos/Visualizar');
+    }
+
 
     private function separarBlocos(string $texto): array
     {
