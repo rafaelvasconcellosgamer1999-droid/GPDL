@@ -626,13 +626,12 @@ export default function CadastroIndividual({
 
                       <div className="w-28">
                         <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Parte principal?</label>
-                        <select className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={par.eh_principal} onChange={(e) => {
-                          if (e.target.value === '1') {
-                            setPartes((p) => p.map((it) => (it.id === par.id ? { ...it, eh_principal: '1' } : { ...it, eh_principal: '0' })));
-                          } else {
-                            updateParte(par.id, 'eh_principal', '0');
-                          }
-                        }}>
+                        <select
+                          className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md"
+                          value={par.eh_principal}
+                          onChange={(e) => {
+                            updateParte(par.id, 'eh_principal', e.target.value);
+                          }}>
                           <option value="0">Não</option>
                           <option value="1">Sim</option>
                         </select>
