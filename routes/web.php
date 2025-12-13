@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\RegraController;
 use App\Http\Controllers\Settings\PasswordController as SettingsPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProcessoController;
+use App\Http\Controllers\ProcessoIndividualController;
+use App\Http\Controllers\ProcessoLoteController;
 use App\Http\Controllers\RelatoriosController;
 
 
@@ -48,12 +50,12 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
 
         // Cadastro individual
-        Route::get('/processos/cadastro', [ProcessoController::class, 'create'])->name('processos.create');
-        Route::post('/processos', [ProcessoController::class, 'store'])->name('processos.store');
+        Route::get('/processos/cadastro', [ProcessoIndividualController::class, 'create'])->name('processos.create');
+        Route::post('/processos', [ProcessoIndividualController::class, 'store'])->name('processos.store');
 
         // Cadastro em lote
-        Route::get('/processos/import', [ProcessoController::class, 'createLote'])->name('processos.create-lote');
-        Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importar-lote');
+        Route::get('/processos/import', [ProcessoLoteController::class, 'create'])->name('processos.create-lote');
+        Route::post('/processos/importar-lote', [ProcessoLoteController::class, 'store'])->name('processos.importar-lote');
     });
 
     // ======================
