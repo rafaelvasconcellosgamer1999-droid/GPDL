@@ -7,17 +7,21 @@ use App\Http\Controllers\Admin\SetorController;
 use App\Http\Controllers\Admin\CargoController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\SolicitacaoController;
-use App\Http\Controllers\SolicitarController;
 use App\Http\Controllers\Admin\PermissaoController;
 use App\Http\Controllers\Admin\RegraController;
 use App\Http\Controllers\Admin\EntidadeJuridicaController;
 use App\Http\Controllers\Admin\TematicaController;
-
-
 use App\Http\Controllers\Settings\PasswordController as SettingsPasswordController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProcessoController;
 use App\Http\Controllers\RelatoriosController;
+use App\Http\Controllers\AndamentoController;
+use App\Http\Controllers\SolicitarController;
+
+use App\Models\Processos;
+
+
+
 
 
 
@@ -51,12 +55,15 @@ Route::middleware(['permission:view_process_page'])->group(function () {
     // Página principal
     Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
 
+    Route::get('/processos/buscar', [ProcessoController::class, 'buscar'])
+    ->name('processos.buscar');
+
     // Nova página de visualização (adicionar aqui)
     Route::get('/processos/visualizar', [ProcessoController::class, 'visualizar'])->name('processos.visualizar');
     Route::get('/api/processos', [ProcessoController::class, 'apiIndex']);
     Route::get('/api/processos/{id}', [ProcessoController::class, 'apiShow']);
     Route::get('/debug/processos-test', function () {
-    return \App\Models\Processos::query()->limit(5)->get();
+    return Processos::query()->limit(5)->get();
 });
 
     // Cadastro individual
@@ -66,6 +73,40 @@ Route::middleware(['permission:view_process_page'])->group(function () {
     // Cadastro em lote
     Route::get('/processos/import', [ProcessoController::class, 'createLote'])->name('processos.create-lote');
     Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importar-lote');
+});
+
+// ======================
+// ANDAMENTOS
+// ======================
+Route::middleware(['permission:view_process_page'])->group(function () {
+
+    // Listagem geral de andamentos
+    Route::get('/andamentos', [AndamentoController::class, 'index'])
+        ->name('andamentos.index');
+
+    // Cadastro de andamento (genérico ou contextual por processo)
+    Route::get('/andamentos/cadastro', [AndamentoController::class, 'create'])
+        ->name('andamentos.cadastro');
+
+    // Persistência
+    Route::post('/andamentos', [AndamentoController::class, 'store'])
+        ->name('andamentos.store');
+
+    // Visualização
+    Route::get('/andamentos/{andamento}', [AndamentoController::class, 'show'])
+        ->name('andamentos.show');
+
+    // Edição
+    Route::get('/andamentos/{andamento}/edit', [AndamentoController::class, 'edit'])
+        ->name('andamentos.edit');
+
+    // Atualização
+    Route::put('/andamentos/{andamento}', [AndamentoController::class, 'update'])
+        ->name('andamentos.update');
+
+    // Exclusão (se permitido)
+    Route::delete('/andamentos/{andamento}', [AndamentoController::class, 'destroy'])
+        ->name('andamentos.destroy');
 });
 
 

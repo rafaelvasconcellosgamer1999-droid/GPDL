@@ -31,8 +31,8 @@ export default function CadastroView(props: CadastroViewProps) {
             <Link
               href="/processos/cadastro"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5
-                         bg-indigo-600 hover:bg-indigo-700 text-white font-medium
-                         shadow-sm hover:shadow-md transition-all"
+               bg-indigo-600 hover:bg-indigo-700 text-white font-medium
+               shadow-sm hover:shadow-md transition-all"
             >
               <Plus className="h-4 w-4" />
               Cadastro individual
@@ -41,12 +41,22 @@ export default function CadastroView(props: CadastroViewProps) {
             <Link
               href="/processos/import"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5
-                         bg-(--surface-card) hover:bg-(--surface-muted)
-                         text-(--text-strong) border border-(--gpdl-border)
-                         shadow-sm hover:shadow-md transition-all"
+               bg-(--surface-card) hover:bg-(--surface-muted)
+               text-(--text-strong) border border-(--gpdl-border)
+               shadow-sm hover:shadow-md transition-all"
             >
               <Layers className="h-4 w-4" />
               Cadastro em lote
+            </Link>
+
+            <Link
+              href="/andamentos/cadastro"
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5
+               bg-emerald-600 hover:bg-emerald-700 text-white font-medium
+               shadow-sm hover:shadow-md transition-all"
+            >
+              <Plus className="h-4 w-4" />
+              Cadastro de andamento
             </Link>
           </div>
         </div>
@@ -64,6 +74,14 @@ export default function CadastroView(props: CadastroViewProps) {
             <h3 className="font-semibold text-(--text-strong)">Cadastro em lote</h3>
             <p className="mt-1 text-sm text-(--text-muted)">
               Cole publicações em lote (PJE) e o sistema tentará extrair campos automaticamente.
+            </p>
+          </div>
+          
+          <div className="gpdl-card p-4">
+            <h3 className="font-semibold text-(--text-strong)">Cadastro de andamento</h3>
+            <p className="mt-1 text-sm text-(--text-muted)">
+              Registre movimentações, prazos, responsáveis e status
+              vinculados a um processo já cadastrado.
             </p>
           </div>
 

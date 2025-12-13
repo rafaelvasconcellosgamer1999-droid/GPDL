@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, X, Loader2 } from 'lucide-react';
 
+
 // Interface base: O objeto TEM que ter id e nome, mas pode ter mais coisas (definido pelo Generics)
 export interface OptionItem {
   id: string | number;
@@ -13,19 +14,19 @@ interface AutocompleteSearchProps<T extends OptionItem> {
   label?: string;
   placeholder?: string;
   value?: string | number | null;
-  
+
   // O item selecionado deve respeitar o tipo T
   selectedItem?: T | null;
-  
+
   options?: T[];
   error?: string;
   isLoading?: boolean;
   isDisabled?: boolean;
-  
+
   onChange: (value: string | number | null) => void;
   // O callback retorna o objeto completo tipado corretamente como T
   onSelectOption?: (option: T | null) => void;
-  
+
   onSearch: (query: string) => Promise<T[]>;
 }
 
@@ -43,10 +44,10 @@ export default function AutocompleteSearch<T extends OptionItem>({
   onSelectOption,
   onSearch,
 }: AutocompleteSearchProps<T>) {
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  
+
   // O estado interno agora sabe que é uma lista de T
   const [filteredOptions, setFilteredOptions] = useState<T[]>(options);
   const [isFetching, setIsFetching] = useState(false);
@@ -74,8 +75,10 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
   // Lógica de Busca (Debounce + Race Condition)
   useEffect(() => {
-    if (inputValue.trim().length === 0) {
-      setFilteredOptions(options);
+    const q = inputValue.trim();
+
+    if (q.length < 3) {
+      setFilteredOptions([]);
       setIsFetching(false);
       return;
     }
@@ -229,8 +232,8 @@ export default function AutocompleteSearch<T extends OptionItem>({
             border: error
               ? '1px solid #ef4444'
               : isOpen
-              ? '1px solid var(--brand-600)'
-              : '1px solid transparent',
+                ? '1px solid var(--brand-600)'
+                : '1px solid transparent',
           }}
         >
           <input
@@ -240,12 +243,12 @@ export default function AutocompleteSearch<T extends OptionItem>({
             aria-expanded={isOpen}
             aria-controls={listboxId}
             disabled={isDisabled}
-            
+
             value={inputValue}
             onChange={handleInputChange}
             onClick={() => !isOpen && handleToggleOpen()}
             onKeyDown={handleKeyDown}
-            
+
             placeholder={placeholder}
             className="flex-1 outline-none text-sm bg-transparent truncate"
             style={{ color: 'var(--text-strong)' }}
@@ -320,7 +323,9 @@ export default function AutocompleteSearch<T extends OptionItem>({
               </ul>
             ) : (
               <div className="px-3 py-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                {inputValue.length < 1 && !isFetching ? 'Digite para buscar...' : 'Nenhuma opção encontrada'}
+                {inputValue.trim().length < 3 && !isFetching
+                  ? 'Digite ao menos 3 caracteres'
+                  : 'Nenhuma opção encontrada'}
               </div>
             )}
           </div>

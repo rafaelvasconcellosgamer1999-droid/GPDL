@@ -165,32 +165,31 @@ class ProcessoController extends Controller
 
         $procuradores = User::ativos()->orderBy('nome')->get(['id', 'nome']);
         // --- montar lista de setores (se existir tabela 'setores') ou fallback ---
-        $setores = \App\Models\Setor::ativos()->orderBy('nome')->get(['id','nome'])->map(function($s) {
-        return ['id' => (string)$s->id, 'nome' => $s->nome];
+        $setores = \App\Models\Setor::ativos()->orderBy('nome')->get(['id', 'nome'])->map(function ($s) {
+            return ['id' => (string)$s->id, 'nome' => $s->nome];
         });
 
         // setor selecionado salvo na sessão (padrão null)
         $setorSelecionado = session('setorSelecionado', null);
 
         return Inertia::render('Processos/Index', [
-    'procuradores' => $procuradores,
-    'processos' => $lista,
-    'filters' => [],
-    // 'setores' => $setores,
-    'setorSelecionado' => $setorSelecionado,
-    // ...
-]);
-
+            'procuradores' => $procuradores,
+            'processos' => $lista,
+            'filters' => [],
+            // 'setores' => $setores,
+            'setorSelecionado' => $setorSelecionado,
+            // ...
+        ]);
     }
 
 
     // app/Http/Controllers/ProcessoController.php
 
     public function setSetor(Request $request)
-{
-    $data = $request->validate(['setor' => 'nullable|string']);
-    session(['setorSelecionado' => $data['setor'] ?? null]);
-}
+    {
+        $data = $request->validate(['setor' => 'nullable|string']);
+        session(['setorSelecionado' => $data['setor'] ?? null]);
+    }
 
 
     /**
@@ -293,18 +292,18 @@ class ProcessoController extends Controller
     }
 
     public function visualizar(Request $request)
-{
-    $initial = Processos::with(['tribunal','acao','assunto','procuradorResponsavel'])
-        /*->withCount(['andamentos','incidencias']) // só se relações existem*/
-        /*->orderBy('data_limite')*/
-        ->limit(20)
-        ->get();
+    {
+        $initial = Processos::with(['tribunal', 'acao', 'assunto', 'procuradorResponsavel'])
+            /*->withCount(['andamentos','incidencias']) // só se relações existem*/
+            /*->orderBy('data_limite')*/
+            ->limit(20)
+            ->get();
 
-    return Inertia::render('Processos/Visualizar', [
-        'initialProcesses' => $initial,
-        'fetchUrl' => url('/api/processos'), // opcional
-    ]);
-}
+        return Inertia::render('Processos/Visualizar', [
+            'initialProcesses' => $initial,
+            'fetchUrl' => url('/api/processos'), // opcional
+        ]);
+    }
 
 
     private function separarBlocos(string $texto): array
@@ -548,32 +547,32 @@ class ProcessoController extends Controller
             }
         }
 
-    // Criar o processo principal
-    $processo = Processos::create([
-        'area_atuacao' => Session::get('setorSelecionado', null),
-        'municipio' => 'Belém',
-        'instancia' => $data['instancia'] ?? null,
-        'tribunal_id' => $data['tribunal'] ?? null,
-        'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
-        'cnj' => $data['numero_processo'] ?? null,
-        'tipo_processo' => $data['tipo_processo'] ?? null,
-        'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
-        'acao_id' => $data['acao'] ?? null,
-        'assunto_id' => $data['assunto'] ?? null,
-        'orgao_origem_id' => $data['orgao_origem'] ?? null,
-        'orgao_julgador_id' => $data['orgao_julgador'] ?? null,
-        //'juizo_vara' => $data['juizo_vara'] ?? null,
-        //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
-        'numero_agravo' => $data['numero_agravo'] ?? null,
-        'numero_suspensao' => $data['numero_suspensao'] ?? null,
-        'numero_protocolo' => $data['numero_protocolo'] ?? null,
-        //'data_limite' => $data['data_limite'] ?? null,
-        'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
-        'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
-        'procurador_responsavel_id' => $data['procurador_responsavel_id'],
-        'processo_ref_id' => null,
-        'usuario_cadastro_id' => optional($usuario)->id,
-    ]);
+        // Criar o processo principal
+        $processo = Processos::create([
+            'area_atuacao' => Session::get('setorSelecionado', null),
+            'municipio' => 'Belém',
+            'instancia' => $data['instancia'] ?? null,
+            'tribunal_id' => $data['tribunal'] ?? null,
+            'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
+            'cnj' => $data['numero_processo'] ?? null,
+            'tipo_processo' => $data['tipo_processo'] ?? null,
+            'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
+            'acao_id' => $data['acao'] ?? null,
+            'assunto_id' => $data['assunto'] ?? null,
+            'orgao_origem_id' => $data['orgao_origem'] ?? null,
+            'orgao_julgador_id' => $data['orgao_julgador'] ?? null,
+            //'juizo_vara' => $data['juizo_vara'] ?? null,
+            //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
+            'numero_agravo' => $data['numero_agravo'] ?? null,
+            'numero_suspensao' => $data['numero_suspensao'] ?? null,
+            'numero_protocolo' => $data['numero_protocolo'] ?? null,
+            //'data_limite' => $data['data_limite'] ?? null,
+            'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
+            'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
+            'procurador_responsavel_id' => $data['procurador_responsavel_id'],
+            'processo_ref_id' => null,
+            'usuario_cadastro_id' => optional($usuario)->id,
+        ]);
 
         // Se há incidência (referência a outro processo), criar relacionamento
         if ($data['incidencia'] === '1' && !empty($data['referencia_numero_processo'])) {
@@ -583,23 +582,23 @@ class ProcessoController extends Controller
             }
         }
 
-    // Cadastrar as partes
-    if (!empty($partes)) {
-        foreach ($partes as $parte) {
-            Partes::create([
-                'processo_id' => $processo->id,
-                'nome' => $parte['nome'] ?? null,
-                'cpf_cnpj' => $parte['cpf'] ?? null,
-                'qualificacao' => $parte['qualificacao'] ?? null,
-                'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
-                'parte_principal' => (int)($parte['eh_principal'] ?? 0),
-            ]);
+        // Cadastrar as partes
+        if (!empty($partes)) {
+            foreach ($partes as $parte) {
+                Partes::create([
+                    'processo_id' => $processo->id,
+                    'nome' => $parte['nome'] ?? null,
+                    'cpf_cnpj' => $parte['cpf'] ?? null,
+                    'qualificacao' => $parte['qualificacao'] ?? null,
+                    'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
+                    'parte_principal' => (int)($parte['eh_principal'] ?? 0),
+                ]);
+            }
         }
-    }
 
-    return redirect()->to('/processos/cadastro')
-        ->with('success', 'Processo cadastrado com sucesso.');
-}
+        return redirect()->to('/processos/cadastro')
+            ->with('success', 'Processo cadastrado com sucesso.');
+    }
 
     /**
      * Buscar tribunais (EntidadesJuridicas) por termo de busca.
@@ -634,7 +633,7 @@ class ProcessoController extends Controller
 
         $query = EntidadesJuridicas::query()
             ->where('tipo', 'orgao_origem');
-        
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('nome', 'like', '%' . $search . '%')
@@ -716,90 +715,109 @@ class ProcessoController extends Controller
     }
 
     /**
- * API: lista paginada de processos (JSON)
- * Suporta: ?page=, ?per_page=, ?q= (busca por CNJ/acao/assunto), ?responsavel_id=
- */
-public function apiIndex(Request $request)
+     * API: lista paginada de processos (JSON)
+     * Suporta: ?page=, ?per_page=, ?q= (busca por CNJ/acao/assunto), ?responsavel_id=
+     */
+    public function apiIndex(Request $request)
+    {
+        // cria instância para checar métodos de relação
+        $modelInstance = new Processos();
+
+        $q = Processos::query()
+            ->with(['tribunal:id,nome', 'acao:id,nome', 'assunto:id,nome', 'procuradorResponsavel:id,nome']);
+
+        // se o model define relações andamentos/incidencias, adicionar withCount
+        if (method_exists($modelInstance, 'andamentos')) {
+            $q->withCount('andamentos');
+        }
+        if (method_exists($modelInstance, 'incidencias')) {
+            $q->withCount('incidencias');
+        }
+
+        // filtros simples
+        $search = trim((string) $request->query('q', ''));
+        if ($search !== '') {
+            $q->where(function (Builder $qq) use ($search) {
+                $qq->where('cnj', 'like', "%{$search}%")
+                    ->orWhere('municipio', 'like', "%{$search}%")
+                    ->orWhereHas('acao', fn($r) => $r->where('nome', 'like', "%{$search}%"))
+                    ->orWhereHas('assunto', fn($r) => $r->where('nome', 'like', "%{$search}%"));
+            });
+        }
+
+        $responsavelId = (int) $request->query('responsavel_id', 0);
+        if ($responsavelId > 0) {
+            $q->where('procurador_responsavel_id', $responsavelId);
+        }
+
+        // ordenação: por data_limite se existir, senão por id desc
+        if (Schema::hasColumn($modelInstance->getTable(), 'data_limite')) {
+            $q->orderByRaw('CASE WHEN data_limite IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderBy('data_limite', 'asc');
+        } else {
+            $q->orderByDesc('id');
+        }
+
+        $perPage = max(5, min(100, (int) $request->query('per_page', 12)));
+        $paginator = $q->paginate($perPage)->appends($request->query());
+
+        return ProcessoResource::collection($paginator)
+            ->additional(['meta' => [
+                'total' => $paginator->total(),
+                'per_page' => $paginator->perPage(),
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+            ]]);
+    }
+
+    /**
+     * API: detalhe de processo por id (inclui andamentos/incidencias se relações estiverem definidas)
+     */
+    public function apiShow(Request $request, $id)
+    {
+        $modelInstance = new Processos();
+
+        $with = [
+            'tribunal:id,nome',
+            'acao:id,nome',
+            'assunto:id,nome',
+            'procuradorResponsavel:id,nome',
+        ];
+
+        if (method_exists($modelInstance, 'andamentos')) {
+            $with[] = 'andamentos';
+        }
+        if (method_exists($modelInstance, 'incidencias')) {
+            $with[] = 'incidencias';
+        }
+
+        $processo = Processos::with($with)->find($id);
+
+        if (!$processo) {
+            return response()->json(['message' => 'Processo não encontrado.'], 404);
+        }
+
+        return new ProcessoResource($processo);
+    }
+    public function buscar(Request $request)
 {
-    // cria instância para checar métodos de relação
-    $modelInstance = new Processos();
+    $q = trim($request->get('q', ''));
 
-    $q = Processos::query()
-        ->with(['tribunal:id,nome', 'acao:id,nome', 'assunto:id,nome', 'procuradorResponsavel:id,nome']);
-
-    // se o model define relações andamentos/incidencias, adicionar withCount
-    if (method_exists($modelInstance, 'andamentos')) {
-        $q->withCount('andamentos');
-    }
-    if (method_exists($modelInstance, 'incidencias')) {
-        $q->withCount('incidencias');
+    if (strlen($q) < 3) {
+        return [];
     }
 
-    // filtros simples
-    $search = trim((string) $request->query('q', ''));
-    if ($search !== '') {
-        $q->where(function (Builder $qq) use ($search) {
-            $qq->where('cnj', 'like', "%{$search}%")
-               ->orWhere('municipio', 'like', "%{$search}%")
-               ->orWhereHas('acao', fn($r) => $r->where('nome', 'like', "%{$search}%"))
-               ->orWhereHas('assunto', fn($r) => $r->where('nome', 'like', "%{$search}%"));
-        });
-    }
-
-    $responsavelId = (int) $request->query('responsavel_id', 0);
-    if ($responsavelId > 0) {
-        $q->where('procurador_responsavel_id', $responsavelId);
-    }
-
-    // ordenação: por data_limite se existir, senão por id desc
-    if (Schema::hasColumn($modelInstance->getTable(), 'data_limite')) {
-        $q->orderByRaw('CASE WHEN data_limite IS NULL THEN 1 ELSE 0 END ASC')
-          ->orderBy('data_limite', 'asc');
-    } else {
-        $q->orderByDesc('id');
-    }
-
-    $perPage = max(5, min(100, (int) $request->query('per_page', 12)));
-    $paginator = $q->paginate($perPage)->appends($request->query());
-
-    return ProcessoResource::collection($paginator)
-        ->additional(['meta' => [
-            'total' => $paginator->total(),
-            'per_page' => $paginator->perPage(),
-            'current_page' => $paginator->currentPage(),
-            'last_page' => $paginator->lastPage(),
-        ]]);
-}
-
-/**
- * API: detalhe de processo por id (inclui andamentos/incidencias se relações estiverem definidas)
- */
-public function apiShow(Request $request, $id)
-{
-    $modelInstance = new Processos();
-
-    $with = [
-        'tribunal:id,nome',
-        'acao:id,nome',
-        'assunto:id,nome',
-        'procuradorResponsavel:id,nome',
-    ];
-
-    if (method_exists($modelInstance, 'andamentos')) {
-        $with[] = 'andamentos';
-    }
-    if (method_exists($modelInstance, 'incidencias')) {
-        $with[] = 'incidencias';
-    }
-
-    $processo = Processos::with($with)->find($id);
-
-    if (!$processo) {
-        return response()->json(['message' => 'Processo não encontrado.'], 404);
-    }
-
-    return new ProcessoResource($processo);
+    return Processos::query()
+        ->with('procuradorResponsavel') // relação
+        ->where('cnj', 'like', "%{$q}%")
+        ->orderBy('cnj')
+        ->limit(10)
+        ->get()
+        ->map(fn ($p) => [
+            'id' => $p->id,
+            'nome' => $p->cnj,
+            'procurador_responsavel_id' => $p->procurador_responsavel_id,
+            'procurador_responsavel_nome' => $p->procuradorResponsavel?->nome,
+        ]);
 }
 }
-
-
