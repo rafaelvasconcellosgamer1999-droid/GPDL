@@ -57,9 +57,17 @@ class Processos extends Model
       public function entidadeJulgadora(){
         return $this->belongsTo(EntidadesJuridicas::class, 'orgao_julgador_id');
     }
-    public function partes(){
-        return $this->hasMany(Partes::class);
-    }
+ public function partes()
+{
+    return $this->belongsToMany(Partes::class, 'parte_processo', 'processo_id', 'parte_id')
+        ->using(Parte_Processo::class) 
+        ->withPivot([
+            'qualificacao', 
+            'tipo_qualificacao', 
+            'parte_principal'
+        ])
+        ->withTimestamps();
+}
     public function cadastradoPor() {
         return $this->belongsTo(User::class, 'usuario_cadastro_id');
     }

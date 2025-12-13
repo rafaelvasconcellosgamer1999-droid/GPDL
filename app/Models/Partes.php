@@ -11,13 +11,19 @@ class Partes extends Model
         'processo_id',
         'nome',
         'cpf_cnpj',
-        'qualificacao',
-        'tipo_qualificacao',
-        'parte_principal',
+        'tipo_parte', 
 
     ];
 
-    public function processoRef(){
-        return $this->belongsTo(Processos::class, 'processo_id');
-    }
+   public function processos()
+{
+    return $this->belongsToMany(Processos::class, 'parte_processo', 'parte_id', 'processo_id')
+        ->using(Parte_Processo::class) 
+        ->withPivot([
+            'qualificacao', 
+            'tipo_qualificacao', 
+            'parte_principal'
+        ])
+        ->withTimestamps();
+}
 }
