@@ -64,14 +64,14 @@ export type NavigationItem = {
 
 export const navigationItems: NavigationItem[] = [
   {
-  id: 'dashboard',
-  label: 'Início',
-  icon: Home,
-  href: dashboard(),
-  match: { segment: 'dashboard' },
-  permission: { key: 'view_dashboard_menu' },
-  section: 'main',
-},
+    id: 'dashboard',
+    label: 'Início',
+    icon: Home,
+    href: dashboard(),
+    match: { segment: 'dashboard' },
+    permission: { key: 'view_dashboard_menu' },
+    section: 'main',
+  },
   {
     id: 'processos',
     label: 'Processos',
@@ -88,6 +88,14 @@ export const navigationItems: NavigationItem[] = [
         href: '/processos?view=cadastro',
         match: { segment: 'processos', query: { key: 'view', value: 'cadastro' } },
         permission: { key: 'create_process', levels: ['all', 'total', 'sector', 'setor'] },
+      },
+      {
+        id: 'processos-visualizar',
+        label: 'Visualizar',
+        icon: FileText, 
+        href: '/processos/visualizar', 
+        match: { segment: 'visualizar' }, 
+        permission: { key: 'view_process_page' },
       },
       {
         id: 'processos-ativos',
