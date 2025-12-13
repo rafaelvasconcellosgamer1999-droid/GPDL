@@ -37,7 +37,6 @@ type FormShape = {
   numero_agravo: string;
   numero_suspensao: string;
   numero_protocolo: string;
-  data_limite: string;
 
   partes_json: string;
 
@@ -55,8 +54,6 @@ export default function CadastroIndividual({
   setores = [] as OptionItem[], // <-- ADICIONADO: lista de setores do backend / fallback
   tribunais = [] as OptionItem[], // passar do backend
   acoes = [] as OptionItem[], // passar do backend
-  orgaos = [] as OptionItem[], // passar do backend (origem)
-  orgaosJulgadores = [] as OptionItem[], // passar do backend (julgador)
 }: {
   procuradores?: Procurador[];
   setorSelecionado?: string;
@@ -111,7 +108,6 @@ export default function CadastroIndividual({
     numero_agravo: '',
     numero_suspensao: '',
     numero_protocolo: '',
-    data_limite: '',
     partes_json: '[]',
     tipo_distribuicao: '',
     motivo_distribuicao: '',
@@ -555,13 +551,6 @@ export default function CadastroIndividual({
                 <div>
                   <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Número do protocolo</label>
                   <input className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.numero_protocolo} onChange={(e) => setData('numero_protocolo', e.target.value)} />
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
-                <div>
-                  <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Prazo (data limite)</label>
-                  <input type="date" className="gpdl-input-contrast mt-1 w-full px-3 py-2 rounded-md" value={data.data_limite} onChange={(e) => setData('data_limite', e.target.value)} />
                 </div>
               </div>
 

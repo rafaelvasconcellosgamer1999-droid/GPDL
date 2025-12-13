@@ -58,8 +58,8 @@ const mockProcesses: Processo[] = Array.from({ length: 6 }).map((_, i) => ({
 function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="text-xs text-[var(--text-muted)] w-28">{label}</div>
-      <div className="text-sm font-medium truncate text-[var(--text-strong)]">{value ?? '—'}</div>
+      <div className="text-xs text-(--text-muted) w-28">{label}</div>
+      <div className="text-sm font-medium truncate text-(--text-strong)">{value ?? '—'}</div>
     </div>
   );
 }
@@ -81,19 +81,19 @@ function ProcessCard({ processo, onOpen }: { processo: Processo; onOpen: (p: Pro
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3">
-          <div className="text-sm font-semibold truncate text-[var(--text-strong)]">{processo.cnj ?? `#${processo.id}`}</div>
-          <div className="ml-2 text-xs text-[var(--text-muted)]">{processo.instancia}</div>
-          {processo.tipo_processo && <div className="ml-2 text-xs text-[var(--text-muted)] capitalize">{processo.tipo_processo}</div>}
+          <div className="text-sm font-semibold truncate text-(--text-strong)">{processo.cnj ?? `#${processo.id}`}</div>
+          <div className="ml-2 text-xs text-(--text-muted)">{processo.instancia}</div>
+          {processo.tipo_processo && <div className="ml-2 text-xs text-(--text-muted) capitalize">{processo.tipo_processo}</div>}
         </div>
 
         <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-          <div className="text-[var(--text-muted)]">
+          <div className="text-(--text-muted)">
             <div className="text-xs">Ação / Assunto</div>
-            <div className="truncate text-[var(--text-strong)]">{processo.acao?.nome ?? processo.assunto?.nome ?? '—'}</div>
+            <div className="truncate text-(--text-strong)">{processo.acao?.nome ?? processo.assunto?.nome ?? '—'}</div>
           </div>
-          <div className="text-[var(--text-muted)]">
+          <div className="text-(--text-muted)">
             <div className="text-xs">Prazo</div>
-            <div className="truncate text-[var(--text-strong)]">{processo.prazo ?? processo.data_limite ?? '—'}</div>
+            <div className="truncate text-(--text-strong)">{processo.prazo ?? processo.data_limite ?? '—'}</div>
           </div>
         </div>
       </div>
@@ -107,14 +107,18 @@ function ProcessCard({ processo, onOpen }: { processo: Processo; onOpen: (p: Pro
 }
 
 function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Processo | null; onClose: () => void }) {
+  // O estado será TRUE/FALSE na montagem inicial (forçada pela 'key' no pai)
   const [showAndamentos, setShowAndamentos] = useState(true);
   const [showIncidencias, setShowIncidencias] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setShowAndamentos(true);
-    setShowIncidencias(false);
-  }, [open, processo?.id]);
+  /*
+  * CORREÇÃO APLICADA:
+  * O useEffect foi removido.
+  * O componente pai (ProcessViewer) agora passa uma 'key' baseada no ID do processo.
+  * Quando o ID do processo muda, a RightDrawer é remontada,
+  * e o 'useState' inicializa showAndamentos como 'true' e showIncidencias como 'false'
+  * de forma segura, sem causar renderizações em cascata.
+  */
 
   return (
     <div
@@ -122,7 +126,7 @@ function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Pro
       aria-hidden={!open}
     >
       <div className="p-4 flex items-center justify-between border-b" style={{ background: 'var(--surface-card)', borderBottom: '1px solid var(--gpdl-border)' }}>
-        <h3 className="text-lg font-semibold text-[var(--text-strong)]">Detalhes do Processo</h3>
+        <h3 className="text-lg font-semibold text-(--text-strong)">Detalhes do Processo</h3>
         <div>
           <button onClick={onClose} className="px-3 py-1 rounded-md text-sm">Fechar</button>
         </div>
@@ -130,13 +134,13 @@ function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Pro
 
       <div className="p-4 overflow-y-auto h-[calc(100%-64px)]" style={{ background: 'var(--surface-main)' }}>
         {!processo ? (
-          <div className="text-sm text-[var(--text-muted)]">Selecione um processo para ver os detalhes.</div>
+          <div className="text-sm text-(--text-muted)">Selecione um processo para ver os detalhes.</div>
         ) : (
           <div className="space-y-4">
             <div className="space-y-1">
-              <div className="text-xs text-[var(--text-muted)]">CNJ / Número</div>
-              <div className="text-lg font-semibold truncate text-[var(--text-strong)]">{processo.cnj ?? `#${processo.id}`}</div>
-              <div className="text-sm text-[var(--text-muted)]">{processo.assunto?.nome ?? processo.acao?.nome}</div>
+              <div className="text-xs text-(--text-muted)">CNJ / Número</div>
+              <div className="text-lg font-semibold truncate text-(--text-strong)">{processo.cnj ?? `#${processo.id}`}</div>
+              <div className="text-sm text-(--text-muted)">{processo.assunto?.nome ?? processo.acao?.nome}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -153,7 +157,7 @@ function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Pro
             <div className="border rounded-md" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-card)' }}>
               <button onClick={() => setShowAndamentos(s => !s)} className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium">
                 <span>Andamentos — {processo.andamentos_count ?? (processo.andamentos?.length ?? 0)}</span>
-                <span className="text-[var(--text-muted)]">{showAndamentos ? '▲' : '▼'}</span>
+                <span className="text-(--text-muted)">{showAndamentos ? '▲' : '▼'}</span>
               </button>
 
               {showAndamentos && (
@@ -162,14 +166,14 @@ function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Pro
                     processo.andamentos.map(a => (
                       <div key={String(a.id)} className="p-2 rounded-md" style={{ background: 'var(--surface-muted)', border: '1px solid var(--gpdl-border)' }}>
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold text-[var(--text-strong)]">{a.titulo ?? 'Andamento'}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{a.data}</div>
+                          <div className="text-sm font-semibold text-(--text-strong)">{a.titulo ?? 'Andamento'}</div>
+                          <div className="text-xs text-(--text-muted)">{a.data}</div>
                         </div>
-                        {a.descricao && <div className="text-sm text-[var(--text-muted)] mt-1">{a.descricao}</div>}
+                        {a.descricao && <div className="text-sm text-(--text-muted) mt-1">{a.descricao}</div>}
                       </div>
                     ))
                   ) : (
-                    <div className="text-sm text-[var(--text-muted)]">Nenhum andamento registrado.</div>
+                    <div className="text-sm text-(--text-muted)">Nenhum andamento registrado.</div>
                   )}
                 </div>
               )}
@@ -178,7 +182,7 @@ function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Pro
             <div className="border rounded-md" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-card)' }}>
               <button onClick={() => setShowIncidencias(s => !s)} className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium">
                 <span>Incidências — {processo.incidencias_count ?? (processo.incidencias?.length ?? 0)}</span>
-                <span className="text-[var(--text-muted)]">{showIncidencias ? '▲' : '▼'}</span>
+                <span className="text-(--text-muted)">{showIncidencias ? '▲' : '▼'}</span>
               </button>
 
               {showIncidencias && (
@@ -187,14 +191,14 @@ function RightDrawer({ open, processo, onClose }: { open: boolean; processo: Pro
                     processo.incidencias.map(i => (
                       <div key={String(i.id)} className="p-2 rounded-md" style={{ background: 'var(--surface-muted)', border: '1px solid var(--gpdl-border)' }}>
                         <div className="flex items-center justify-between">
-                          <div className="text-sm font-semibold text-[var(--text-strong)]">{i.tipo ?? 'Incidência'}</div>
-                          <div className="text-xs text-[var(--text-muted)]">{i.data}</div>
+                          <div className="text-sm font-semibold text-(--text-strong)">{i.tipo ?? 'Incidência'}</div>
+                          <div className="text-xs text-(--text-muted)">{i.data}</div>
                         </div>
-                        {i.descricao && <div className="text-sm text-[var(--text-muted)] mt-1">{i.descricao}</div>}
+                        {i.descricao && <div className="text-sm text-(--text-muted) mt-1">{i.descricao}</div>}
                       </div>
                     ))
                   ) : (
-                    <div className="text-sm text-[var(--text-muted)]">Nenhuma incidência registrada.</div>
+                    <div className="text-sm text-(--text-muted)">Nenhuma incidência registrada.</div>
                   )}
                 </div>
               )}
@@ -292,15 +296,16 @@ export default function ProcessViewer({ fetchUrl, processes }: { fetchUrl?: stri
 
   function closeDrawer() {
     setDrawerOpen(false);
-    setTimeout(() => setSelected(null), 220);
+    // Dá um pequeno atraso para a animação de fechamento antes de limpar o conteúdo
+    setTimeout(() => setSelected(null), 220); 
   }
 
   return (
     <div className="relative flex gap-6">
       <div className="flex-1">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold text-[var(--text-strong)]">Processos</h2>
-          <div className="text-sm text-[var(--text-muted)]">{loading ? 'Carregando...' : `${list.length} resultados`}</div>
+          <h2 className="text-2xl font-semibold text-(--text-strong)">Processos</h2>
+          <div className="text-sm text-(--text-muted)">{loading ? 'Carregando...' : `${list.length} resultados`}</div>
         </div>
 
         {error && <div className="text-sm text-red-600 mb-3">Erro ao carregar: {error}</div>}
@@ -312,7 +317,15 @@ export default function ProcessViewer({ fetchUrl, processes }: { fetchUrl?: stri
         </div>
       </div>
 
-      <RightDrawer open={drawerOpen} processo={selected} onClose={closeDrawer} />
+      {/* CORREÇÃO APLICADA AQUI: O uso da 'key' força o React a remontar a RightDrawer
+          toda vez que um novo processo é selecionado, reinicializando os estados internos
+          (showAndamentos/showIncidencias) para seus valores iniciais. */}
+      <RightDrawer 
+        key={selected?.id || 'empty'}
+        open={drawerOpen} 
+        processo={selected} 
+        onClose={closeDrawer} 
+      />
     </div>
   );
 }
