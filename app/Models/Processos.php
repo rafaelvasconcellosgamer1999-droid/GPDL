@@ -69,5 +69,16 @@ class Processos extends Model
     public function procuradorResponsavel() {
         return $this->belongsTo(User::class, 'procurador_responsavel_id');
     }
+    public function andamentos(){
+        return $this->hasMany(Andamento::class, 'processo_id');
+    }
+    public function procurador_andamentos(){
+        return $this->hasMany(Andamento::class, 'procurador_andamento_id');
+    }
+    public function assessor_andamentos(){
+        return $this->hasMany(Andamento::class, 'assessor_andamento_id');
+    }
+    
+
 
 }
