@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('numero_agravo')->nullable();
             $table->string('numero_protocolo')->nullable();
             $table->string('tipo_distribuicao')->nullable();
-            $table->date('prazo')->nullable();
             $table->string('numero_suspensao')->nullable();
             $table->string('motivo_distribuicao')->nullable();
 

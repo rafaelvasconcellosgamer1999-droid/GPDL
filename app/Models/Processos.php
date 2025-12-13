@@ -30,7 +30,6 @@ class Processos extends Model
         'usuario_cadastro_id', //quem cadastrou
         'procurador_responsavel_id', //user_id where cargo == procurador
         'status', //finalizado, em andamento...
-        'prazo',
         'ano',
         'data_limite',
     ];
