@@ -1,41 +1,61 @@
 // resources/js/Components/AutocompleteSearch.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, Loader2 } from 'lucide-react';
 
-type OptionItem = { id: string | number; nome: string };
-
-interface AutocompleteSearchProps {
-  placeholder?: string;
-  value?: string | number | null;
-  onChange: (value: string | number | null) => void;
-  onSearch: (query: string) => Promise<OptionItem[]>;
-  options?: OptionItem[];
-  error?: string;
-  label?: string;
-  isLoading?: boolean;
+// Interface base: O objeto TEM que ter id e nome, mas pode ter mais coisas (definido pelo Generics)
+export interface OptionItem {
+  id: string | number;
+  nome: string;
 }
 
-export default function AutocompleteSearch({
+// Props agora são genéricas
+interface AutocompleteSearchProps<T extends OptionItem> {
+  label?: string;
+  placeholder?: string;
+  value?: string | number | null;
+  
+  // O item selecionado deve respeitar o tipo T
+  selectedItem?: T | null;
+  
+  options?: T[];
+  error?: string;
+  isLoading?: boolean;
+  isDisabled?: boolean;
+  
+  onChange: (value: string | number | null) => void;
+  // O callback retorna o objeto completo tipado corretamente como T
+  onSelectOption?: (option: T | null) => void;
+  
+  onSearch: (query: string) => Promise<T[]>;
+}
+
+// O componente em si é uma função Genérica
+export default function AutocompleteSearch<T extends OptionItem>({
+  label,
   placeholder = 'Digite para buscar...',
   value = null,
-  onChange,
-  onSearch,
+  selectedItem: initialSelectedItem = null,
   options = [],
   error,
-  label,
   isLoading = false,
-}: AutocompleteSearchProps) {
+  isDisabled = false,
+  onChange,
+  onSelectOption,
+  onSearch,
+}: AutocompleteSearchProps<T>) {
+  
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [filteredOptions, setFilteredOptions] = useState<OptionItem[]>(options);
+  
+  // O estado interno agora sabe que é uma lista de T
+  const [filteredOptions, setFilteredOptions] = useState<T[]>(options);
   const [isFetching, setIsFetching] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<OptionItem | null>(null);
+  const [selectedOption, setSelectedOption] = useState<T | null>(null);
   const [highlightIndex, setHighlightIndex] = useState<number>(-1);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // refs para debounce e request tracking
   const debounceTimerRef = useRef<number | null>(null);
   const requestIdRef = useRef(0);
   const isMountedRef = useRef(true);
@@ -44,62 +64,49 @@ export default function AutocompleteSearch({
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, []);
 
-  // sincronizar options prop inicial
   useEffect(() => {
     setFilteredOptions(options);
   }, [options]);
 
-  // Buscar opções com debounce e proteção contra race
+  // Lógica de Busca (Debounce + Race Condition)
   useEffect(() => {
-    // se input vazio, usa options passadas
     if (inputValue.trim().length === 0) {
       setFilteredOptions(options);
       setIsFetching(false);
       return;
     }
 
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    if (selectedOption && inputValue === selectedOption.nome) return;
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
     const timer = window.setTimeout(async () => {
       const reqId = ++requestIdRef.current;
       setIsFetching(true);
       try {
         const results = await onSearch(inputValue);
-        // ignora se não for a resposta mais recente
         if (reqId !== requestIdRef.current) return;
         if (!isMountedRef.current) return;
         setFilteredOptions(results);
         setHighlightIndex(0);
       } catch (err) {
         if (!isMountedRef.current) return;
-        console.error('Erro ao buscar opções:', err);
+        console.error(err);
         setFilteredOptions([]);
       } finally {
-        if (!isMountedRef.current) return;
-        setIsFetching(false);
+        if (isMountedRef.current) setIsFetching(false);
       }
     }, 300);
 
     debounceTimerRef.current = timer;
+    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
+  }, [inputValue, onSearch, options, selectedOption]);
 
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputValue, onSearch]); // options não precisa re-disparar a busca por cada mudança
-
-  // Sincronizar value externo para selectedOption e inputValue
+  // Sincronização de Valor
   useEffect(() => {
     if (value === null || value === undefined || value === '') {
       setSelectedOption(null);
@@ -107,42 +114,54 @@ export default function AutocompleteSearch({
       return;
     }
 
-    // procura primeiro em `options`, depois em `filteredOptions`
     const found =
       options.find((o) => String(o.id) === String(value)) ??
-      filteredOptions.find((o) => String(o.id) === String(value));
+      filteredOptions.find((o) => String(o.id) === String(value)) ??
+      (initialSelectedItem && String(initialSelectedItem.id) === String(value) ? initialSelectedItem : null);
 
     if (found) {
       setSelectedOption((prev) => {
+        // Casting seguro ou comparação direta de ID
         if (prev && String(prev.id) === String(found.id)) return prev;
         return found;
       });
-      setInputValue(found.nome);
+      if (!isOpen) setInputValue(found.nome);
     }
-  }, [value, options, filteredOptions, isOpen]);
+  }, [value, options, filteredOptions, initialSelectedItem, isOpen]);
 
-  // fechar dropdown ao clicar fora
+  // Click Outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        if (selectedOption) {
+          setInputValue(selectedOption.nome);
+        } else {
+          setInputValue('');
+        }
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [selectedOption]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setInputValue(val);
     setIsOpen(true);
     setHighlightIndex(0);
+    if (val === '') {
+      setSelectedOption(null);
+      onChange(null);
+      if (onSelectOption) onSelectOption(null);
+    }
   }
 
-  function handleOptionSelect(option: OptionItem) {
+  function handleOptionSelect(option: T) {
     setSelectedOption(option);
-    onChange(option.id);
     setInputValue(option.nome);
+    onChange(option.id);
+    if (onSelectOption) onSelectOption(option);
     setIsOpen(false);
     inputRef.current?.focus();
   }
@@ -151,101 +170,61 @@ export default function AutocompleteSearch({
     setSelectedOption(null);
     setInputValue('');
     onChange(null);
+    if (onSelectOption) onSelectOption(null);
     setFilteredOptions(options);
     setIsOpen(false);
     inputRef.current?.focus();
   }
 
-  function handleFocus() {
-    setIsOpen(true);
-    // Carregar opções iniciais ao focar
-    if (inputValue.trim().length === 0) {
-      if (options.length > 0) {
-        setFilteredOptions(options);
-      } else {
-        // busca vazia (se desejar que onSearch suporte fetch inicial)
-        setIsFetching(true);
-        const reqId = ++requestIdRef.current;
-        onSearch('')
-          .then((results) => {
-            if (reqId !== requestIdRef.current) return;
-            if (!isMountedRef.current) return;
-            setFilteredOptions(results);
-            setHighlightIndex(0);
-          })
-          .catch(() => {
-            if (!isMountedRef.current) return;
-            setFilteredOptions([]);
-          })
-          .finally(() => {
-            if (!isMountedRef.current) return;
-            setIsFetching(false);
-          });
-      }
-    }
-  }
-
   function handleToggleOpen() {
+    if (isDisabled) return;
     setIsOpen((v) => {
       const next = !v;
       if (next) {
-        // abrir -> garantir sugestões atualizadas
-        if (inputValue.trim().length === 0) {
-          setFilteredOptions(options);
-        }
+        if (inputValue.trim().length === 0) setFilteredOptions(options);
+        inputRef.current?.focus();
       }
       return next;
     });
-    inputRef.current?.focus();
   }
 
-  // Navegação por teclado
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (isDisabled) return;
     if (!isOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault();
       setIsOpen(true);
-      setHighlightIndex(0);
       return;
     }
-
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightIndex((i) => {
-        const next = i + 1;
-        return next >= filteredOptions.length ? filteredOptions.length - 1 : next;
-      });
+      setHighlightIndex((i) => (i + 1 >= filteredOptions.length ? filteredOptions.length - 1 : i + 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setHighlightIndex((i) => {
-        const next = i - 1;
-        return next < 0 ? 0 : next;
-      });
+      setHighlightIndex((i) => (i - 1 < 0 ? 0 : i - 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (isOpen && highlightIndex >= 0 && highlightIndex < filteredOptions.length) {
+      if (isOpen && highlightIndex >= 0 && filteredOptions[highlightIndex]) {
         handleOptionSelect(filteredOptions[highlightIndex]);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
+      setInputValue(selectedOption ? selectedOption.nome : '');
     }
   }
 
-  const listboxId = `autocomplete-list-${Math.random().toString(36).slice(2, 9)}`;
-  const activeId =
-    highlightIndex >= 0 && highlightIndex < filteredOptions.length
-      ? `opt-${String(filteredOptions[highlightIndex].id)}`
-      : undefined;
+  const listboxId = `listbox-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className={`relative w-full ${isDisabled ? 'opacity-60 pointer-events-none' : ''}`}>
       {label && (
-        <label className="text-xs" style={{ color: 'var(--text-muted)' }}>
+        <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--text-muted)' }}>
           {label}
         </label>
       )}
 
       <div className="relative mt-1">
         <div
-          className="gpdl-input-contrast flex items-center gap-2 px-3 py-2 rounded-md w-full"
+          className="gpdl-input-contrast flex items-center gap-2 px-3 py-2 rounded-md w-full transition-colors"
           style={{
             border: error
               ? '1px solid #ef4444'
@@ -258,125 +237,97 @@ export default function AutocompleteSearch({
             ref={inputRef}
             type="text"
             role="combobox"
-            aria-autocomplete="list"
             aria-expanded={isOpen}
             aria-controls={listboxId}
-            aria-activedescendant={activeId}
-            aria-busy={isFetching || isLoading}
+            disabled={isDisabled}
+            
             value={inputValue}
             onChange={handleInputChange}
-            onFocus={handleFocus}
+            onClick={() => !isOpen && handleToggleOpen()}
             onKeyDown={handleKeyDown}
+            
             placeholder={placeholder}
-            className="flex-1 outline-none text-sm"
-            style={{ color: 'var(--text-strong)', background: 'var(--surface-elevate)' }}
+            className="flex-1 outline-none text-sm bg-transparent truncate"
+            style={{ color: 'var(--text-strong)' }}
             autoComplete="off"
           />
 
           {(isFetching || isLoading) && (
-            <div className="animate-spin" aria-hidden="true" title="Buscando">
-              <div
-                className="h-4 w-4 border-2 border-transparent rounded-full"
-                style={{
-                  borderTopColor: 'var(--brand-600)',
-                  borderRightColor: 'var(--brand-600)',
-                }}
-              />
-            </div>
+            <Loader2 className="h-4 w-4 animate-spin" style={{ color: 'var(--brand-600)' }} />
           )}
 
-          {selectedOption && !isOpen && (
+          {!isFetching && !isLoading && selectedOption && !isDisabled && (
             <button
               type="button"
-              onClick={handleClear}
-              className="p-1 hover:bg-gray-200 rounded-sm transition"
-              aria-label="Limpar seleção"
+              onClick={(e) => { e.stopPropagation(); handleClear(); }}
+              className="p-0.5 hover:opacity-75 transition-opacity"
             >
               <X className="h-4 w-4" style={{ color: 'var(--text-muted)' }} />
             </button>
           )}
 
-          {!isFetching && (
+          {!isFetching && !isLoading && (
             <button
               type="button"
               onClick={handleToggleOpen}
-              aria-label={isOpen ? 'Fechar opções' : 'Abrir opções'}
-              className="p-1"
-              style={{ background: 'transparent', border: 'none' }}
+              tabIndex={-1}
+              className="p-0.5 focus:outline-none"
             >
               <ChevronDown
-                className="h-4 w-4 transition-transform"
+                className="h-4 w-4 transition-transform duration-200"
                 style={{
                   color: 'var(--text-muted)',
                   transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
-                aria-hidden="true"
               />
             </button>
           )}
         </div>
 
-        {/* Dropdown */}
-        {isOpen && (
+        {isOpen && !isDisabled && (
           <div
             id={listboxId}
-            className="absolute top-full left-0 right-0 mt-1 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto"
             style={{
               background: 'var(--surface-muted)',
               border: '1px solid var(--gpdl-border)',
             }}
             role="listbox"
-            aria-label={label ?? 'Opções'}
           >
             {filteredOptions.length > 0 ? (
-              <ul>
+              <ul className="py-1">
                 {filteredOptions.map((option, idx) => {
                   const isSelected = String(option.id) === String(value);
                   const isHighlighted = idx === highlightIndex;
                   return (
-                    <li key={option.id}>
-                      <button
-                        id={`opt-${String(option.id)}`}
-                        role="option"
-                        aria-selected={isSelected}
-                        onMouseDown={(e) => {
-                          // usar onMouseDown para evitar perder o foco antes do click
-                          e.preventDefault();
-                          handleOptionSelect(option);
-                        }}
-                        onMouseEnter={() => setHighlightIndex(idx)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition"
-                        style={{
-                          color: isSelected ? 'var(--brand-600)' : 'var(--text-strong)',
-                          backgroundColor: isHighlighted
-                            ? 'var(--surface-main)'
-                            : 'var(--surface-muted)',
-                          fontWeight: isSelected ? 600 : 400,
-                        }}
-                      >
-                        {option.nome}
-                      </button>
+                    <li
+                      key={option.id}
+                      role="option"
+                      aria-selected={isSelected}
+                      onMouseDown={(e) => { e.preventDefault(); handleOptionSelect(option); }}
+                      onMouseEnter={() => setHighlightIndex(idx)}
+                      className="cursor-pointer px-3 py-2 text-sm flex items-center justify-between"
+                      style={{
+                        backgroundColor: isHighlighted ? 'var(--surface-main)' : 'transparent',
+                        color: isSelected ? 'var(--brand-600)' : 'var(--text-strong)',
+                        fontWeight: isSelected ? 600 : 400,
+                      }}
+                    >
+                      <span className="truncate">{option.nome}</span>
                     </li>
                   );
                 })}
               </ul>
             ) : (
-              <div
-                className="px-3 py-4 text-center text-sm"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                {isFetching ? 'Buscando...' : 'Nenhuma opção encontrada'}
+              <div className="px-3 py-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                {inputValue.length < 1 && !isFetching ? 'Digite para buscar...' : 'Nenhuma opção encontrada'}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {error && (
-        <p className="mt-1 text-xs" style={{ color: '#ef4444' }}>
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-1 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
     </div>
   );
 }
