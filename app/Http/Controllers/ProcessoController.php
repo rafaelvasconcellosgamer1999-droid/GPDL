@@ -16,6 +16,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Session;
+use App\Models\EntidadesJuridicas;
+use App\Models\User;
 
 class ProcessoController extends Controller
 {
@@ -161,7 +163,7 @@ class ProcessoController extends Controller
             }
         }
 
-        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
+        $procuradores = User::ativos()->orderBy('nome')->get(['id', 'nome']);
         // --- montar lista de setores (se existir tabela 'setores') ou fallback ---
         $setores = \App\Models\Setor::ativos()->orderBy('nome')->get(['id','nome'])->map(function($s) {
         return ['id' => (string)$s->id, 'nome' => $s->nome];
@@ -206,7 +208,7 @@ class ProcessoController extends Controller
 
         $usuario = Auth::user();
         // setor_id deve seguir o setor do procurador responsável escolhido no formulário
-        $responsavel = \App\Models\User::find($data['responsavel_id']);
+        $responsavel = User::find($data['responsavel_id']);
         $setorId = optional($responsavel)->setor_id;
 
         $blocos = $this->separarBlocos($data['texto']);
@@ -292,7 +294,7 @@ class ProcessoController extends Controller
 
     public function visualizar(Request $request)
 {
-    $initial = \App\Models\Processos::with(['tribunal','acao','assunto','procuradorResponsavel'])
+    $initial = Processos::with(['tribunal','acao','assunto','procuradorResponsavel'])
         /*->withCount(['andamentos','incidencias']) // só se relações existem*/
         /*->orderBy('data_limite')*/
         ->limit(20)
@@ -454,7 +456,7 @@ class ProcessoController extends Controller
 
     public function create()
     {
-        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
+        $procuradores = User::ativos()->orderBy('nome')->get(['id', 'nome']);
 
         // montar setores (mesma lógica do index)
         $setores = [];
@@ -482,7 +484,7 @@ class ProcessoController extends Controller
 
     public function createLote()
     {
-        $procuradores = \App\Models\User::ativos()->orderBy('nome')->get(['id', 'nome']);
+        $procuradores = User::ativos()->orderBy('nome')->get(['id', 'nome']);
 
         $setores = [];
         if (Schema::hasTable('setores')) {
@@ -606,7 +608,7 @@ class ProcessoController extends Controller
     {
         $search = $request->query('search', '');
 
-        $query = \App\Models\EntidadesJuridicas::query()
+        $query = EntidadesJuridicas::query()
             ->where('tipo', 'Tribunal');
 
         if (!empty($search)) {
@@ -630,7 +632,7 @@ class ProcessoController extends Controller
     {
         $search = $request->query('search', '');
 
-        $query = \App\Models\EntidadesJuridicas::query()
+        $query = EntidadesJuridicas::query()
             ->where('tipo', 'orgao_origem');
         
         if (!empty($search)) {
@@ -654,7 +656,7 @@ class ProcessoController extends Controller
     {
         $search = $request->query('search', '');
 
-        $query = \App\Models\EntidadesJuridicas::query()
+        $query = EntidadesJuridicas::query()
             ->where('tipo', 'Órgão Julgador');
 
         if (!empty($search)) {
