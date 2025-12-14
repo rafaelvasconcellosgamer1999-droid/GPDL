@@ -63,24 +63,38 @@ class AndamentoController extends Controller
     {
 
         $validated = $request->validate([
-            'processo_id' => 'required|exists:processos,id',
+            'processo_id' => 'required|exists:processos2,id',
             'descricao' => 'required|string|max:5000',
             'tipo_andamento' => 'nullable|string|max:255',
             'tipo_movimentacao' => 'nullable|string|max:255',
-            'data_andamento' => now(),
+            'data_andamento' => 'nullable|date',
             'data_prazo' => 'nullable|date|after_or_equal:data_andamento',
             'data_ciencia' => 'nullable|date',
             'status' => 'required|in:aberto,concluido,cancelado',
-            'procurador_andamento_id' => 'nullable|exists:users,id',
-            'assessor_andamento_id' => 'nullable|exists:users,id',
+            'procurador_andamento_id' => 'nullable|exists:usuarios,id',
+            'assessor_andamento_id' => 'nullable|exists:usuarios,id',
         ]);
 
         $validated['usuario_cadastro_id'] = Auth::id();
 
-        Andamento::create($validated);
+        $dataAndamento = $validated['data_andamento'] ?? now();
+
+        Andamento::create([
+            'processo_id' => $validated['processo_id'],
+            'descricao' => $validated['descricao'],
+            'tipo_andamento' => $validated['tipo_andamento'] ?? null,
+            'tipo_movimentacao' => $validated['tipo_movimentacao'] ?? null,
+            'data_andamento' => $dataAndamento,
+            'data_prazo' => $validated['data_prazo'] ?? null,
+            'data_ciencia' => $validated['data_ciencia'] ?? null,
+            'status' => $validated['status'],
+            'procurador_andamento_id' => $validated['procurador_andamento_id'] ?? null,
+            'assessor_andamento_id' => $validated['assessor_andamento_id'] ?? null,
+            'usuario_cadastro_id' => $validated['usuario_cadastro_id'],
+        ]);
 
         return redirect()
-            ->route('Andamentos/Cadastro')
+            ->route('andamentos.cadastro')
             ->with('success', 'Andamento cadastrado com sucesso');
     }
 
@@ -127,8 +141,8 @@ class AndamentoController extends Controller
             'data_prazo' => 'nullable|date|after_or_equal:data_andamento',
             'data_ciencia' => 'nullable|date',
             'status' => 'required|in:aberto,concluido,cancelado',
-            'procurador_andamento_id' => 'nullable|exists:users,id',
-            'assessor_andamento_id' => 'nullable|exists:users,id',
+            'procurador_andamento_id' => 'nullable|exists:usuarios,id',
+            'assessor_andamento_id' => 'nullable|exists:usuarios,id',
         ]);
 
         $andamento->update($validated);
