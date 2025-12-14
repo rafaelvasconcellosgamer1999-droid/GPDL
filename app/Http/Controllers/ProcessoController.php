@@ -584,16 +584,48 @@ class ProcessoController extends Controller
             }
         }
 
-        // Cadastrar as partes
+        // Cadastrar as partes (usar tabela 'partes' e a pivot 'parte_processo')
         if (!empty($partes)) {
             foreach ($partes as $parte) {
-                Partes::create([
-                    'processo_id' => $processo->id,
-                    'nome' => $parte['nome'] ?? null,
-                    'cpf_cnpj' => $parte['cpf'] ?? null,
+                // Se frontend fornecer 'parte_id' significa reutilização de parte existente
+                $parteId = $parte['parte_id'] ?? null;
+
+                if ($parteId) {
+                    $existing = Partes::find($parteId);
+                    if (!$existing) {
+                        $parteId = null; // fallback para criar novo se não existir
+                    }
+                }
+
+                // Tentar localizar por CPF/nome para evitar duplicatas
+                if (!$parteId) {
+                    if (!empty($parte['cpf'])) {
+                        $match = Partes::where('cpf_cnpj', $parte['cpf'])->first();
+                        if ($match) $parteId = $match->id;
+                    }
+                }
+                if (!$parteId && !empty($parte['nome'])) {
+                    $match = Partes::where('nome', $parte['nome'])->first();
+                    if ($match) $parteId = $match->id;
+                }
+
+                // Criar nova parte se nenhuma correspondência
+                if (!$parteId) {
+                    $new = Partes::create([
+                        'nome' => $parte['nome'] ?? null,
+                        'cpf_cnpj' => $parte['cpf'] ?? null,
+                        'tipo_parte' => $parte['tipo_parte'] ?? null,
+                    ]);
+                    $parteId = $new->id;
+                }
+
+                // Anexar ao processo via pivot com os campos extras
+                $processo->partes()->attach($parteId, [
                     'qualificacao' => $parte['qualificacao'] ?? null,
                     'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
                     'parte_principal' => (int)($parte['eh_principal'] ?? 0),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
@@ -713,6 +745,39 @@ class ProcessoController extends Controller
 
         return response()->json([
             'data' => $assuntos->map(fn($a) => ['id' => $a->id, 'nome' => $a->nome])
+        ]);
+    }
+
+    /**
+     * Buscar partes existentes por termo de busca (nome ou CPF/CNPJ)
+     */
+    public function searchPartesExistentes(Request $request)
+    {
+        $search = trim((string) $request->query('search', ''));
+
+        if (strlen($search) < 3) {
+            return response()->json(['data' => []]);
+        }
+
+        $query = Partes::query();
+        
+        $query->where(function ($q) use ($search) {
+            $q->where('nome', 'like', '%' . $search . '%')
+              ->orWhere('cpf_cnpj', 'like', '%' . $search . '%');
+        });
+
+        $result = $query->limit(15)->get(['id', 'nome', 'cpf_cnpj']);
+
+        return response()->json([
+            'data' => $result->map(function($p) {
+                return [
+                    'id' => (string) $p->id,
+                    'nome' => $p->nome,
+                    'cpf' => $p->cpf_cnpj,
+                    'qualificacao' => 'Pessoa Física', 
+                    'tipo_parte' => 'Autor' 
+                ];
+            })
         ]);
     }
 

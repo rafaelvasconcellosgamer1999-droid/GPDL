@@ -136,7 +136,7 @@ Route::middleware(['permission:view_process_page'])->group(function () {
     Route::get('/api/orgao-julgador', [ProcessoController::class, 'searchOrgaoJulgador']);
     Route::get('/api/acoes', [ProcessoController::class, 'searchAcoes']);
     Route::get('/api/assuntos', [ProcessoController::class, 'searchAssuntos']);
-
+Route::get('/api/partes-existentes', [ProcessoController::class, 'searchPartesExistentes'])->name('api.partes.search');
     // ======================
     // SQUADS
     // ======================

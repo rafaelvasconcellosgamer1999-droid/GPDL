@@ -19,6 +19,7 @@ type ParteItem = {
   tipo_qualificacao: string;
   eh_principal: string; // '1' | '0'
   expediente: string; // '1' | '0'
+  parte_id?: string; // id da parte no banco, quando reutilizada
 };
 
 type FormShape = {
@@ -94,6 +95,7 @@ const createEmptyParte = (idx: number): ParteItem => ({
   tipo_qualificacao: 'Autor',
   eh_principal: '0',
   expediente: '0',
+  parte_id: '',
 });
 
 export default function CadastroIndividual({
@@ -133,6 +135,7 @@ export default function CadastroIndividual({
 
   // Inicialização do estado já com um item vazio para evitar useEffect síncrono
   const [partes, setPartes] = useState<ParteItem[]>([createEmptyParte(0)]);
+  const [partesCache, setPartesCache] = useState<Record<string, any>>({});
 
   function getErrorByPath(path: string): string | undefined {
     const errs: Errors | undefined = errors;
@@ -157,7 +160,7 @@ export default function CadastroIndividual({
   function updateParte(id: string, field: keyof ParteItem, value: string) { setPartes((p) => p.map((x) => (x.id === id ? { ...x, [field]: value } : x))); }
 
   function syncPartesToForm() {
-    setData('partes_json', JSON.stringify(partes.map((p) => ({ ...p, eh_principal: p.eh_principal === '1' ? 1 : 0, expediente: p.expediente === '1' ? 1 : 0 }))));
+    setData('partes_json', JSON.stringify(partes.map((p) => ({ ...p, parte_id: p.parte_id || null, eh_principal: p.eh_principal === '1' ? 1 : 0, expediente: p.expediente === '1' ? 1 : 0 }))));
   }
 
   function canProceedFromStep(current: number): boolean {
@@ -382,8 +385,36 @@ export default function CadastroIndividual({
                   <div key={par.id} className="rounded-xl border p-4 relative hover:shadow-sm transition-shadow" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)' }}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                       <div className="md:col-span-4">
-                        <Label>Nome</Label><input className={INPUT_BASE_CLASS} value={par.nome} onChange={(e) => updateParte(par.id, 'nome', e.target.value)} />
+                        <Label>Nome</Label>
+                        <input className={INPUT_BASE_CLASS} value={par.nome} onChange={(e) => { updateParte(par.id, 'nome', e.target.value); updateParte(par.id, 'parte_id', ''); }} />
                         <InputError message={getErrorByPath(`partes.${idx}.nome`) || getErrorByPath(`partes_json.${idx}.nome`)} className="mt-1" />
+
+                        <div className="mt-2">
+                          <AutocompleteSearch
+                            placeholder="Reutilizar parte existente (busca)"
+                            value={par.parte_id || null}
+                            onChange={() => { /* handled in onSelectOption */ }}
+                            onSelectOption={(opt: any) => {
+                              if (!opt) return;
+                              updateParte(par.id, 'nome', opt.nome || '');
+                              updateParte(par.id, 'cpf', opt.cpf || '');
+                              updateParte(par.id, 'qualificacao', opt.qualificacao || 'Pessoa Física');
+                              updateParte(par.id, 'tipo_qualificacao', opt.tipo_parte || 'Autor');
+                              updateParte(par.id, 'parte_id', String(opt.id));
+                            }}
+                            onSearch={async (q: string) => {
+                              try {
+                                if ((q || '').trim().length < 3) return [];
+                                const res = await fetch(`/api/partes-existentes?search=${encodeURIComponent(q)}`);
+                                if (!res.ok) return [];
+                                const json = await res.json();
+                                const dados = json.data || [];
+                                return (dados || []).map((d: any) => ({ id: String(d.id), nome: d.nome, cpf: d.cpf, tipo_parte: d.tipo_parte, qualificacao: d.qualificacao || 'Pessoa Física' }));
+                              } catch (e) { return []; }
+                            }}
+                            options={[]}
+                          />
+                        </div>
                       </div>
                       <div className="md:col-span-3"><Label>CPF/CNPJ</Label><input className={`${INPUT_BASE_CLASS} font-mono`} value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" /></div>
                       <div className="md:col-span-3"><CustomSelect label="Qualificação" value={par.qualificacao} onChange={(e) => updateParte(par.id, 'qualificacao', e.target.value)} options={QUALIFICACOES} /></div>
