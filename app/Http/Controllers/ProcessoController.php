@@ -21,6 +21,8 @@ use App\Models\User;
 
 class ProcessoController extends Controller
 {
+    private int $cargo_procurador = 3;
+
     /**
      * Página de Processos (lista conforme a view).
      */
@@ -455,7 +457,7 @@ class ProcessoController extends Controller
 
     public function create()
     {
-        $procuradores = User::ativos()->orderBy('nome')->get(['id', 'nome']);
+        $procuradores = User::ativos()->where('cargo_id',$this->cargo_procurador)->orderBy('nome')->get(['id', 'nome']);
 
         // montar setores (mesma lógica do index)
         $setores = [];

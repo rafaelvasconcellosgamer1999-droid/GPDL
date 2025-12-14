@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 
 class AndamentoController extends Controller
 {
+    private int $cargo_procurador = 3;
+    private int $cargo_assessor = 4;
     /**
      * Lista de andamentos (opcionalmente filtrada)
      */
@@ -38,14 +40,14 @@ class AndamentoController extends Controller
     public function create()
     {
         return Inertia::render('Andamentos/Cadastro', [
-    'procuradores' => User::where('cargo_id', 'procurador')
+    'procuradores' => User::where('cargo_id', $this->cargo_procurador)
         ->get()
         ->map(fn ($u) => [
             'id' => (string) $u->id,
             'nome' => $u->nome,
         ]),
 
-    'assessores' => User::where('cargo_id', 'assessor')
+    'assessores' => User::where('cargo_id', $this->cargo_assessor)
         ->get()
         ->map(fn ($u) => [
             'id' => (string) $u->id,
