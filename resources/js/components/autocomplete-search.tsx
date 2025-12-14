@@ -155,7 +155,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
     setHighlightIndex(0);
     if (val === '') {
       setSelectedOption(null);
-      onChange(null);
+      onChange('');
       if (onSelectOption) onSelectOption(null);
     }
   }
@@ -172,7 +172,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
   function handleClear() {
     setSelectedOption(null);
     setInputValue('');
-    onChange(null);
+    onChange('');
     if (onSelectOption) onSelectOption(null);
     setFilteredOptions(options);
     setIsOpen(false);

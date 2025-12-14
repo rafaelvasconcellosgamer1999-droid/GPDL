@@ -69,8 +69,6 @@ export default function CadastroAndamento({
     e.preventDefault();
     post('/andamentos');
   }
-console.log('procuradores:', procuradores);
-console.log('assessores:', assessores);
   return (
     <GPDLLayout breadcrumbs={[
       { title: 'Processos', href: '/processos' },
