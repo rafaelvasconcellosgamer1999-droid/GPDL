@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\API\SearchController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SetorController;
 use App\Http\Controllers\Admin\CargoController;
@@ -55,13 +56,10 @@ Route::middleware(['permission:view_process_page'])->group(function () {
     // Página principal
     Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
 
-    Route::get('/processos/buscar', [ProcessoController::class, 'buscar'])
-    ->name('processos.buscar');
 
     // Nova página de visualização (adicionar aqui)
     Route::get('/processos/visualizar', [ProcessoController::class, 'visualizar'])->name('processos.visualizar');
-    Route::get('/api/processos', [ProcessoController::class, 'apiIndex']);
-    Route::get('/api/processos/{id}', [ProcessoController::class, 'apiShow']);
+    
     Route::get('/debug/processos-test', function () {
     return Processos::query()->limit(5)->get();
 });
@@ -127,16 +125,26 @@ Route::middleware(['permission:view_process_page'])->group(function () {
         Route::get('/api/relatorios/procurador', [RelatoriosController::class, 'processosPorProcurador']);
         Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
     });
-
-    // ======================
-    // APIs
-    // ======================
-    Route::get('/api/tribunais', [ProcessoController::class, 'searchTribunais']);
-    Route::get('/api/orgao-origem', [ProcessoController::class, 'searchOrgaoOrigem']);
-    Route::get('/api/orgao-julgador', [ProcessoController::class, 'searchOrgaoJulgador']);
-    Route::get('/api/acoes', [ProcessoController::class, 'searchAcoes']);
-    Route::get('/api/assuntos', [ProcessoController::class, 'searchAssuntos']);
-Route::get('/api/partes-existentes', [ProcessoController::class, 'searchPartesExistentes'])->name('api.partes.search');
+    
+   // ======================
+// APIs de Busca (Autocomplete)
+Route::prefix('api')->group(function () {
+    // Processos
+    Route::get('processos/buscar', [SearchController::class, 'processos'])
+        ->name('processos.buscar');
+    Route::get('/processos', [ProcessoController::class, 'apiIndex']);
+    Route::get('/processos/{id}', [ProcessoController::class, 'apiShow']);
+    // Partes
+    Route::get('partes-existentes', [SearchController::class, 'partes'])
+        ->name('api.partes.search');
+    // Entidades
+    Route::get('tribunais', [SearchController::class, 'tribunais']);
+    Route::get('orgao-julgador', [SearchController::class, 'orgaosJulgadores']);
+    Route::get('orgao-origem', [SearchController::class, 'orgaosOrigem']);   
+    // Temáticas
+    Route::get('acoes', [SearchController::class, 'acoes']);
+    Route::get('assuntos', [SearchController::class, 'assuntos']);
+});
     // ======================
     // SQUADS
     // ======================

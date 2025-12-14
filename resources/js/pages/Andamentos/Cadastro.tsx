@@ -108,7 +108,7 @@ export default function CadastroAndamento({
                 onSearch={async (q) => {
                   if (!q || q.length < 3) return [];
 
-                  const res = await axios.get('/processos/buscar', {
+                  const res = await axios.get('/api/processos/buscar', {
                     params: { q },
                   });
 
