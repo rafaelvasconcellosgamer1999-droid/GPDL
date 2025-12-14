@@ -1,36 +1,31 @@
-// resources/js/Components/AutocompleteSearch.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, X, Loader2 } from 'lucide-react';
 
-
-// Interface base: O objeto TEM que ter id e nome, mas pode ter mais coisas (definido pelo Generics)
 export interface OptionItem {
   id: string | number;
   nome: string;
+  cpf?: string;
+  cpf_cnpj?: string;
 }
 
-// Props agora são genéricas
 interface AutocompleteSearchProps<T extends OptionItem> {
   label?: string;
   placeholder?: string;
   value?: string | number | null;
-
-  // O item selecionado deve respeitar o tipo T
   selectedItem?: T | null;
-
   options?: T[];
   error?: string;
   isLoading?: boolean;
   isDisabled?: boolean;
 
-  onChange: (value: string | number | null) => void;
-  // O callback retorna o objeto completo tipado corretamente como T
-  onSelectOption?: (option: T | null) => void;
 
+  allowCreate?: boolean;
+
+  onChange: (value: string | number | null) => void;
+  onSelectOption?: (option: T | null) => void;
   onSearch: (query: string) => Promise<T[]>;
 }
 
-// O componente em si é uma função Genérica
 export default function AutocompleteSearch<T extends OptionItem>({
   label,
   placeholder = 'Digite para buscar...',
@@ -40,6 +35,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
   error,
   isLoading = false,
   isDisabled = false,
+  allowCreate = false,
   onChange,
   onSelectOption,
   onSearch,
@@ -47,8 +43,6 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
-
-  // O estado interno agora sabe que é uma lista de T
   const [filteredOptions, setFilteredOptions] = useState<T[]>(options);
   const [isFetching, setIsFetching] = useState(false);
   const [selectedOption, setSelectedOption] = useState<T | null>(null);
@@ -56,7 +50,6 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-
   const debounceTimerRef = useRef<number | null>(null);
   const requestIdRef = useRef(0);
   const isMountedRef = useRef(true);
@@ -73,10 +66,9 @@ export default function AutocompleteSearch<T extends OptionItem>({
     setFilteredOptions(options);
   }, [options]);
 
-  // Lógica de Busca (Debounce + Race Condition)
+
   useEffect(() => {
     const q = inputValue.trim();
-
     if (q.length < 3) {
       setFilteredOptions([]);
       setIsFetching(false);
@@ -96,9 +88,8 @@ export default function AutocompleteSearch<T extends OptionItem>({
         if (!isMountedRef.current) return;
         setFilteredOptions(results);
         setHighlightIndex(0);
-      } catch (err) {
+      } catch /*(err)*/ {
         if (!isMountedRef.current) return;
-        console.error(err);
         setFilteredOptions([]);
       } finally {
         if (isMountedRef.current) setIsFetching(false);
@@ -107,12 +98,11 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
     debounceTimerRef.current = timer;
     return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
-  }, [inputValue, onSearch, options, selectedOption]);
+  }, [inputValue, onSearch, selectedOption]);
 
-  // Sincronização de Valor
+
   useEffect(() => {
-    if (value === null || value === undefined || value === '') {
-      setSelectedOption(null);
+    if (value === null || value === undefined) {
       if (!isOpen) setInputValue('');
       return;
     }
@@ -123,39 +113,59 @@ export default function AutocompleteSearch<T extends OptionItem>({
       (initialSelectedItem && String(initialSelectedItem.id) === String(value) ? initialSelectedItem : null);
 
     if (found) {
-      setSelectedOption((prev) => {
-        // Casting seguro ou comparação direta de ID
-        if (prev && String(prev.id) === String(found.id)) return prev;
-        return found;
-      });
-      if (!isOpen) setInputValue(found.nome);
-    }
-  }, [value, options, filteredOptions, initialSelectedItem, isOpen]);
+      setSelectedOption(found);
+      if (!isOpen && document.activeElement !== inputRef.current) {
+        setInputValue(found.nome);
+      }
+    } else {
 
-  // Click Outside
+      if (allowCreate) {
+        setSelectedOption(null);
+        if (!isOpen && document.activeElement !== inputRef.current) {
+          setInputValue(String(value));
+        }
+      } else {
+
+        if (!isOpen && document.activeElement !== inputRef.current) {
+          setInputValue('');
+        }
+      }
+    }
+  }, [value, options, filteredOptions, initialSelectedItem, isOpen, allowCreate]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        if (selectedOption) {
-          setInputValue(selectedOption.nome);
-        } else {
-          setInputValue('');
+
+        if (!allowCreate) {
+          if (selectedOption && inputValue !== selectedOption.nome) {
+            setInputValue(selectedOption.nome);
+          } else if (!selectedOption && inputValue !== '') {
+            setInputValue('');
+            onChange(null);
+            if (onSelectOption) onSelectOption(null);
+          }
         }
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [selectedOption]);
+  }, [selectedOption, inputValue, allowCreate, onChange, onSelectOption]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setInputValue(val);
     setIsOpen(true);
     setHighlightIndex(0);
+
+    if (allowCreate) {
+      onChange(val);
+    }
+
     if (val === '') {
       setSelectedOption(null);
-      onChange('');
+      if (allowCreate) onChange('');
       if (onSelectOption) onSelectOption(null);
     }
   }
@@ -208,15 +218,25 @@ export default function AutocompleteSearch<T extends OptionItem>({
       e.preventDefault();
       if (isOpen && highlightIndex >= 0 && filteredOptions[highlightIndex]) {
         handleOptionSelect(filteredOptions[highlightIndex]);
+      } else {
+        setIsOpen(false);
+        if (!allowCreate) {
+
+          if (selectedOption) setInputValue(selectedOption.nome);
+          else {
+            setInputValue('');
+            onChange('');
+          }
+        }
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
-      setInputValue(selectedOption ? selectedOption.nome : '');
+
+      if (!allowCreate && selectedOption) setInputValue(selectedOption.nome);
     }
   }
 
   const listboxId = `listbox-${Math.random().toString(36).substr(2, 9)}`;
-
   return (
     <div ref={containerRef} className={`relative w-full ${isDisabled ? 'opacity-60 pointer-events-none' : ''}`}>
       {label && (
@@ -229,11 +249,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
         <div
           className="gpdl-input-contrast flex items-center gap-2 px-3 py-2 rounded-md w-full transition-colors"
           style={{
-            border: error
-              ? '1px solid #ef4444'
-              : isOpen
-                ? '1px solid var(--brand-600)'
-                : '1px solid transparent',
+            border: error ? '1px solid #ef4444' : isOpen ? '1px solid var(--brand-600)' : '1px solid var(--gpdl-border)',
           }}
         >
           <input
@@ -243,12 +259,10 @@ export default function AutocompleteSearch<T extends OptionItem>({
             aria-expanded={isOpen}
             aria-controls={listboxId}
             disabled={isDisabled}
-
             value={inputValue}
             onChange={handleInputChange}
             onClick={() => !isOpen && handleToggleOpen()}
             onKeyDown={handleKeyDown}
-
             placeholder={placeholder}
             className="flex-1 outline-none text-sm bg-transparent truncate"
             style={{ color: 'var(--text-strong)' }}
@@ -259,7 +273,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
             <Loader2 className="h-4 w-4 animate-spin" style={{ color: 'var(--brand-600)' }} />
           )}
 
-          {!isFetching && !isLoading && selectedOption && !isDisabled && (
+          {!isFetching && !isLoading && inputValue.length > 0 && !isDisabled && (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); handleClear(); }}
@@ -300,7 +314,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
             {filteredOptions.length > 0 ? (
               <ul className="py-1">
                 {filteredOptions.map((option, idx) => {
-                  const isSelected = String(option.id) === String(value);
+                  const isSelected = selectedOption?.id === option.id;
                   const isHighlighted = idx === highlightIndex;
                   return (
                     <li
@@ -316,7 +330,14 @@ export default function AutocompleteSearch<T extends OptionItem>({
                         fontWeight: isSelected ? 600 : 400,
                       }}
                     >
-                      <span className="truncate">{option.nome}</span>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="truncate">{option.nome}</span>
+                        {(option.cpf || option.cpf_cnpj) && (
+                          <span className="text-[10px] opacity-60">
+                            {option.cpf || option.cpf_cnpj}
+                          </span>
+                        )}
+                      </div>
                     </li>
                   );
                 })}
@@ -325,7 +346,16 @@ export default function AutocompleteSearch<T extends OptionItem>({
               <div className="px-3 py-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                 {inputValue.trim().length < 3 && !isFetching
                   ? 'Digite ao menos 3 caracteres'
-                  : 'Nenhuma opção encontrada'}
+                  : (
+                    <span>
+                      {/* Mensagem condicional baseada na prop */}
+                      {allowCreate
+                        ? <span>Nenhuma parte encontrada.<br /><span className="text-xs opacity-75">"{inputValue}" será usado como novo.</span></span>
+                        : <span>Nenhum registro encontrado.</span>
+                      }
+                    </span>
+                  )
+                }
               </div>
             )}
           </div>

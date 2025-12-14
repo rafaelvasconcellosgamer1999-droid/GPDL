@@ -457,7 +457,7 @@ class ProcessoController extends Controller
 
     public function create()
     {
-        $procuradores = User::ativos()->where('cargo_id',$this->cargo_procurador)->orderBy('nome')->get(['id', 'nome']);
+        $procuradores = User::ativos()->where('cargo_id', $this->cargo_procurador)->orderBy('nome')->get(['id', 'nome']);
 
         // montar setores (mesma lógica do index)
         $setores = [];
@@ -511,6 +511,8 @@ class ProcessoController extends Controller
     }
     public function store(Request $request)
     {
+        // 1. Validação Ajustada
+        // Removemos 'partes_json' e adicionamos validação de array para 'partes'
         $data = $request->validate([
             'instancia' => ['nullable', 'string', 'max:50'],
             'tribunal' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
@@ -522,34 +524,29 @@ class ProcessoController extends Controller
             'assunto' => ['nullable', 'integer', 'exists:tematicas,id'],
             'orgao_origem' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
             'orgao_julgador' => ['nullable', 'integer', 'exists:entidades_juridicas,id'],
-            'juizo_vara' => ['nullable', 'string', 'max:150'],
-            'numero_juizo_vara' => ['nullable', 'string', 'max:50'],
             'numero_agravo' => ['nullable', 'string', 'max:50'],
             'numero_suspensao' => ['nullable', 'string', 'max:50'],
             'numero_protocolo' => ['nullable', 'string', 'max:50'],
-            'ano' => ['nullable', 'date'],
-            'data_limite' => ['nullable', 'date'],
-            'partes_json' => ['nullable', 'json'],
-            'tipo_distribuicao' => ['nullable', 'string', 'in:manual,automatica,equilibrada'],
-            'motivo_distribuicao' => ['nullable', 'string', 'in:rotina,urgencia,competencia,sobrecarga'],
+            'tipo_distribuicao' => ['nullable', 'string'],
+            'motivo_distribuicao' => ['nullable', 'string'],
             'procurador_responsavel_id' => ['required', 'integer', 'exists:usuarios,id'],
-            'incidencia' => ['nullable', 'in:0,1'],
+            'incidencia' => ['nullable'], // aceita '0', '1', 0, 1
             'referencia_numero_processo' => ['nullable', 'string', 'max:50'],
+
+            // --- NOVA VALIDAÇÃO DE PARTES (ARRAY) ---
+            'partes' => ['nullable', 'array'],
+            'partes.*.nome' => ['required', 'string'],
+            'partes.*.cpf' => ['nullable', 'string'],
+            'partes.*.qualificacao' => ['nullable', 'string'],
+            'partes.*.tipo_qualificacao' => ['nullable', 'string'],
+            'partes.*.eh_principal' => ['nullable'],
+            'partes.*.expediente' => ['nullable'],
+            'partes.*.parte_id' => ['nullable'],
         ]);
 
         $usuario = Auth::user();
 
-        // Processar partes JSON se fornecido
-        $partes = [];
-        if (!empty($data['partes_json'])) {
-            try {
-                $partes = json_decode($data['partes_json'], true) ?? [];
-            } catch (\Exception $e) {
-                $partes = [];
-            }
-        }
-
-        // Criar o processo principal
+        // Cria o processo (Mantendo seu Model Processos)
         $processo = Processos::create([
             'area_atuacao' => Session::get('setorSelecionado', null),
             'municipio' => 'Belém',
@@ -563,12 +560,9 @@ class ProcessoController extends Controller
             'assunto_id' => $data['assunto'] ?? null,
             'orgao_origem_id' => $data['orgao_origem'] ?? null,
             'orgao_julgador_id' => $data['orgao_julgador'] ?? null,
-            //'juizo_vara' => $data['juizo_vara'] ?? null,
-            //'numero_juizo_vara' => $data['numero_juizo_vara'] ?? null,
             'numero_agravo' => $data['numero_agravo'] ?? null,
             'numero_suspensao' => $data['numero_suspensao'] ?? null,
             'numero_protocolo' => $data['numero_protocolo'] ?? null,
-            //'data_limite' => $data['data_limite'] ?? null,
             'tipo_distribuicao' => $data['tipo_distribuicao'] ?? null,
             'motivo_distribuicao' => $data['motivo_distribuicao'] ?? null,
             'procurador_responsavel_id' => $data['procurador_responsavel_id'],
@@ -576,54 +570,60 @@ class ProcessoController extends Controller
             'usuario_cadastro_id' => optional($usuario)->id,
         ]);
 
-        // Se há incidência (referência a outro processo), criar relacionamento
-        if ($data['incidencia'] === '1' && !empty($data['referencia_numero_processo'])) {
+        // Incidência
+        if (($data['incidencia'] ?? '0') == '1' && !empty($data['referencia_numero_processo'])) {
             $processoRef = Processos::where('cnj', $data['referencia_numero_processo'])->first();
             if ($processoRef) {
                 $processo->update(['processo_ref_id' => $processoRef->id]);
             }
         }
 
-        // Cadastrar as partes (usar tabela 'partes' e a pivot 'parte_processo')
-        if (!empty($partes)) {
-            foreach ($partes as $parte) {
-                // Se frontend fornecer 'parte_id' significa reutilização de parte existente
+        // --- ALTERAÇÃO NO PROCESSAMENTO DAS PARTES ---
+        // Agora iteramos direto sobre o array $data['partes'], sem json_decode
+        if (!empty($data['partes'])) {
+            foreach ($data['partes'] as $parte) {
                 $parteId = $parte['parte_id'] ?? null;
 
+                // 1. Verifica se ID enviado existe mesmo
                 if ($parteId) {
                     $existing = Partes::find($parteId);
                     if (!$existing) {
-                        $parteId = null; // fallback para criar novo se não existir
+                        $parteId = null;
                     }
                 }
 
-                // Tentar localizar por CPF/nome para evitar duplicatas
-                if (!$parteId) {
-                    if (!empty($parte['cpf'])) {
-                        $match = Partes::where('cpf_cnpj', $parte['cpf'])->first();
-                        if ($match) $parteId = $match->id;
-                    }
+                // 2. Busca por CPF se não tiver ID
+                if (!$parteId && !empty($parte['cpf'])) {
+                    $match = Partes::where('cpf_cnpj', $parte['cpf'])->first();
+                    if ($match) $parteId = $match->id;
                 }
+
+                // 3. Busca por Nome se não tiver ID nem CPF achado
                 if (!$parteId && !empty($parte['nome'])) {
                     $match = Partes::where('nome', $parte['nome'])->first();
                     if ($match) $parteId = $match->id;
                 }
 
-                // Criar nova parte se nenhuma correspondência
+                // 4. Cria nova parte se não achou nada
                 if (!$parteId) {
                     $new = Partes::create([
                         'nome' => $parte['nome'] ?? null,
                         'cpf_cnpj' => $parte['cpf'] ?? null,
-                        'tipo_parte' => $parte['tipo_parte'] ?? null,
+                        'tipo_parte' => $parte['tipo_qualificacao'] ?? null,
                     ]);
                     $parteId = $new->id;
                 }
 
-                // Anexar ao processo via pivot com os campos extras
+                // 5. Normaliza os booleanos (Inertia pode mandar string '1'/'0' ou booleano)
+                $ehPrincipal = isset($parte['eh_principal']) && (string)$parte['eh_principal'] === '1' ? 1 : 0;
+                $expediente = isset($parte['expediente']) && (string)$parte['expediente'] === '1' ? 1 : 0;
+
+                // 6. Vincula na tabela pivot
                 $processo->partes()->attach($parteId, [
                     'qualificacao' => $parte['qualificacao'] ?? null,
                     'tipo_qualificacao' => $parte['tipo_qualificacao'] ?? null,
-                    'parte_principal' => (int)($parte['eh_principal'] ?? 0),
+                    'parte_principal' => $ehPrincipal,
+                    'expediente' => $expediente, // se sua pivot tiver essa coluna
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -760,22 +760,22 @@ class ProcessoController extends Controller
         }
 
         $query = Partes::query();
-        
+
         $query->where(function ($q) use ($search) {
             $q->where('nome', 'like', '%' . $search . '%')
-              ->orWhere('cpf_cnpj', 'like', '%' . $search . '%');
+                ->orWhere('cpf_cnpj', 'like', '%' . $search . '%');
         });
 
         $result = $query->limit(15)->get(['id', 'nome', 'cpf_cnpj']);
 
         return response()->json([
-            'data' => $result->map(function($p) {
+            'data' => $result->map(function ($p) {
                 return [
                     'id' => (string) $p->id,
                     'nome' => $p->nome,
                     'cpf' => $p->cpf_cnpj,
-                    'qualificacao' => 'Pessoa Física', 
-                    'tipo_parte' => 'Autor' 
+                    'qualificacao' => 'Pessoa Física',
+                    'tipo_parte' => 'Autor'
                 ];
             })
         ]);
@@ -867,24 +867,24 @@ class ProcessoController extends Controller
         return new ProcessoResource($processo);
     }
     public function buscar(Request $request)
-{
-    $q = trim($request->get('q', ''));
+    {
+        $q = trim($request->get('q', ''));
 
-    if (strlen($q) < 3) {
-        return [];
+        if (strlen($q) < 3) {
+            return [];
+        }
+
+        return Processos::query()
+            ->with('procuradorResponsavel') // relação
+            ->where('cnj', 'like', "%{$q}%")
+            ->orderBy('cnj')
+            ->limit(10)
+            ->get()
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'nome' => $p->cnj,
+                'procurador_responsavel_id' => $p->procurador_responsavel_id,
+                'procurador_responsavel_nome' => $p->procuradorResponsavel?->nome,
+            ]);
     }
-
-    return Processos::query()
-        ->with('procuradorResponsavel') // relação
-        ->where('cnj', 'like', "%{$q}%")
-        ->orderBy('cnj')
-        ->limit(10)
-        ->get()
-        ->map(fn ($p) => [
-            'id' => $p->id,
-            'nome' => $p->cnj,
-            'procurador_responsavel_id' => $p->procurador_responsavel_id,
-            'procurador_responsavel_nome' => $p->procuradorResponsavel?->nome,
-        ]);
-}
 }

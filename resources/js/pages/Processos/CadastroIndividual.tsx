@@ -1,4 +1,3 @@
-// resources/js/Pages/Processos/CadastroIndividual.tsx
 import React, { useState, useMemo, SelectHTMLAttributes, ChangeEvent } from 'react';
 import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
@@ -7,19 +6,35 @@ import AutocompleteSearch from '@/components/autocomplete-search';
 import { Check, Info, UserPlus, Users, ArrowLeft, ArrowRight, Scale, Calculator, ChevronDown, Trash2 } from 'lucide-react';
 import { Errors } from '@inertiajs/core';
 
-// --- Tipos ---
+const INSTANCIAS = [{ id: '1ª', nome: '1ª' }, { id: '2ª', nome: '2ª' }, { id: 'STJ', nome: 'STJ' }, { id: 'STF', nome: 'STF' }];
+const TIPOS_PROCESSO = [{ id: 'Cível', nome: 'Cível' }, { id: 'Trabalhista', nome: 'Trabalhista' }, { id: 'Tributário', nome: 'Tributário' }, { id: 'Administrativo', nome: 'Administrativo' }, { id: 'Outros', nome: 'Outros' }];
+const TIPO_PAGAMENTO_OPTIONS = [{ id: 'precatorio', nome: 'Precatório' }, { id: 'rpv', nome: 'RPV / Outro' }];
+const QUALIFICACOES = [{ id: 'Pessoa Física', nome: 'Pessoa Física' }, { id: 'Pessoa Jurídica', nome: 'Pessoa Jurídica' }, { id: 'Entidade Pública', nome: 'Entidade Pública' }, { id: 'Outro', nome: 'Outro' }];
+const TIPO_QUALIFICACAO = [{ id: 'Autor', nome: 'Autor' }, { id: 'Réu', nome: 'Réu' }, { id: 'Interessado', nome: 'Interessado' }, { id: 'Testemunha', nome: 'Testemunha' }, { id: 'Outro', nome: 'Outro' }];
+const EXPEDIENTE_OPTIONS = [{ id: '1', nome: 'Sim' }, { id: '0', nome: 'Não' }];
+const DIST_TYPES = [{ id: 'manual', nome: 'Manual' }, { id: 'automatica', nome: 'Automática' }, { id: 'equilibrada', nome: 'Equilibrada' }];
+const DIST_MOTIVOS = [{ id: 'rotina', nome: 'Rotina' }, { id: 'urgencia', nome: 'Urgência' }, { id: 'competencia', nome: 'Competência' }, { id: 'sobrecarga', nome: 'Equilíbrio de carga' }];
+
 type Procurador = { id: number; nome: string };
 export type OptionItem = { id: string | number; nome: string };
 
 type ParteItem = {
-  id: string;
+  id: string; 
   nome: string;
   cpf: string;
   qualificacao: string;
   tipo_qualificacao: string;
-  eh_principal: string; // '1' | '0'
-  expediente: string; // '1' | '0'
-  parte_id?: string; // id da parte no banco, quando reutilizada
+  eh_principal: string; 
+  expediente: string;   
+  parte_id?: string;    
+};
+
+type ParteEncontrada = {
+  id: string | number;
+  nome: string;
+  cpf?: string;
+  qualificacao?: string;
+  tipo_parte?: string;
 };
 
 type FormShape = {
@@ -38,7 +53,7 @@ type FormShape = {
   numero_agravo: string;
   numero_suspensao: string;
   numero_protocolo: string;
-  partes_json: string;
+  partes: ParteItem[];
   tipo_distribuicao: string;
   motivo_distribuicao: string;
   procurador_responsavel_id: string;
@@ -46,7 +61,6 @@ type FormShape = {
   referencia_numero_processo?: string;
 };
 
-// --- ESTILOS COMPARTILHADOS (Compactos) ---
 const INPUT_BASE_CLASS = "gpdl-input-contrast w-full px-3 py-2 text-sm rounded-lg border-0 ring-1 ring-[var(--gpdl-border)] focus:ring-2 focus:ring-[var(--brand-500)]";
 const LABEL_BASE_CLASS = "block text-xs font-bold uppercase tracking-wide mb-1 opacity-70";
 
@@ -86,7 +100,6 @@ const CustomSelect = ({ label, value, onChange, options, error, placeholder = "S
   </div>
 );
 
-// Helper function declared outside component to avoid recreation
 const createEmptyParte = (idx: number): ParteItem => ({
   id: `p${Date.now()}-${idx}`,
   nome: '',
@@ -116,26 +129,13 @@ export default function CadastroIndividual({
   const [step, setStep] = useState<number>(0);
   const stepTitles = ['Dados básicos', 'Partes', 'Distribuição'];
 
-  // --- Constantes ---
-  const INSTANCIAS = [{ id: '1ª', nome: '1ª' }, { id: '2ª', nome: '2ª' }, { id: 'STJ', nome: 'STJ' }, { id: 'STF', nome: 'STF' }];
-  const TIPOS_PROCESSO = [{ id: 'Cível', nome: 'Cível' }, { id: 'Trabalhista', nome: 'Trabalhista' }, { id: 'Tributário', nome: 'Tributário' }, { id: 'Administrativo', nome: 'Administrativo' }, { id: 'Outros', nome: 'Outros' }];
-  const TIPO_PAGAMENTO_OPTIONS = [{ id: 'precatorio', nome: 'Precatório' }, { id: 'rpv', nome: 'RPV / Outro' }];
-  const QUALIFICACOES = [{ id: 'Pessoa Física', nome: 'Pessoa Física' }, { id: 'Pessoa Jurídica', nome: 'Pessoa Jurídica' }, { id: 'Entidade Pública', nome: 'Entidade Pública' }, { id: 'Outro', nome: 'Outro' }];
-  const TIPO_QUALIFICACAO = [{ id: 'Autor', nome: 'Autor' }, { id: 'Réu', nome: 'Réu' }, { id: 'Interessado', nome: 'Interessado' }, { id: 'Testemunha', nome: 'Testemunha' }, { id: 'Outro', nome: 'Outro' }];
-  const EXPEDIENTE_OPTIONS = [{ id: '1', nome: 'Sim' }, { id: '0', nome: 'Não' }];
-  const DIST_TYPES = [{ id: 'manual', nome: 'Manual' }, { id: 'automatica', nome: 'Automática' }, { id: 'equilibrada', nome: 'Equilibrada' }];
-  const DIST_MOTIVOS = [{ id: 'rotina', nome: 'Rotina' }, { id: 'urgencia', nome: 'Urgência' }, { id: 'competencia', nome: 'Competência' }, { id: 'sobrecarga', nome: 'Equilíbrio de carga' }];
-
   const { data, setData, post, processing, errors, reset } = useForm<FormShape>({
     instancia: '', tribunal: '', valor_causa: '', numero_processo: '', tipo_processo: '', tipo_pagamento: '',
     acao: '', assunto: '', orgao_origem: '', orgao_julgador: '', juizo_vara: '', numero_juizo_vara: '',
-    numero_agravo: '', numero_suspensao: '', numero_protocolo: '', partes_json: '[]',
+    numero_agravo: '', numero_suspensao: '', numero_protocolo: '',
+    partes: [createEmptyParte(0)],
     tipo_distribuicao: '', motivo_distribuicao: '', procurador_responsavel_id: '', incidencia: '0', referencia_numero_processo: '',
   });
-
-  // Inicialização do estado já com um item vazio para evitar useEffect síncrono
-  const [partes, setPartes] = useState<ParteItem[]>([createEmptyParte(0)]);
-  const [partesCache, setPartesCache] = useState<Record<string, any>>({});
 
   function getErrorByPath(path: string): string | undefined {
     const errs: Errors | undefined = errors;
@@ -155,28 +155,37 @@ export default function CadastroIndividual({
     return String(setorSelecionado);
   }, [setorSelecionado, setores]);
 
-  function addParte() { setPartes((p) => [...p, createEmptyParte(p.length)]); }
-  function removeParte(id: string) { if (partes.length <= 1) return; setPartes((p) => p.filter((x) => x.id !== id)); }
-  function updateParte(id: string, field: keyof ParteItem, value: string) { setPartes((p) => p.map((x) => (x.id === id ? { ...x, [field]: value } : x))); }
+  function addParte() {
+    setData('partes', [...data.partes, createEmptyParte(data.partes.length)]);
+  }
 
-  function syncPartesToForm() {
-    setData('partes_json', JSON.stringify(partes.map((p) => ({ ...p, parte_id: p.parte_id || null, eh_principal: p.eh_principal === '1' ? 1 : 0, expediente: p.expediente === '1' ? 1 : 0 }))));
+  function removeParte(idToRemove: string) {
+    if (data.partes.length <= 1) return;
+    setData('partes', data.partes.filter((p) => p.id !== idToRemove));
+  }
+
+  function updateParte(idToUpdate: string, field: keyof ParteItem, value: string) {
+    setData('partes', data.partes.map((p) => (p.id === idToUpdate ? { ...p, [field]: value } : p)));
   }
 
   function canProceedFromStep(current: number): boolean {
     if (current === 0) return Boolean(data.assunto || data.numero_processo);
-    if (current === 1) return partes && partes.length > 0 && partes.some((p) => p.nome && p.nome.trim() !== '');
+    if (current === 1) {
+      return data.partes.length > 0 && data.partes.every((p) => p.nome && p.nome.trim() !== '');
+    }
     return true;
   }
 
   function next() {
     if (!canProceedFromStep(step)) return;
-    if (step === 1) syncPartesToForm();
     setStep((s) => Math.min(2, s + 1));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function prev() { setStep((s) => Math.max(0, s - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function prev() {
+    setStep((s) => Math.max(0, s - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   function formatCNJInput(raw?: string) {
     if (!raw) return '';
@@ -192,8 +201,6 @@ export default function CadastroIndividual({
 
   function handleNumeroProcessoChange(e: ChangeEvent<HTMLInputElement>) { setData('numero_processo', formatCNJInput(e.target.value)); }
   function handleNumeroProcessoPaste(e: React.ClipboardEvent<HTMLInputElement>) { e.preventDefault(); setData('numero_processo', formatCNJInput(e.clipboardData.getData('text'))); }
-  function handleReferenciaChange(e: ChangeEvent<HTMLInputElement>) { setData('referencia_numero_processo', formatCNJInput(e.target.value)); }
-  function handleReferenciaPaste(e: React.ClipboardEvent<HTMLInputElement>) { e.preventDefault(); setData('referencia_numero_processo', formatCNJInput(e.clipboardData.getData('text'))); }
 
   function formatCPFInput(raw?: string) {
     if (!raw) return '';
@@ -202,16 +209,19 @@ export default function CadastroIndividual({
   }
 
   function handleParteCPFChange(id: string, value: string) {
-    const formatted = formatCPFInput(value);
-    updateParte(id, 'cpf', formatted);
+    updateParte(id, 'cpf', formatCPFInput(value));
   }
 
   function handleFinalSubmit(e: React.FormEvent) {
     e.preventDefault();
-    syncPartesToForm();
-    setData('tipo_pagamento', String(data.tipo_pagamento));
-    setData('valor_causa', String(data.valor_causa || ''));
-    post('/processos', { preserveScroll: true, onSuccess: () => { setStep(0); reset(); router.get('/processos/cadastro', {}, { replace: true }); } });
+    post('/processos', {
+      preserveScroll: true,
+      onSuccess: () => {
+        setStep(0);
+        reset();
+        router.get('/processos/cadastro', {}, { replace: true });
+      }
+    });
   }
 
   function StepDot({ i }: { i: number }) {
@@ -238,10 +248,7 @@ export default function CadastroIndividual({
     <GPDLLayout breadcrumbs={[{ title: 'Processos', href: '/processos' }, { title: 'Cadastro', href: '/processos/cadastro' }]}>
       <Head title="Cadastro" />
 
-      {/* Full Width Layout: w-full e px-6 para ocupar a tela toda */}
       <div className="mt-4 pb-8 w-full px-6">
-
-        {/* Header Compacto */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-strong)' }}>Cadastrar processo</h1>
@@ -252,16 +259,11 @@ export default function CadastroIndividual({
               </div>
             )}
           </div>
-          <Link
-            href="/processos?view=cadastro"
-            className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium hover:shadow-sm"
-            style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-card)', color: 'var(--text-strong)' }}
-          >
+          <Link href="/processos?view=cadastro" className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium hover:shadow-sm" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-card)', color: 'var(--text-strong)' }}>
             <ArrowLeft className="h-3.5 w-3.5" /> Voltar
           </Link>
         </div>
 
-        {/* Stepper Compacto */}
         <div className="mb-8 relative mx-4 md:mx-0">
           <div className="absolute top-4 left-0 w-full h-0.5 rounded-full opacity-30" style={{ background: 'var(--gpdl-border)' }} />
           <div className="absolute top-4 left-0 h-0.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${(step / 2) * 100}%`, backgroundColor: 'var(--brand-600)' }} />
@@ -272,33 +274,28 @@ export default function CadastroIndividual({
 
         <form onSubmit={handleFinalSubmit} className="space-y-6">
 
-          {/* STEP 1 */}
+          {/* STEP 1: DADOS BÁSICOS */}
           {step === 0 && (
             <section className="gpdl-card p-6 animate-fadeIn">
               <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}>
                 <div className={iconBoxClass} style={{ backgroundColor: 'var(--brand-600)' }}><Scale className="h-5 w-5" /></div>
-                <div>
-                  <h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Dados básicos</h3>
-                </div>
+                <h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Dados básicos</h3>
               </div>
 
-              {/* Grid Denso */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                 <div className="md:col-span-2">
                   <CustomSelect label="Instância" value={data.instancia} onChange={(e) => setData('instancia', e.target.value)} options={INSTANCIAS} error={getErrorByPath('instancia')} placeholder="-" />
                 </div>
                 <div className="md:col-span-7">
                   <Label>Tribunal</Label>
-                  <div className="w-full">
-                    <AutocompleteSearch
-                      placeholder="Buscar tribunal..."
-                      value={data.tribunal}
-                      onChange={(value) => setData('tribunal', String(value))}
-                      onSearch={async (query) => { try { const r = await fetch(`/api/tribunais?search=${encodeURIComponent(query)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }}
-                      options={tribunais}
-                      error={getErrorByPath('tribunal')}
-                    />
-                  </div>
+                  <AutocompleteSearch
+                    placeholder="Buscar tribunal..."
+                    value={data.tribunal}
+                    onChange={(value) => setData('tribunal', String(value))}
+                    onSearch={async (query) => { try { const r = await fetch(`/api/tribunais?search=${encodeURIComponent(query)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }}
+                    options={tribunais}
+                    error={getErrorByPath('tribunal')}
+                  />
                 </div>
                 <div className="md:col-span-3">
                   <Label>Valor da causa</Label>
@@ -324,21 +321,17 @@ export default function CadastroIndividual({
                 <div><CustomSelect label="Tipo de pagamento" placeholder="Indeterminado" value={data.tipo_pagamento} onChange={(e) => setData('tipo_pagamento', e.target.value)} options={TIPO_PAGAMENTO_OPTIONS} /></div>
                 <div>
                   <Label>Ação</Label>
-                  <div className="w-full">
-                    <AutocompleteSearch placeholder="Buscar ação..." value={data.acao} onChange={(val) => setData('acao', String(val))} onSearch={async (q) => { try { const r = await fetch(`/api/acoes?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={acoes} error={getErrorByPath('acao')} />
-                  </div>
+                  <AutocompleteSearch placeholder="Buscar ação..." value={data.acao} onChange={(val) => setData('acao', String(val))} onSearch={async (q) => { try { const r = await fetch(`/api/acoes?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={acoes} error={getErrorByPath('acao')} />
                 </div>
                 <div>
                   <Label>Assunto</Label>
-                  <div className="w-full">
-                    <AutocompleteSearch placeholder="Buscar assunto..." value={data.assunto} onChange={(val) => setData('assunto', String(val))} onSearch={async (q) => { try { const r = await fetch(`/api/assuntos?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={[]} error={getErrorByPath('assunto')} />
-                  </div>
+                  <AutocompleteSearch placeholder="Buscar assunto..." value={data.assunto} onChange={(val) => setData('assunto', String(val))} onSearch={async (q) => { try { const r = await fetch(`/api/assuntos?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={[]} error={getErrorByPath('assunto')} />
                 </div>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div><Label>Órgão de origem</Label><div className="w-full"><AutocompleteSearch placeholder="Buscar..." value={data.orgao_origem} onChange={(v) => setData('orgao_origem', String(v))} onSearch={async (q) => { try { const r = await fetch(`/api/orgao-origem?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={[]} /></div></div>
-                <div><Label>Órgão julgador</Label><div className="w-full"><AutocompleteSearch placeholder="Buscar..." value={data.orgao_julgador} onChange={(v) => setData('orgao_julgador', String(v))} onSearch={async (q) => { try { const r = await fetch(`/api/orgao-julgador?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={[]} /></div></div>
+                <div><Label>Órgão de origem</Label><AutocompleteSearch placeholder="Buscar..." value={data.orgao_origem} onChange={(v) => setData('orgao_origem', String(v))} onSearch={async (q) => { try { const r = await fetch(`/api/orgao-origem?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={[]} /></div>
+                <div><Label>Órgão julgador</Label><AutocompleteSearch placeholder="Buscar..." value={data.orgao_julgador} onChange={(v) => setData('orgao_julgador', String(v))} onSearch={async (q) => { try { const r = await fetch(`/api/orgao-julgador?search=${encodeURIComponent(q)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; } }} options={[]} /></div>
               </div>
 
               <div className="mt-6 p-4 rounded-xl border bg-opacity-50" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-muted)' }}>
@@ -360,7 +353,7 @@ export default function CadastroIndividual({
                 {data.incidencia === '1' && (
                   <div className="mt-3 pl-4 border-l-4 ml-2" style={{ borderColor: 'var(--brand-600)' }}>
                     <Label>Número CNJ Referenciado</Label>
-                    <input className={`${INPUT_BASE_CLASS} font-mono max-w-sm`} value={data.referencia_numero_processo} onChange={handleReferenciaChange} onPaste={handleReferenciaPaste} placeholder="0000000-00.0000.0.00.0000" />
+                    <input className={`${INPUT_BASE_CLASS} font-mono max-w-sm`} value={data.referencia_numero_processo} onChange={(e) => setData('referencia_numero_processo', formatCNJInput(e.target.value))} placeholder="0000000-00.0000.0.00.0000" />
                   </div>
                 )}
               </div>
@@ -373,7 +366,7 @@ export default function CadastroIndividual({
             </section>
           )}
 
-          {/* STEP 2 */}
+          {/* STEP 2: PARTES - AGORA COM CAMPO UNIFICADO */}
           {step === 1 && (
             <section className="gpdl-card p-6 animate-fadeIn">
               <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}>
@@ -381,40 +374,73 @@ export default function CadastroIndividual({
                 <h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Partes envolvidas</h3>
               </div>
               <div className="space-y-4">
-                {partes.map((par, idx) => (
+                {data.partes.map((par, idx) => (
                   <div key={par.id} className="rounded-xl border p-4 relative hover:shadow-sm transition-shadow" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)' }}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                       <div className="md:col-span-4">
                         <Label>Nome</Label>
-                        <input className={INPUT_BASE_CLASS} value={par.nome} onChange={(e) => { updateParte(par.id, 'nome', e.target.value); updateParte(par.id, 'parte_id', ''); }} />
-                        <InputError message={getErrorByPath(`partes.${idx}.nome`) || getErrorByPath(`partes_json.${idx}.nome`)} className="mt-1" />
+                        <AutocompleteSearch
+                          placeholder="Digite o nome ou busque..."
+                          value={par.nome}
 
-                        <div className="mt-2">
-                          <AutocompleteSearch
-                            placeholder="Reutilizar parte existente (busca)"
-                            value={par.parte_id || null}
-                            onChange={() => { /* handled in onSelectOption */ }}
-                            onSelectOption={(opt: any) => {
-                              if (!opt) return;
-                              updateParte(par.id, 'nome', opt.nome || '');
-                              updateParte(par.id, 'cpf', opt.cpf || '');
-                              updateParte(par.id, 'qualificacao', opt.qualificacao || 'Pessoa Física');
-                              updateParte(par.id, 'tipo_qualificacao', opt.tipo_parte || 'Autor');
-                              updateParte(par.id, 'parte_id', String(opt.id));
-                            }}
-                            onSearch={async (q: string) => {
-                              try {
-                                if ((q || '').trim().length < 3) return [];
-                                const res = await fetch(`/api/partes-existentes?search=${encodeURIComponent(q)}`);
-                                if (!res.ok) return [];
-                                const json = await res.json();
-                                const dados = json.data || [];
-                                return (dados || []).map((d: any) => ({ id: String(d.id), nome: d.nome, cpf: d.cpf, tipo_parte: d.tipo_parte, qualificacao: d.qualificacao || 'Pessoa Física' }));
-                              } catch (e) { return []; }
-                            }}
-                            options={[]}
-                          />
-                        </div>
+                          // ATIVA O MODO DE CRIAÇÃO (COMBOBOX)
+                          allowCreate={true}
+
+                          onChange={(novoTexto) => {
+                            updateParte(par.id, 'nome', String(novoTexto));
+                            updateParte(par.id, 'parte_id', '');
+                          }}
+                          onSelectOption={(opt: ParteEncontrada | null) => {
+                            if (!opt) return;
+                            const novasPartes = data.partes.map((p) => {
+                              if (p.id === par.id) {
+                                return {
+                                  ...p,
+                                  nome: opt.nome || '',
+                                  cpf: opt.cpf ? formatCPFInput(opt.cpf) : '',
+                                  qualificacao: opt.qualificacao || 'Pessoa Física',
+                                  tipo_qualificacao: opt.tipo_parte || 'Autor',
+                                  parte_id: String(opt.id)
+                                };
+                              }
+                              return p;
+                            });
+                            setData('partes', novasPartes);
+                          }}
+
+                          onSearch={async (q: string): Promise<ParteEncontrada[]> => {
+                            try {
+                              if ((q || '').trim().length < 3) return [];
+
+                              const res = await fetch(`/api/partes-existentes?search=${encodeURIComponent(q)}`);
+                              if (!res.ok) return [];
+
+                              const json = await res.json();
+                              const dados = (json.data || []) as Array<{
+                                id: string | number;
+                                nome: string;
+                                cpf?: string;
+                                cpf_cnpj?: string;
+                                tipo_parte?: string;
+                                qualificacao?: string;
+                              }>;
+
+                              return dados.map((d) => ({
+                                id: String(d.id),
+                                nome: d.nome,
+                                cpf: d.cpf || d.cpf_cnpj || '',
+                                tipo_parte: d.tipo_parte,
+                                qualificacao: d.qualificacao || 'Pessoa Física'
+                              }));
+
+                            } catch (e) {
+                              console.error(e);
+                              return [];
+                            }
+                          }}
+                          options={[]}
+                          error={getErrorByPath(`partes.${idx}.nome`)}
+                        />
                       </div>
                       <div className="md:col-span-3"><Label>CPF/CNPJ</Label><input className={`${INPUT_BASE_CLASS} font-mono`} value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" /></div>
                       <div className="md:col-span-3"><CustomSelect label="Qualificação" value={par.qualificacao} onChange={(e) => updateParte(par.id, 'qualificacao', e.target.value)} options={QUALIFICACOES} /></div>
@@ -426,7 +452,7 @@ export default function CadastroIndividual({
                           <CustomSelect label="Expediente?" value={par.expediente} onChange={(e) => updateParte(par.id, 'expediente', e.target.value)} options={EXPEDIENTE_OPTIONS} />
                         </div>
                         <div className="ml-auto">
-                          <button type="button" onClick={() => removeParte(par.id)} disabled={partes.length <= 1} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-30 text-xs font-bold uppercase"><Trash2 className="h-3.5 w-3.5" /> Remover</button>
+                          <button type="button" onClick={() => removeParte(par.id)} disabled={data.partes.length <= 1} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-30 text-xs font-bold uppercase"><Trash2 className="h-3.5 w-3.5" /> Remover</button>
                         </div>
                       </div>
                     </div>
@@ -437,13 +463,13 @@ export default function CadastroIndividual({
                 <button type="button" onClick={addParte} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold hover:brightness-110" style={{ color: 'var(--brand-700)', backgroundColor: 'var(--accent-info-soft)', border: '1px solid var(--accent-info-border)' }}><UserPlus className="h-4 w-4" /> Adicionar parte</button>
                 <div className="flex gap-3">
                   <button type="button" onClick={prev} className="px-5 py-2 rounded-lg border text-sm font-medium hover:shadow-sm" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-muted)', color: 'var(--text-strong)' }}>Voltar</button>
-                  <button type="button" onClick={() => { syncPartesToForm(); next(); }} disabled={!canProceedFromStep(1)} className={`btn-gradient rounded-lg px-6 py-2 text-sm font-semibold text-white shadow-md ${!canProceedFromStep(1) ? 'opacity-50' : ''}`}>Próximo <ArrowRight className="h-4 w-4 inline-block ml-1" /></button>
+                  <button type="button" onClick={next} disabled={!canProceedFromStep(1)} className={`btn-gradient rounded-lg px-6 py-2 text-sm font-semibold text-white shadow-md ${!canProceedFromStep(1) ? 'opacity-50' : ''}`}>Próximo <ArrowRight className="h-4 w-4 inline-block ml-1" /></button>
                 </div>
               </div>
             </section>
           )}
 
-          {/* STEP 3 */}
+          {/* STEP 3: DISTRIBUIÇÃO */}
           {step === 2 && (
             <section className="gpdl-card p-6 animate-fadeIn">
               <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}>
@@ -457,14 +483,14 @@ export default function CadastroIndividual({
               <div className="mt-5">
                 <Label>Procurador</Label>
                 <div className="w-full">
-                  <AutocompleteSearch placeholder="Selecione um procurador" 
-                  value={data.procurador_responsavel_id} 
-                  onChange={(val) => setData('procurador_responsavel_id', String(val))} 
-                  onSearch={async (q) => { try { return procuradores.filter(p => 
-                  p.nome.toLowerCase().includes(q.toLowerCase())).map(p => 
-                  ({ id: String(p.id), nome: p.nome })); } catch { return []; } }} 
-                  options={procuradores.map(p => ({ id: String(p.id), nome: p.nome }))} 
-                  error={getErrorByPath('procurador_responsavel_id')} />
+                  <AutocompleteSearch
+                    placeholder="Selecione um procurador"
+                    value={data.procurador_responsavel_id}
+                    onChange={(val) => setData('procurador_responsavel_id', String(val))}
+                    onSearch={async (q) => { try { return procuradores.filter(p => p.nome.toLowerCase().includes(q.toLowerCase())).map(p => ({ id: String(p.id), nome: p.nome })); } catch { return []; } }}
+                    options={procuradores.map(p => ({ id: String(p.id), nome: p.nome }))}
+                    error={getErrorByPath('procurador_responsavel_id')}
+                  />
                 </div>
               </div>
               <div className="mt-8 flex justify-between border-t pt-5" style={{ borderColor: 'var(--gpdl-border)' }}>
