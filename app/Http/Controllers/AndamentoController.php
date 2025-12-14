@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\AndamentoRequest;
 use App\Models\Andamento;
 use App\Models\Processos;
 use App\Models\User;
@@ -13,8 +15,9 @@ class AndamentoController extends Controller
 {
     private int $cargo_procurador = 3;
     private int $cargo_assessor = 4;
+
     /**
-     * Lista de andamentos (opcionalmente filtrada)
+     * Lista de andamentos
      */
     public function index(Request $request)
     {
@@ -35,71 +38,46 @@ class AndamentoController extends Controller
     }
 
     /**
-     * Tela de cadastro de andamento (genérica ou contextual)
+     * Tela de cadastro
      */
     public function create()
     {
         return Inertia::render('Andamentos/Cadastro', [
-    'procuradores' => User::where('cargo_id', $this->cargo_procurador)
-        ->get()
-        ->map(fn ($u) => [
-            'id' => (string) $u->id,
-            'nome' => $u->nome,
-        ]),
+            'procuradores' => User::where('cargo_id', $this->cargo_procurador)
+                ->get(['id', 'nome']) // Otimização: Select direto
+                ->map(fn ($u) => ['id' => (string) $u->id, 'nome' => $u->nome]),
 
-    'assessores' => User::where('cargo_id', $this->cargo_assessor)
-        ->get()
-        ->map(fn ($u) => [
-            'id' => (string) $u->id,
-            'nome' => $u->nome,
-        ]),
-]);
+            'assessores' => User::where('cargo_id', $this->cargo_assessor)
+                ->get(['id', 'nome'])
+                ->map(fn ($u) => ['id' => (string) $u->id, 'nome' => $u->nome]),
+        ]);
     }
 
     /**
      * Persistência do andamento
      */
-    public function store(Request $request)
+    public function store(AndamentoRequest $request)
     {
+        // Pega os dados validados
+        $data = $request->validated();
 
-        $validated = $request->validate([
-            'processo_id' => 'required|exists:processos2,id',
-            'descricao' => 'required|string|max:5000',
-            'tipo_andamento' => 'nullable|string|max:255',
-            'tipo_movimentacao' => 'nullable|string|max:255',
-            'data_andamento' => 'nullable|date',
-            'data_prazo' => 'nullable|date|after_or_equal:data_andamento',
-            'data_ciencia' => 'nullable|date',
-            'status' => 'required|in:aberto,concluido,cancelado',
-            'procurador_andamento_id' => 'nullable|exists:usuarios,id',
-            'assessor_andamento_id' => 'nullable|exists:usuarios,id',
-        ]);
+        // Adiciona dados automáticos que não vieram do form
+        $data['usuario_cadastro_id'] = Auth::id();
+        
+        // Se data_andamento não vier (embora o Request possa forçar), usa now
+        if (empty($data['data_andamento'])) {
+            $data['data_andamento'] = now();
+        }
 
-        $validated['usuario_cadastro_id'] = Auth::id();
-
-        $dataAndamento = $validated['data_andamento'] ?? now();
-
-        Andamento::create([
-            'processo_id' => $validated['processo_id'],
-            'descricao' => $validated['descricao'],
-            'tipo_andamento' => $validated['tipo_andamento'] ?? null,
-            'tipo_movimentacao' => $validated['tipo_movimentacao'] ?? null,
-            'data_andamento' => $dataAndamento,
-            'data_prazo' => $validated['data_prazo'] ?? null,
-            'data_ciencia' => $validated['data_ciencia'] ?? null,
-            'status' => $validated['status'],
-            'procurador_andamento_id' => $validated['procurador_andamento_id'] ?? null,
-            'assessor_andamento_id' => $validated['assessor_andamento_id'] ?? null,
-            'usuario_cadastro_id' => $validated['usuario_cadastro_id'],
-        ]);
+        Andamento::create($data);
 
         return redirect()
-            ->route('andamentos.cadastro')
+            ->route('andamentos.cadastro') // Ou 'andamentos.index'
             ->with('success', 'Andamento cadastrado com sucesso');
     }
 
     /**
-     * Visualização detalhada do andamento
+     * Visualização detalhada
      */
     public function show(Andamento $andamento)
     {
@@ -123,29 +101,18 @@ class AndamentoController extends Controller
         return Inertia::render('Andamentos/Edit', [
             'andamento' => $andamento,
             'processos' => Processos::select('id', 'numero_processo as nome')->get(),
-            'procuradores' => User::where('tipo', 'procurador')->select('id', 'name as nome')->get(),
-            'assessores' => User::where('tipo', 'assessor')->select('id', 'name as nome')->get(),
+            'procuradores' => User::where('cargo_id', $this->cargo_procurador)->select('id', 'name as nome')->get(),
+            'assessores' => User::where('cargo_id', $this->cargo_assessor)->select('id', 'name as nome')->get(),
         ]);
     }
 
     /**
      * Atualização
      */
-    public function update(Request $request, Andamento $andamento)
+    public function update(AndamentoRequest $request, Andamento $andamento)
     {
-        $validated = $request->validate([
-            'descricao' => 'required|string|max:5000',
-            'tipo_andamento' => 'nullable|string|max:255',
-            'tipo_movimentacao' => 'nullable|string|max:255',
-            'data_andamento' => 'required|date',
-            'data_prazo' => 'nullable|date|after_or_equal:data_andamento',
-            'data_ciencia' => 'nullable|date',
-            'status' => 'required|in:aberto,concluido,cancelado',
-            'procurador_andamento_id' => 'nullable|exists:usuarios,id',
-            'assessor_andamento_id' => 'nullable|exists:usuarios,id',
-        ]);
 
-        $andamento->update($validated);
+        $andamento->update($request->validated());
 
         return redirect()
             ->route('andamentos.show', $andamento)
@@ -153,7 +120,7 @@ class AndamentoController extends Controller
     }
 
     /**
-     * Exclusão (se permitido)
+     * Exclusão
      */
     public function destroy(Andamento $andamento)
     {

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetorRequest;
 use App\Models\Setor;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SetorController extends Controller

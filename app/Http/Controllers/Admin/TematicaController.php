@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\TematicaRequest; // crie esse FormRequest com validação para 'nome' e 'tipo'
+use App\Http\Requests\TematicaRequest; 
 use App\Models\Tematicas;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SolicitacaoRequest; // Importação correta
+use App\Http\Requests\SolicitacaoRequest; 
 use App\Models\Solicitacao;
 use App\Models\User;
 use App\Models\Cargo;
