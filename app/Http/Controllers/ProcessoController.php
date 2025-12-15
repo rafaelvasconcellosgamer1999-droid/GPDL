@@ -358,7 +358,6 @@ class ProcessoController extends Controller
                     $new = Partes::create([
                         'nome' => $parte['nome'] ?? null,
                         'cpf_cnpj' => $parte['cpf'] ?? null,
-                        'tipo_parte' => $parte['tipo_qualificacao'] ?? null,
                     ]);
                     $parteId = $new->id;
                 }
