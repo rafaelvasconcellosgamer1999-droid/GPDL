@@ -3,7 +3,7 @@ import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import AutocompleteSearch from '@/components/autocomplete-search';
-import { Check, Info, UserPlus, Users, ArrowRight, Scale, Calculator, ChevronDown, Trash2, Pencil } from 'lucide-react';
+import { Check, Info, UserPlus, Users, ArrowRight, Scale, Calculator, ChevronDown, Trash2, Pencil, Search, X, Loader2 } from 'lucide-react'; // <-- IMPORTAÇÃO CORRIGIDA
 
 // --- Interfaces de Tipagem ---
 type Procurador = { id: number; nome: string };
@@ -63,14 +63,14 @@ interface ProcessoEditData {
 }
 
 type ParteItem = {
-  id: string; 
+  id: string;
   nome: string;
   cpf: string;
   qualificacao: string;
   tipo_qualificacao: string;
-  eh_principal: string; 
-  expediente: string;   
-  parte_id?: string;    
+  eh_principal: string;
+  expediente: string;
+  parte_id?: string;
 };
 
 type ParteEncontrada = {
@@ -90,7 +90,7 @@ type SelectedItemsMap = {
 };
 
 type FormShape = {
-  area_atuacao: string; 
+  area_atuacao: string;
   instancia: string;
   tribunal: string;
   valor_causa: string;
@@ -110,7 +110,7 @@ type FormShape = {
   tipo_distribuicao: string;
   motivo_distribuicao: string;
   procurador_responsavel_id: string;
-  incidencia?: string; 
+  incidencia?: string;
   referencia_numero_processo?: string;
 };
 
@@ -183,7 +183,7 @@ const createEmptyParte = (idx: number): ParteItem => ({
 
 export default function CadastroIndividual({
   procuradores = [],
-  setorSelecionado = '', 
+  setorSelecionado = '',
   processo = undefined
 }: {
   procuradores?: Procurador[];
@@ -193,16 +193,18 @@ export default function CadastroIndividual({
   const isEditMode = !!processo;
   const [step, setStep] = useState<number>(0);
   const stepTitles = ['Dados básicos', 'Partes', 'Distribuição'];
+  // ESTADO PARA CONTROLAR A VISIBILIDADE DA BUSCA
+  const [isSearchOpen, setIsSearchOpen] = useState<Record<string, boolean>>({});
 
   const [selectedItems, setSelectedItems] = useState<SelectedItemsMap>(() => {
     if (processo) {
-        return {
-            tribunal: processo.tribunal ? { id: processo.tribunal.id, nome: processo.tribunal.nome } : undefined,
-            acao: processo.acao ? { id: processo.acao.id, nome: processo.acao.nome } : undefined,
-            assunto: processo.assunto ? { id: processo.assunto.id, nome: processo.assunto.nome } : undefined,
-            orgao_origem: processo.orgao_origem ? { id: processo.orgao_origem.id, nome: processo.orgao_origem.nome } : undefined,
-            orgao_julgador: processo.orgao_julgador ? { id: processo.orgao_julgador.id, nome: processo.orgao_julgador.nome } : undefined,
-        };
+      return {
+        tribunal: processo.tribunal ? { id: processo.tribunal.id, nome: processo.tribunal.nome } : undefined,
+        acao: processo.acao ? { id: processo.acao.id, nome: processo.acao.nome } : undefined,
+        assunto: processo.assunto ? { id: processo.assunto.id, nome: processo.assunto.nome } : undefined,
+        orgao_origem: processo.orgao_origem ? { id: processo.orgao_origem.id, nome: processo.orgao_origem.nome } : undefined,
+        orgao_julgador: processo.orgao_julgador ? { id: processo.orgao_julgador.id, nome: processo.orgao_julgador.nome } : undefined,
+      };
     }
     return {};
   });
@@ -223,30 +225,30 @@ export default function CadastroIndividual({
     assunto: processo?.assunto_id ? String(processo.assunto_id) : '',
     orgao_origem: processo?.orgao_origem_id ? String(processo.orgao_origem_id) : '',
     orgao_julgador: processo?.orgao_julgador_id ? String(processo.orgao_julgador_id) : '',
-    juizo_vara: '', 
+    juizo_vara: '',
     numero_juizo_vara: '',
     numero_agravo: processo?.numero_agravo || '',
     numero_suspensao: processo?.numero_suspensao || '',
     numero_protocolo: processo?.numero_protocolo || '',
-    
-    partes: (processo?.partes && processo.partes.length > 0) 
+
+    partes: (processo?.partes && processo.partes.length > 0)
       ? processo.partes.map((p, idx) => ({
-          id: `db_${p.id}_${idx}`,
-          nome: p.nome,
-          cpf: p.cpf_cnpj || '',
-          qualificacao: p.pivot?.qualificacao || 'Pessoa Física',
-          tipo_qualificacao: p.pivot?.tipo_qualificacao || 'Autor',
-          eh_principal: p.pivot?.parte_principal ? '1' : '0',
-          expediente: p.pivot?.expediente ? '1' : '0',
-          parte_id: String(p.id)
-        }))
+        id: `db_${p.id}_${idx}`,
+        nome: p.nome,
+        cpf: p.cpf_cnpj || '',
+        qualificacao: p.pivot?.qualificacao || 'Pessoa Física',
+        tipo_qualificacao: p.pivot?.tipo_qualificacao || 'Autor',
+        eh_principal: p.pivot?.parte_principal ? '1' : '0',
+        expediente: p.pivot?.expediente ? '1' : '0',
+        parte_id: String(p.id)
+      }))
       : [createEmptyParte(0)],
 
     tipo_distribuicao: processo?.tipo_distribuicao || '',
     motivo_distribuicao: processo?.motivo_distribuicao || '',
     procurador_responsavel_id: processo?.procurador_responsavel_id ? String(processo.procurador_responsavel_id) : '',
     incidencia: processo?.processo_ref_id ? '1' : '0',
-    referencia_numero_processo: '' 
+    referencia_numero_processo: ''
   });
 
   const searchTribunais = useCallback(async (query: string) => {
@@ -269,6 +271,7 @@ export default function CadastroIndividual({
     try { const r = await fetch(`/api/orgao-julgador?search=${encodeURIComponent(query)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; }
   }, []);
 
+  // Busca Assíncrona para o Autocomplete de Partes (Reutilizada)
   const searchPartes = useCallback(async (q: string) => {
     try {
       if ((q || '').trim().length < 3) return [];
@@ -296,15 +299,25 @@ export default function CadastroIndividual({
     router.post('/processos/set-setor', { setor: novoValor }, { preserveState: true, preserveScroll: true });
   };
 
-  function getErrorByPath(path: string): string | undefined { 
+  function getErrorByPath(path: string): string | undefined {
     const errs = errors as Record<string, string | undefined>;
     return errs[path];
   }
 
   function addParte() { setData('partes', [...data.partes, createEmptyParte(data.partes.length)]); }
   function removeParte(idToRemove: string) { if (data.partes.length <= 1) return; setData('partes', data.partes.filter((p) => p.id !== idToRemove)); }
-  function updateParte(idToUpdate: string, field: keyof ParteItem, value: string) { setData('partes', data.partes.map((p) => (p.id === idToUpdate ? { ...p, [field]: value } : p))); }
-  
+
+  // FUNÇÃO REFATORADA: Aceita um objeto de atualizações para manipulações complexas (Partes)
+  function updateParte(idToUpdate: string, updates: Partial<ParteItem> | keyof ParteItem, value?: string) {
+    if (typeof updates === 'string' && value !== undefined) {
+      // Caso de uso antigo: updateParte(id, 'campo', 'valor')
+      setData('partes', data.partes.map((p) => (p.id === idToUpdate ? { ...p, [updates]: value } : p)));
+    } else if (typeof updates === 'object') {
+      // Caso de uso novo: updateParte(id, { campo: valor, outroCampo: outroValor })
+      setData('partes', data.partes.map((p) => (p.id === idToUpdate ? { ...p, ...updates } : p)));
+    }
+  }
+
   function canProceedFromStep(current: number): boolean {
     if (current === 0) return Boolean((data.assunto || data.numero_processo) && data.area_atuacao);
     if (current === 1) return data.partes.length > 0 && data.partes.every((p) => p.nome && p.nome.trim() !== '');
@@ -331,7 +344,8 @@ export default function CadastroIndividual({
     return d.length <= 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
   }
 
-  function handleParteCPFChange(id: string, value: string) { updateParte(id, 'cpf', formatCPFInput(value)); }
+  // Usa a nova função updateParte para CPF
+  function handleParteCPFChange(id: string, value: string) { updateParte(id, { cpf: formatCPFInput(value) }); }
 
   function handleFinalSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -396,8 +410,8 @@ export default function CadastroIndividual({
                     options={selectedItems.tribunal ? [selectedItems.tribunal] : EMPTY_OPTIONS}
                     onSearch={searchTribunais}
                     onSelectOption={(item) => {
-                        if(item) setSelectedItems(prev => ({...prev, tribunal: item as OptionItem}));
-                        setData('tribunal', item ? String(item.id) : '');
+                      if (item) setSelectedItems(prev => ({ ...prev, tribunal: item as OptionItem }));
+                      setData('tribunal', item ? String(item.id) : '');
                     }}
                     error={getErrorByPath('tribunal')}
                   />
@@ -414,64 +428,64 @@ export default function CadastroIndividual({
                 <div><CustomSelect label="Tipo de pagamento" placeholder="Indeterminado" value={data.tipo_pagamento} onChange={(e) => setData('tipo_pagamento', e.target.value)} options={TIPO_PAGAMENTO_OPTIONS} /></div>
                 <div>
                   <Label>Ação</Label>
-                  <AutocompleteSearch 
-                    placeholder="Buscar ação..." 
+                  <AutocompleteSearch
+                    placeholder="Buscar ação..."
                     value={data.acao}
                     onChange={(v) => setData('acao', String(v))}
                     options={selectedItems.acao ? [selectedItems.acao] : EMPTY_OPTIONS}
                     onSearch={searchAcoes}
                     onSelectOption={(item) => {
-                        if(item) setSelectedItems(prev => ({...prev, acao: item as OptionItem}));
-                        setData('acao', item ? String(item.id) : '');
+                      if (item) setSelectedItems(prev => ({ ...prev, acao: item as OptionItem }));
+                      setData('acao', item ? String(item.id) : '');
                     }}
-                    error={getErrorByPath('acao')} 
+                    error={getErrorByPath('acao')}
                   />
                 </div>
                 <div>
                   <Label>Assunto</Label>
-                  <AutocompleteSearch 
-                    placeholder="Buscar assunto..." 
-                    value={data.assunto} 
+                  <AutocompleteSearch
+                    placeholder="Buscar assunto..."
+                    value={data.assunto}
                     onChange={(v) => setData('assunto', String(v))}
                     options={selectedItems.assunto ? [selectedItems.assunto] : EMPTY_OPTIONS}
-                    onSearch={searchAssuntos} 
+                    onSearch={searchAssuntos}
                     onSelectOption={(item) => {
-                        if(item) setSelectedItems(prev => ({...prev, assunto: item as OptionItem}));
-                        setData('assunto', item ? String(item.id) : '');
+                      if (item) setSelectedItems(prev => ({ ...prev, assunto: item as OptionItem }));
+                      setData('assunto', item ? String(item.id) : '');
                     }}
-                    error={getErrorByPath('assunto')} 
+                    error={getErrorByPath('assunto')}
                   />
                 </div>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                    <Label>Órgão de origem</Label>
-                    <AutocompleteSearch 
-                        placeholder="Buscar..." 
-                        value={data.orgao_origem} 
-                        onChange={(v) => setData('orgao_origem', String(v))}
-                        options={selectedItems.orgao_origem ? [selectedItems.orgao_origem] : EMPTY_OPTIONS}
-                        onSearch={searchOrgaoOrigem} 
-                        onSelectOption={(item) => {
-                            if(item) setSelectedItems(prev => ({...prev, orgao_origem: item as OptionItem}));
-                            setData('orgao_origem', item ? String(item.id) : '');
-                        }}
-                    />
+                  <Label>Órgão de origem</Label>
+                  <AutocompleteSearch
+                    placeholder="Buscar..."
+                    value={data.orgao_origem}
+                    onChange={(v) => setData('orgao_origem', String(v))}
+                    options={selectedItems.orgao_origem ? [selectedItems.orgao_origem] : EMPTY_OPTIONS}
+                    onSearch={searchOrgaoOrigem}
+                    onSelectOption={(item) => {
+                      if (item) setSelectedItems(prev => ({ ...prev, orgao_origem: item as OptionItem }));
+                      setData('orgao_origem', item ? String(item.id) : '');
+                    }}
+                  />
                 </div>
                 <div>
-                    <Label>Órgão julgador</Label>
-                    <AutocompleteSearch 
-                        placeholder="Buscar..." 
-                        value={data.orgao_julgador} 
-                        onChange={(v) => setData('orgao_julgador', String(v))}
-                        options={selectedItems.orgao_julgador ? [selectedItems.orgao_julgador] : EMPTY_OPTIONS}
-                        onSearch={searchOrgaoJulgador}
-                        onSelectOption={(item) => {
-                            if(item) setSelectedItems(prev => ({...prev, orgao_julgador: item as OptionItem}));
-                            setData('orgao_julgador', item ? String(item.id) : '');
-                        }}
-                    />
+                  <Label>Órgão julgador</Label>
+                  <AutocompleteSearch
+                    placeholder="Buscar..."
+                    value={data.orgao_julgador}
+                    onChange={(v) => setData('orgao_julgador', String(v))}
+                    options={selectedItems.orgao_julgador ? [selectedItems.orgao_julgador] : EMPTY_OPTIONS}
+                    onSearch={searchOrgaoJulgador}
+                    onSelectOption={(item) => {
+                      if (item) setSelectedItems(prev => ({ ...prev, orgao_julgador: item as OptionItem }));
+                      setData('orgao_julgador', item ? String(item.id) : '');
+                    }}
+                  />
                 </div>
               </div>
 
@@ -500,31 +514,89 @@ export default function CadastroIndividual({
                 {data.partes.map((par, idx) => (
                   <div key={par.id} className="rounded-xl border p-4 relative hover:shadow-sm transition-shadow" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)' }}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-                      <div className="md:col-span-4">
+
+                      {/* INPUT DE TEXTO LIVRE PARA NOME (6 COLUNAS) */}
+                      <div className="md:col-span-6">
                         <Label>Nome</Label>
-                        <AutocompleteSearch
-                          placeholder="Digite o nome ou busque..."
-                          value={par.nome}
-                          onChange={(novoTexto) => { updateParte(par.id, 'nome', String(novoTexto)); updateParte(par.id, 'parte_id', ''); }}
-                          allowCreate={true}
-                          onSelectOption={(opt: ParteEncontrada | null) => {
-                            if (!opt) return;
-                            const novasPartes = data.partes.map((p) => { if (p.id === par.id) { return { ...p, nome: opt.nome || '', cpf: opt.cpf ? formatCPFInput(opt.cpf) : '', qualificacao: opt.qualificacao || 'Pessoa Física', tipo_qualificacao: opt.tipo_parte || 'Autor', parte_id: String(opt.id) }; } return p; });
-                            setData('partes', novasPartes);
-                          }}
-                          onSearch={searchPartes}
-                          options={EMPTY_OPTIONS} // Partes já trata diferente (string name)
-                          error={getErrorByPath(`partes.${idx}.nome`)}
-                        />
-                      </div>
-                      <div className="md:col-span-3"><Label>CPF/CNPJ</Label><input className={`${INPUT_BASE_CLASS} font-mono`} value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" /></div>
-                      <div className="md:col-span-3"><CustomSelect label="Qualificação" value={par.qualificacao} onChange={(e) => updateParte(par.id, 'qualificacao', e.target.value)} options={QUALIFICACOES} /></div>
-                      <div className="md:col-span-2"><CustomSelect label="Tipo" value={par.tipo_qualificacao} onChange={(e) => updateParte(par.id, 'tipo_qualificacao', e.target.value)} options={TIPO_QUALIFICACAO} /></div>
-                      <div className="md:col-span-12 flex flex-col md:flex-row items-center gap-6 border-t border-dashed pt-3" style={{ borderColor: 'var(--gpdl-border)' }}>
-                        <div className="flex gap-4 w-full md:w-auto">
-                          <CustomSelect label="Principal?" value={par.eh_principal} onChange={(e) => updateParte(par.id, 'eh_principal', e.target.value)} options={[{ id: '0', nome: 'Não' }, { id: '1', nome: 'Sim' }]} />
-                          <CustomSelect label="Expediente?" value={par.expediente} onChange={(e) => updateParte(par.id, 'expediente', e.target.value)} options={EXPEDIENTE_OPTIONS} />
+                        <div className="relative">
+                          <input
+                            className={INPUT_BASE_CLASS}
+                            placeholder="Digite o nome da parte..."
+                            value={par.nome}
+                            onChange={(e) => updateParte(par.id, { nome: e.target.value, parte_id: '' })}
+                          />
+                          {/* BOTÃO PARA MOSTRAR A BUSCA */}
+                          <button
+                            type="button"
+                            onClick={() => setIsSearchOpen(prev => ({ ...prev, [par.id]: !prev[par.id] }))}
+                            className="absolute right-0 top-0 h-full px-3 text-sm flex items-center gap-1.5 transition-colors rounded-r-lg"
+                            style={{ background: 'var(--surface-main)', color: 'var(--brand-600)', borderLeft: '1px solid var(--gpdl-border)' }}
+                          >
+                            {isSearchOpen[par.id] ? (
+                              <X className="h-4 w-4" />
+                            ) : (
+                              <Search className="h-4 w-4" />
+                            )}
+                            <span className="text-[10px] font-bold uppercase hidden sm:inline">{isSearchOpen[par.id] ? 'Fechar' : 'Reutilizar'}</span>
+                          </button>
                         </div>
+                        <InputError message={getErrorByPath(`partes.${idx}.nome`)} className="mt-1" />
+                      </div>
+
+                      {/* CPF/CNPJ (6 COLUNAS) */}
+                      <div className="md:col-span-6"><Label>CPF/CNPJ</Label><input className={`${INPUT_BASE_CLASS} font-mono`} value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" /></div>
+
+                      {/* CAMPO DE BUSCA OCULTO (AutocompleteSearch) */}
+                      {isSearchOpen[par.id] && (
+                        <div className="md:col-span-12 mt-2 -mb-2 animate-fadeIn">
+                          <div className="p-3 rounded-lg border border-dashed" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-main)' }}>
+                            <Label>Busca por Parte Existente</Label>
+                            <AutocompleteSearch
+                              placeholder="Digite para buscar e preencher dados..."
+                              value={par.parte_id || null}
+                              // onChange está vazio, pois o valor é o ID, e a busca é o foco.
+                              onChange={() => { /* handled in onSelectOption */ }}
+                              onSelectOption={(opt: any) => {
+                                if (!opt) {
+                                  // Limpeza (se o item selecionado for limpo pelo Autocomplete)
+                                  updateParte(par.id, {
+                                    nome: '',
+                                    cpf: '',
+                                    parte_id: ''
+                                  });
+                                  setIsSearchOpen(prev => ({ ...prev, [par.id]: false })); // Fecha a busca
+                                  return;
+                                }
+
+                                // Preenchimento de metadados
+                                updateParte(par.id, {
+                                  nome: opt.nome || '',
+                                  cpf: formatCPFInput(opt.cpf || opt.cpf_cnpj || ''),
+                                  qualificacao: opt.qualificacao || 'Pessoa Física',
+                                  tipo_qualificacao: opt.tipo_parte || 'Autor',
+                                  parte_id: String(opt.id),
+                                });
+                                setIsSearchOpen(prev => ({ ...prev, [par.id]: false })); // Fecha a busca após selecionar
+                              }}
+                              onSearch={searchPartes}
+                              options={[]}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="md:col-span-12 flex flex-col md:flex-row items-center gap-6 border-t border-dashed pt-3" style={{ borderColor: 'var(--gpdl-border)' }}>
+
+                        <div className="flex gap-4 w-full md:w-auto">
+                          <div className="w-1/2"><CustomSelect label="Qualificação" value={par.qualificacao} onChange={(e) => updateParte(par.id, { qualificacao: e.target.value })} options={QUALIFICACOES} /></div>
+                          <div className="w-1/2"><CustomSelect label="Tipo" value={par.tipo_qualificacao} onChange={(e) => updateParte(par.id, { tipo_qualificacao: e.target.value })} options={TIPO_QUALIFICACAO} /></div>
+                        </div>
+
+                        <div className="flex gap-4 w-full md:w-auto">
+                          <CustomSelect label="Principal?" value={par.eh_principal} onChange={(e) => updateParte(par.id, { eh_principal: e.target.value })} options={[{ id: '0', nome: 'Não' }, { id: '1', nome: 'Sim' }]} />
+                          <CustomSelect label="Expediente?" value={par.expediente} onChange={(e) => updateParte(par.id, { expediente: e.target.value })} options={EXPEDIENTE_OPTIONS} />
+                        </div>
+
                         <div className="ml-auto"><button type="button" onClick={() => removeParte(par.id)} disabled={data.partes.length <= 1} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-30 text-xs font-bold uppercase"><Trash2 className="h-3.5 w-3.5" /> Remover</button></div>
                       </div>
                     </div>
@@ -564,8 +636,8 @@ export default function CadastroIndividual({
               <div className="mt-8 flex justify-between border-t pt-5" style={{ borderColor: 'var(--gpdl-border)' }}>
                 <button type="button" onClick={prev} className="px-5 py-2 rounded-lg border text-sm font-medium hover:shadow-sm" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-muted)', color: 'var(--text-strong)' }}>Voltar</button>
                 <button type="submit" disabled={processing} className="btn-gradient rounded-lg px-6 py-2 text-sm font-semibold text-white shadow-md disabled:opacity-70 flex items-center gap-2">
-                    {processing ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Cadastrar Processo')} 
-                    {isEditMode ? <Pencil className="h-4 w-4"/> : <Check className="h-4 w-4"/>}
+                  {processing ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Cadastrar Processo')}
+                  {isEditMode ? <Pencil className="h-4 w-4" /> : <Check className="h-4 w-4" />}
                 </button>
               </div>
             </section>

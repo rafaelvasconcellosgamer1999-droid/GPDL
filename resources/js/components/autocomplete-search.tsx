@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, X, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom'; // Importação adicionada para Portals
 
 export interface OptionItem {
   id: string | number;
@@ -17,9 +18,10 @@ interface AutocompleteSearchProps<T extends OptionItem> {
   error?: string;
   isLoading?: boolean;
   isDisabled?: boolean;
-
-
   allowCreate?: boolean;
+
+  // NOVA PROP: Para notificar erros de busca
+  onSearchError?: (error: unknown) => void; 
 
   onChange: (value: string | number | null) => void;
   onSelectOption?: (option: T | null) => void;
@@ -39,6 +41,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
   onChange,
   onSelectOption,
   onSearch,
+  onSearchError, // Nova prop adicionada aqui
 }: AutocompleteSearchProps<T>) {
 
   const [isOpen, setIsOpen] = useState(false);
@@ -47,18 +50,33 @@ export default function AutocompleteSearch<T extends OptionItem>({
   const [isFetching, setIsFetching] = useState(false);
   const [selectedOption, setSelectedOption] = useState<T | null>(null);
   const [highlightIndex, setHighlightIndex] = useState<number>(-1);
+  
+  // NOVO ESTADO: Para gerenciar o posicionamento do Portal
+  const [portalStyle, setPortalStyle] = useState({});
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const debounceTimerRef = useRef<number | null>(null);
   const requestIdRef = useRef(0);
   const isMountedRef = useRef(true);
+  
+  // NOVO REF: Para o contêiner do Portal
+  const portalRef = useRef<HTMLDivElement>(document.createElement('div'));
 
+
+  // --- EFEITO DE MONTAR/DESMONTAR (Cleanup & Portal Setup) ---
   useEffect(() => {
     isMountedRef.current = true;
+    const portalElement = portalRef.current;
+    document.body.appendChild(portalElement); // Anexa o contêiner do Portal ao body
+    
     return () => {
       isMountedRef.current = false;
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      // Limpeza do Portal: Remove o contêiner do body ao desmontar
+      if (document.body.contains(portalElement)) {
+        document.body.removeChild(portalElement);
+      }
     };
   }, []);
 
@@ -67,6 +85,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
   }, [options]);
 
 
+  // --- EFEITO DE BUSCA (Debounce e Race Condition) ---
   useEffect(() => {
     const q = inputValue.trim();
     if (q.length < 3) {
@@ -75,6 +94,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
       return;
     }
 
+    // Adicionado: Não busca se o texto é exatamente o nome do item selecionado
     if (selectedOption && inputValue === selectedOption.nome) return;
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -88,9 +108,10 @@ export default function AutocompleteSearch<T extends OptionItem>({
         if (!isMountedRef.current) return;
         setFilteredOptions(results);
         setHighlightIndex(0);
-      } catch /*(err)*/ {
+      } catch (err) { // MUDANÇA: Captura e notifica o erro
         if (!isMountedRef.current) return;
         setFilteredOptions([]);
+        onSearchError?.(err); // Chama o novo callback de erro
       } finally {
         if (isMountedRef.current) setIsFetching(false);
       }
@@ -98,15 +119,18 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
     debounceTimerRef.current = timer;
     return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
-  }, [inputValue, onSearch, selectedOption]);
+  }, [inputValue, onSearch, selectedOption, onSearchError]);
 
 
+  // --- EFEITO DE SINCRONIZAÇÃO DE VALOR EXTERNO ---
   useEffect(() => {
-    // Em modo create, NÃO sincroniza texto via value
+    // MUDANÇA: Impede sincronização se o usuário estiver digitando
     if (allowCreate) return;
+    if (document.activeElement === inputRef.current) return; 
 
     if (value === null || value === undefined) {
       if (!isOpen) setInputValue('');
+      setSelectedOption(null); // Fix: Garante que o estado interno do item selecionado seja limpo
       return;
     }
 
@@ -117,12 +141,34 @@ export default function AutocompleteSearch<T extends OptionItem>({
         ? initialSelectedItem
         : null);
 
-    if (found && !isOpen && document.activeElement !== inputRef.current) {
+    if (found && !isOpen) {
       setSelectedOption(found);
       setInputValue(found.nome);
     }
   }, [value, options, filteredOptions, initialSelectedItem, isOpen, allowCreate]);
 
+  // --- EFEITO PARA CÁLCULO DE POSIÇÃO DO PORTAL ---
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - containerRect.bottom;
+    const isRoomBelow = spaceBelow >= 240; // 240px é o max-h-60
+    
+    // Calcula a posição absoluta no viewport
+    setPortalStyle({
+      position: 'absolute',
+      left: `${containerRect.left}px`,
+      width: `${containerRect.width}px`,
+      zIndex: 50,
+      // Se houver espaço, abre abaixo (padrão), caso contrário, abre para cima
+      top: isRoomBelow 
+          ? `${containerRect.bottom + window.scrollY + 4}px` 
+          : `${containerRect.top + window.scrollY - 240 - 4}px`, 
+    });
+  }, [isOpen, filteredOptions]); // Recalcula quando abre/fecha ou a lista muda
+
+  // --- EFEITO DE CLICK OUTSIDE (Inalterado) ---
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -133,7 +179,7 @@ export default function AutocompleteSearch<T extends OptionItem>({
             setInputValue(selectedOption.nome);
           } else if (!selectedOption && inputValue !== '') {
             setInputValue('');
-            onChange(null);
+            onChange(null); // MUDANÇA: Passa null ao limpar
             if (onSelectOption) onSelectOption(null);
           }
         }
@@ -151,7 +197,9 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
     if (val === '') {
       setSelectedOption(null);
+      // MUDANÇA: Se allowCreate for false, passa null ao invés de ''
       if (allowCreate) onChange('');
+      else onChange(null); 
       if (onSelectOption) onSelectOption(null);
     }
   }
@@ -168,7 +216,10 @@ export default function AutocompleteSearch<T extends OptionItem>({
   function handleClear() {
     setSelectedOption(null);
     setInputValue('');
-    onChange('');
+    // MUDANÇA: Passa null ao limpar, para consistência, se não estiver em modo criação estrito
+    if (allowCreate) onChange('');
+    else onChange(null);
+    
     if (onSelectOption) onSelectOption(null);
     setFilteredOptions(options);
     setIsOpen(false);
@@ -207,11 +258,10 @@ export default function AutocompleteSearch<T extends OptionItem>({
       } else {
         setIsOpen(false);
         if (!allowCreate) {
-
           if (selectedOption) setInputValue(selectedOption.nome);
           else {
             setInputValue('');
-            onChange('');
+            onChange(null); // MUDANÇA: Passa null
           }
         }
       }
@@ -286,69 +336,73 @@ export default function AutocompleteSearch<T extends OptionItem>({
             </button>
           )}
         </div>
-
-        {isOpen && !isDisabled && (
-          <div
-            id={listboxId}
-            className="absolute top-full left-0 right-0 mt-1 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto"
-            style={{
-              background: 'var(--surface-muted)',
-              border: '1px solid var(--gpdl-border)',
-            }}
-            role="listbox"
-          >
-            {filteredOptions.length > 0 ? (
-              <ul className="py-1">
-                {filteredOptions.map((option, idx) => {
-                  const isSelected = selectedOption?.id === option.id;
-                  const isHighlighted = idx === highlightIndex;
-                  return (
-                    <li
-                      key={option.id}
-                      role="option"
-                      aria-selected={isSelected}
-                      onMouseDown={(e) => { e.preventDefault(); handleOptionSelect(option); }}
-                      onMouseEnter={() => setHighlightIndex(idx)}
-                      className="cursor-pointer px-3 py-2 text-sm flex items-center justify-between"
-                      style={{
-                        backgroundColor: isHighlighted ? 'var(--surface-main)' : 'transparent',
-                        color: isSelected ? 'var(--brand-600)' : 'var(--text-strong)',
-                        fontWeight: isSelected ? 600 : 400,
-                      }}
-                    >
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="truncate">{option.nome}</span>
-                        {(option.cpf || option.cpf_cnpj) && (
-                          <span className="text-[10px] opacity-60">
-                            {option.cpf || option.cpf_cnpj}
-                          </span>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <div className="px-3 py-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-                {inputValue.trim().length < 3 && !isFetching
-                  ? 'Digite ao menos 3 caracteres'
-                  : (
-                    <span>
-                      {/* Mensagem condicional baseada na prop */}
-                      {allowCreate
-                        ? <span>Nenhuma parte encontrada.<br /><span className="text-xs opacity-75">"{inputValue}" será usado como novo.</span></span>
-                        : <span>Nenhum registro encontrado.</span>
-                      }
-                    </span>
-                  )
-                }
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {error && <p className="mt-1 text-xs" style={{ color: '#ef4444' }}>{error}</p>}
+      
+      {/* MUDANÇA: O dropdown AGORA é renderizado via Portal, posicionado dinamicamente */}
+      {isOpen && !isDisabled && createPortal(
+        <div
+          id={listboxId}
+          className="mt-1 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          style={{
+            // Aplica a posição calculada, MANTENDO os estilos de cor originais
+            ...portalStyle,
+            background: 'var(--surface-muted)',
+            border: '1px solid var(--gpdl-border)',
+            position: 'absolute', // Garante que a posição absoluta do portalStyle funcione
+          }}
+          role="listbox"
+        >
+          {filteredOptions.length > 0 ? (
+            <ul className="py-1">
+              {filteredOptions.map((option, idx) => {
+                const isSelected = selectedOption?.id === option.id;
+                const isHighlighted = idx === highlightIndex;
+                return (
+                  <li
+                    key={option.id}
+                    role="option"
+                    aria-selected={isSelected}
+                    onMouseDown={(e) => { e.preventDefault(); handleOptionSelect(option); }}
+                    onMouseEnter={() => setHighlightIndex(idx)}
+                    className="cursor-pointer px-3 py-2 text-sm flex items-center justify-between"
+                    style={{
+                      backgroundColor: isHighlighted ? 'var(--surface-main)' : 'transparent',
+                      color: isSelected ? 'var(--brand-600)' : 'var(--text-strong)',
+                      fontWeight: isSelected ? 600 : 400,
+                    }}
+                  >
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="truncate">{option.nome}</span>
+                      {(option.cpf || option.cpf_cnpj) && (
+                        <span className="text-[10px] opacity-60" style={{ color: 'var(--text-muted)' }}>
+                          {option.cpf || option.cpf_cnpj}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="px-3 py-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+              {inputValue.trim().length < 3 && !isFetching
+                ? 'Digite ao menos 3 caracteres'
+                : (
+                  <span>
+                    {allowCreate
+                      ? <span>Nenhuma parte encontrada.<br /><span className="text-xs opacity-75">"{inputValue}" será usado como novo.</span></span>
+                      : <span>Nenhum registro encontrado.</span>
+                    }
+                  </span>
+                )
+              }
+            </div>
+          )}
+        </div>,
+        portalRef.current
+      )}
     </div>
   );
 }
