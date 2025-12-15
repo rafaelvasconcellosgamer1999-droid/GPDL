@@ -350,7 +350,7 @@ export default function CadastroIndividual({
   function handleFinalSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isEditMode) put(`/processos/${processo!.id}`, { preserveScroll: true });
-    else post('/processos', { preserveScroll: true, onSuccess: () => { const s = data.area_atuacao; setStep(0); reset(); setData('area_atuacao', s); router.get('/processos/cadastro', {}, { replace: true }); } });
+    else post('/processos', { preserveScroll: true, onSuccess: () => { const s = data.area_atuacao; setStep(0); reset(); setData('area_atuacao', s); router.get('/processos/novo', {}, { replace: true }); } });
   }
 
   function StepDot({ i }: { i: number }) {
@@ -416,7 +416,7 @@ export default function CadastroIndividual({
                     error={getErrorByPath('tribunal')}
                   />
                 </div>
-                <div className="md:col-span-3"><Label>Valor da causa</Label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-50" style={{ color: 'var(--text-muted)' }}>R$</span><input className={`${INPUT_BASE_CLASS} pl-8 font-medium`} value={data.valor_causa} onChange={handleValorCausaChange} placeholder="0,00" maxLength={20} /></div></div>
+                <div className="md:col-span-3"><Label>Valor da causa</Label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-50" style={{ color: 'var(--text-muted)' }}>R$</span><input className={`${INPUT_BASE_CLASS} pl-8 font-medium`} value={data.valor_causa} onChange={handleValorCausaChange} placeholder="0,00" maxLength={25} /></div></div>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-12">
