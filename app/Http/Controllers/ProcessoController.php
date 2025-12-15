@@ -376,7 +376,7 @@ class ProcessoController extends Controller
             }
         }
 
-        return redirect()->to('/processos/cadastro')
+        return redirect()->to('/processos/novo')
             ->with('success', 'Processo cadastrado com sucesso.');
     }
 
