@@ -311,16 +311,31 @@ class ProcessoController extends Controller
             'partes.*.parte_id' => ['nullable'],
         ]);
 
-        $usuario = Auth::user();
+            $usuario = Auth::user();
+            $valorCausaFormatado = null;
+            if (!empty($data['valor_causa'])) {
 
+                $valorLimpo = $data['valor_causa'];
+                
+                $valorLimpo = str_replace('.', '', $valorLimpo); 
+                
+                
+                $valorCausaFormatado = str_replace(',', '.', $valorLimpo); 
+                
+                
+                $valorCausaFormatado = str_replace(['R$', ' '], '', $valorCausaFormatado);
+                
+                
+                $valorCausaFormatado = (float) $valorCausaFormatado;
+            }
         $processo = Processos::create([
             'area_atuacao' => Session::get('setorSelecionado', null),
             'municipio' => 'Belém',
             'instancia' => $data['instancia'] ?? null,
             'tribunal_id' => $data['tribunal'] ?? null,
-            'valor_causa' => $data['valor_causa'] ? str_replace(['R$', ' ', ','], ['', '', '.'], $data['valor_causa']) : null,
+            'valor_causa' => $valorCausaFormatado,
             'cnj' => $data['numero_processo'] ?? null,
-            'tipo_processo' => $data['tipo_processo'] ?? null,
+            'tipo_processo' => $data['tipo_processo'] ?? null,  
             'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
             'acao_id' => $data['acao'] ?? null,
             'assunto_id' => $data['assunto'] ?? null,
@@ -358,7 +373,6 @@ class ProcessoController extends Controller
                     $new = Partes::create([
                         'nome' => $parte['nome'] ?? null,
                         'cpf_cnpj' => $parte['cpf'] ?? null,
-                        'tipo_parte' => $parte['tipo_qualificacao'] ?? null,
                     ]);
                     $parteId = $new->id;
                 }
