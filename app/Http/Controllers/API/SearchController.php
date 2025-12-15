@@ -47,15 +47,13 @@ class SearchController extends Controller
                   ->orWhere('cpf_cnpj', 'like', "%{$search}%");
             })
             ->limit(15)
-            ->get(['id', 'nome', 'cpf_cnpj', 'qualificacao', 'tipo_parte']);
+            ->get(['id', 'nome', 'cpf_cnpj']);
 
         return response()->json([
             'data' => $results->map(fn($p) => [
                 'id' => (string) $p->id,
                 'nome' => $p->nome,
                 'cpf' => $p->cpf_cnpj,
-                'qualificacao' => $p->qualificacao ?? 'Pessoa Física',
-                'tipo_parte' => $p->tipo_parte ?? 'Autor'
             ])
         ]);
     }

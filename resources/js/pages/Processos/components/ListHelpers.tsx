@@ -1,9 +1,15 @@
 // resources/js/Pages/Processos/components/ListHelpers.tsx
 import { useEffect, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { router } from '@inertiajs/react'; // Link removido pois não é mais usado aqui
 
 /* -------------------------- Tipos exportados -------------------------- */
 export type Procurador = { id: number; nome: string };
+
+export type PaginationLink = {
+  url: string | null;
+  label: string;
+  active: boolean;
+};
 
 export type Paginator<T> = {
   data: T[];
@@ -15,6 +21,7 @@ export type Paginator<T> = {
   to?: number;
   next_page_url?: string | null;
   prev_page_url?: string | null;
+  links: PaginationLink[];
 };
 
 export type FiltersForm = {
@@ -36,6 +43,10 @@ export type ProcessoRow = {
   data_ciencia?: string | null;
   ultimo_mov_texto?: string | null;
   responsavel_nome?: string | null;
+  // CAMPOS DE STATUS
+  data_finalizacao?: string | null;
+  finalizado_em?: string | null;
+  concluido?: number | boolean | null;
 };
 
 /* -------------------------- Toolbar -------------------------- */
@@ -54,7 +65,7 @@ export function Toolbar({
 }) {
   return (
     <div className="mb-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-(--gpdl-border) bg-(--surface-elevate) p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-(--gpdl-border) bg-(--surface-card) p-3">
         <div className="min-w-[220px]">
           <label className="mb-1 block text-xs text-(--text-muted)">Responsável</label>
           <select
@@ -92,10 +103,11 @@ export function Toolbar({
             className="gpdl-input-contrast px-3 py-2"
           >
             <option value="prazo_asc">Prazo (mais urgente)</option>
+            <option value="created_desc">Recentes primeiro</option>
           </select>
         </div>
 
-        <button onClick={onClear} className="rounded-lg border border-(--gpdl-border) bg-(--surface-muted) px-3 py-2 hover:border-(--brand-600)/40">
+        <button onClick={onClear} className="rounded-lg border border-(--gpdl-border) bg-(--surface-muted) px-3 py-2 hover:border-(--brand-600) transition-colors opacity-70 hover:opacity-100">
           Limpar
         </button>
       </div>
@@ -129,13 +141,16 @@ export function TableList({
       const id = setInterval(() => setNow(Date.now()), 1000);
       return () => clearInterval(id);
     }, []);
+    
     if (!value) return <span>-</span>;
     const str = String(value).replace(' ', 'T');
     const target = new Date(str);
     if (isNaN(target.getTime())) return <span>{String(value)}</span>;
+    
     const diff = target.getTime() - now;
     const past = diff < 0;
     const abs = Math.abs(diff);
+    
     const totalSeconds = Math.floor(abs / 1000);
     const days = Math.floor(totalSeconds / 86400);
     const hours = Math.floor((totalSeconds % 86400) / 3600);
@@ -167,10 +182,10 @@ export function TableList({
     return String(value);
   }
 
-  if (!itens || itens.length === 0) return <p className="text-sm text-(--text-muted)">{empty}</p>;
+  if (!itens || itens.length === 0) return <p className="text-sm text-(--text-muted) p-4">{empty}</p>;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-(--gpdl-border)">
       <table className="min-w-full divide-y divide-(--gpdl-border)">
         <thead>
           <tr className="bg-(--surface-muted)">
@@ -180,49 +195,64 @@ export function TableList({
             <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Assunto</th>
             <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Vara/Juizo</th>
             <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Partes envolvidas</th>
-            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Prazo</th>
-            <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Ciencia</th>
+            <th className="px-4 py-2 text-center text-xs text-(--text-muted) uppercase">Prazo</th>
+            <th className="px-4 py-2 text-center text-xs text-(--text-muted) uppercase">Ciencia</th>
             <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Ultimo movimento</th>
             <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Responsavel</th>
-            {showActions && <th className="px-4 py-2 text-left text-xs text-(--text-muted) uppercase">Acoes</th>}
+            {showActions && <th className="px-4 py-2 text-right text-xs text-(--text-muted) uppercase">Acoes</th>}
           </tr>
         </thead>
-        <tbody className="divide-y divide-(--gpdl-border)">
-          {itens.map((p) => (
-            <tr key={p.id} className="hover:bg-(--surface-muted)">
-              <td className="px-4 py-2 text-sm">{p.orgao ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">{p.acao ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">{p.numero ?? p.id}</td>
-              <td className="px-4 py-2 text-sm">{p.assunto ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">{p.vara_juizo ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">{p.partes_envolvidas ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">
-                {(() => {
-                  const isFinalizadosView = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'encerrados';
-                  if (isFinalizadosView) return <span className="deadline-tag deadline-ok">Finalizado</span>;
-                  if (!p.data_limite) return <span className="deadline-tag deadline-warn">Pendente</span>;
-                  const str = String(p.data_limite).replace(' ', 'T');
-                  const target = new Date(str);
-                  if (!isNaN(target.getTime()) && target.getTime() < nowTick) return <span className="deadline-tag deadline-danger">Prazo vencido</span>;
-                  return <Countdown value={p.data_limite} />;
-                })()}
-              </td>
-              <td className="px-4 py-2 text-sm">{formatBrDate(p.data_ciencia)}</td>
-              <td className="px-4 py-2 text-sm">{p.ultimo_mov_texto ?? '-'}</td>
-              <td className="px-4 py-2 text-sm">{p.responsavel_nome ?? '-'}</td>
-              {showActions && (
-                <td className="px-4 py-2 text-sm">
-                  <button
-                    onClick={() => onFinalize && onFinalize(p.id)}
-                    disabled={!!finalizingId && finalizingId === p.id}
-                    className="rounded bg-(--brand-700) px-3 py-1 text-white hover:bg-(--brand-600) disabled:opacity-50"
-                  >
-                    {finalizingId === p.id ? 'Finalizando...' : 'Finalizar'}
-                  </button>
+        <tbody className="divide-y divide-(--gpdl-border) bg-(--surface-card)">
+          {itens.map((p) => {
+            // Lógica de Status: Verifica se está finalizado para mudar a tag de prazo
+            const isFinalizado = !!(p.data_finalizacao || p.finalizado_em || p.concluido);
+
+            return (
+              <tr key={p.id} className="hover:bg-(--surface-muted) transition-colors">
+                <td className="px-4 py-2 text-sm">{p.orgao ?? '-'}</td>
+                <td className="px-4 py-2 text-sm">{p.acao ?? '-'}</td>
+                
+                {/* --- MUDANÇA: Número agora é apenas texto, não clicável --- */}
+                <td className="px-4 py-2 text-sm">{p.numero ?? p.id}</td>
+
+                <td className="px-4 py-2 text-sm truncate max-w-[150px]" title={p.assunto || ''}>{p.assunto ?? '-'}</td>
+                <td className="px-4 py-2 text-sm truncate max-w-[120px]" title={p.vara_juizo || ''}>{p.vara_juizo ?? '-'}</td>
+                <td className="px-4 py-2 text-sm truncate max-w-[150px]" title={p.partes_envolvidas || ''}>{p.partes_envolvidas ?? '-'}</td>
+                
+                {/* Coluna Prazo com lógica de finalizado */}
+                <td className="px-4 py-2 text-sm text-center">
+                  {(() => {
+                    if (isFinalizado) return <span className="deadline-tag deadline-ok">Finalizado</span>;
+                    if (!p.data_limite) return <span className="deadline-tag deadline-warn">Pendente</span>;
+                    
+                    const str = String(p.data_limite).replace(' ', 'T');
+                    const target = new Date(str);
+                    if (!isNaN(target.getTime()) && target.getTime() < nowTick) return <span className="deadline-tag deadline-danger">Prazo vencido</span>;
+                    
+                    return <Countdown value={p.data_limite} />;
+                  })()}
                 </td>
-              )}
-            </tr>
-          ))}
+
+                <td className="px-4 py-2 text-sm">{formatBrDate(p.data_ciencia)}</td>
+                <td className="px-4 py-2 text-sm">{p.ultimo_mov_texto ?? '-'}</td>
+                <td className="px-4 py-2 text-sm">{p.responsavel_nome ?? '-'}</td>
+                
+                {showActions && (
+                  <td className="px-4 py-2 text-sm text-right">
+                    {!isFinalizado && onFinalize && (
+                        <button
+                            onClick={() => onFinalize(p.id)}
+                            disabled={!!finalizingId && finalizingId === p.id}
+                            className="text-xs font-bold text-(--accent-success) hover:underline disabled:opacity-50"
+                        >
+                            {finalizingId === p.id ? '...' : 'Finalizar'}
+                        </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -261,19 +291,43 @@ export function TablePlaceholder() {
 
 /* -------------------------- Pager -------------------------- */
 export function Pager({ meta }: { meta?: Paginator<unknown> }) {
-  if (!meta) return null;
+  if (!meta || !meta.links || meta.total <= meta.per_page) return null;
   const showing = meta.to && meta.from ? meta.to - meta.from + 1 : meta.data.length;
+  
   const go = (url?: string | null) => {
     if (!url) return;
     router.get(url, {}, { preserveScroll: true, preserveState: false, replace: true });
   };
+  
   return (
     <div className="mt-3 flex items-center justify-between text-sm text-(--text-muted)">
       <div>Mostrando {showing} de {meta.total} processos</div>
       <div className="flex items-center gap-2">
-        <button onClick={() => go(meta.prev_page_url)} disabled={!meta.prev_page_url} className={`rounded px-3 py-1 ${meta.prev_page_url ? 'gpdl-link' : 'pointer-events-none opacity-50'}`}>Anterior</button>
-        <span>{meta.current_page} de {meta.last_page}</span>
-        <button onClick={() => go(meta.next_page_url)} disabled={!meta.next_page_url} className={`rounded px-3 py-1 ${meta.next_page_url ? 'gpdl-link' : 'pointer-events-none opacity-50'}`}>Próxima</button>
+        <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+            {meta.links.map((link, i) => {
+                const label = link.label.replace('&laquo;', '').replace('&raquo;', '').replace('Previous', 'Ant').replace('Next', 'Prox').trim();
+                
+                if (!link.url) {
+                    return (
+                        <span key={i} className="relative inline-flex items-center px-3 py-1 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-(--gpdl-border) opacity-50 cursor-default">
+                            {label}
+                        </span>
+                    );
+                }
+                return (
+                    <button
+                        key={i}
+                        onClick={() => go(link.url)}
+                        className={`relative inline-flex items-center px-3 py-1 text-sm font-semibold ring-1 ring-inset ring-(--gpdl-border) focus:z-20 focus:outline-offset-0 
+                            ${link.active 
+                                ? 'z-10 bg-(--brand-600) text-white focus-visible:outline-2 focus-visible:outline-(--brand-600)' 
+                                : 'text-(--text-strong) hover:bg-(--surface-muted)'}`}
+                    >
+                        {label}
+                    </button>
+                );
+            })}
+        </nav>
       </div>
     </div>
   );

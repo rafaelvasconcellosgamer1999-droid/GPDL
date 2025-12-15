@@ -4,11 +4,14 @@ import type { InertiaLinkProps } from '@inertiajs/react';
 import {
   Calendar,
   ChartPie,
+  FileClock,
+  FilePlus,
+  FileSearch,
   FileText,
   Home,
+  Layers, // <--- Adicionado para o ícone de Lote
   Lock,
-  Plus,
-  Share2,
+  /*Share2,*/
   Shield,
   TriangleAlert,
   Users,
@@ -27,7 +30,6 @@ export type PermissionKey =
   | 'manage_squads_page'
   | 'view_logs_page'
   | 'view_audit_page'
-  // Novas chaves para controle do menu
   | 'view_dashboard_menu'
   | 'view_process_menu'
   | 'create_process_menu'
@@ -56,7 +58,7 @@ export type NavigationItem = {
   label: string;
   icon: LucideIcon;
   section?: 'main' | 'monitor';
-  href?: InertiaLinkProps['href']; // aceita string ou RouteDefinition
+  href?: InertiaLinkProps['href'];
   match?: NavigationMatch;
   permission?: PermissionRequirement;
   children?: NavigationItem[];
@@ -76,62 +78,80 @@ export const navigationItems: NavigationItem[] = [
     id: 'processos',
     label: 'Processos',
     icon: FileText,
-    href: '/processos?view=ativos',
+    href: '/processos/ativos',
     match: { segment: 'processos' },
     permission: { key: 'view_process_menu' },
     section: 'main',
     children: [
+      // --- SEÇÃO DE CADASTROS ---
       {
         id: 'processos-cadastro',
-        label: 'Cadastro',
-        icon: Plus,
-        href: '/processos?view=cadastro',
-        match: { segment: 'processos', query: { key: 'view', value: 'cadastro' } },
+        label: 'Cadastrar Individual', // Renomeado para ficar claro
+        icon: FilePlus,
+        href: '/processos/novo',
+        match: { segment: 'novo' },
         permission: { key: 'create_process', levels: ['all', 'total', 'sector', 'setor'] },
+      },
+      {
+        id: 'andamentos',
+        label: 'Andamentos',
+        icon: FileClock,
+        href: '/andamentos/cadastro',
+        match: { segment: 'andamentos' },
+        permission: { key: 'view_process_page' },
       },
       {
         id: 'processos-visualizar',
         label: 'Visualizar',
-        icon: FileText, 
-        href: '/processos/visualizar', 
-        match: { segment: 'visualizar' }, 
+        icon: FileSearch,
+        href: '/processos/visualizar',
+        match: { segment: 'visualizar' },
         permission: { key: 'view_process_page' },
       },
+      {
+        id: 'processos-lote',
+        label: 'Cadastrar Lote', // Novo item para importação
+        icon: Layers,
+        href: '/processos/import',
+        match: { segment: 'import' }, // Rota definida no web.php
+        permission: { key: 'create_process', levels: ['all', 'total', 'sector', 'setor'] },
+      },
+      // --- SEÇÃO DE LISTAGEM ---
       {
         id: 'processos-ativos',
         label: 'Ativos',
         icon: FileText,
-        href: '/processos?view=ativos',
-        match: { segment: 'processos', query: { key: 'view', value: 'ativos' } },
+        href: '/processos/ativos',
+        match: { segment: 'ativos' },
       },
       {
         id: 'processos-pendentes',
         label: 'Pendentes',
         icon: TriangleAlert,
-        href: '/processos?view=pendentes',
-        match: { segment: 'processos', query: { key: 'view', value: 'pendentes' } },
+        href: '/processos/pendentes',
+        match: { segment: 'pendentes' },
       },
       {
         id: 'processos-vencidos',
         label: 'Vencidos',
         icon: TriangleAlert,
-        href: '/processos?view=vencidos',
-        match: { segment: 'processos', query: { key: 'view', value: 'vencidos' } },
+        href: '/processos/vencidos',
+        match: { segment: 'vencidos' },
       },
+      /*{
+        id: 'processos-distribuicao',
+        label: 'Distribuição',
+        icon: Share2,
+        href: '/processos/distribuicao',
+        match: { segment: 'distribuicao' },
+        permission: { key: 'edit_process', levels: ['sector', 'setor', 'all', 'total'] },
+      },*/
       {
         id: 'processos-encerrados',
         label: 'Finalizados',
         icon: Lock,
-        href: '/processos?view=encerrados',
-        match: { segment: 'processos', query: { key: 'view', value: 'encerrados' } },
-      },
-      {
-        id: 'processos-distribuicao',
-        label: 'Distribuição',
-        icon: Share2,
-        href: '/processos?view=distribuicao',
-        match: { segment: 'processos', query: { key: 'view', value: 'distribuicao' } },
-        permission: { key: 'edit_process', levels: ['sector', 'setor', 'all', 'total'] },
+        href: '/processos/encerrados',
+        match: { segment: 'encerrados' },
       },
     ],
   },

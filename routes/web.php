@@ -21,19 +21,13 @@ use App\Http\Controllers\SolicitarController;
 
 use App\Models\Processos;
 
-
-
-
-
-
-
 // Rota pública para envio de solicitação de acesso
 Route::post('/solicitar-acesso', [SolicitarController::class, 'store'])->name('solicitacoes.store');
-
 
 Route::get('/', function () {
     return redirect('/login');
 });
+
 // Troca obrigatória de senha (layout centrado)
 Route::middleware(['auth'])->group(function () {
     Route::get('/trocar-senha', [SettingsPasswordController::class, 'first'])->name('password.force.edit');
@@ -48,64 +42,77 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         ->name('dashboard.base');
 
     // ======================
-// PROCESSOS
-// ======================
-Route::middleware(['permission:view_process_page'])->group(function () {
-    Route::post('/processos/set-setor', [ProcessoController::class, 'setSetor'])->name('processos.set-setor');
+    // PROCESSOS (ATUALIZADO)
+    // ======================
+    Route::middleware(['permission:view_process_page'])
+        ->prefix('processos')     // Todas as rotas abaixo começam com /processos
+        ->name('processos.')      // Todos os nomes abaixo começam com processos.
+        ->group(function () {
 
-    // Página principal
-    Route::get('/processos', [ProcessoController::class, 'index'])->name('processos.index');
+            // Redirecionamento da raiz para a aba padrão
+            Route::get('/', function () {
+                return redirect()->route('processos.ativos');
+            })->name('index');
 
+            // Ações utilitárias
+            Route::post('/set-setor', [ProcessoController::class, 'setSetor'])->name('set-setor');
+            Route::post('/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('finalizar');
+            // Abas de Listagem (Novas Rotas)
+            Route::get('/ativos', [ProcessoController::class, 'ativos'])->name('ativos');
+            Route::get('/pendentes', [ProcessoController::class, 'pendentes'])->name('pendentes');
+            Route::get('/vencidos', [ProcessoController::class, 'vencidos'])->name('vencidos');
+            Route::get('/distribuicao', [ProcessoController::class, 'distribuicao'])->name('distribuicao');
+            Route::get('/encerrados', [ProcessoController::class, 'encerrados'])->name('encerrados');
 
-    // Nova página de visualização (adicionar aqui)
-    Route::get('/processos/visualizar', [ProcessoController::class, 'visualizar'])->name('processos.visualizar');
-    
+            // Visualização
+            Route::get('/visualizar', [ProcessoController::class, 'visualizar'])->name('visualizar');
+
+            // Cadastro Individual
+            Route::get('/novo', [ProcessoController::class, 'create'])->name('create');
+            Route::post('/', [ProcessoController::class, 'store'])->name('store'); // POST /processos
+
+            // Cadastro em lote
+            Route::get('/import', [ProcessoController::class, 'createLote'])->name('create-lote');
+            Route::post('/importar-lote', [ProcessoController::class, 'importarLote'])->name('importar-lote');
+        });
+
     Route::get('/debug/processos-test', function () {
-    return Processos::query()->limit(5)->get();
-});
+        return Processos::query()->limit(5)->get();
+    });
 
-    // Cadastro individual
-    Route::get('/processos/cadastro', [ProcessoController::class, 'create'])->name('processos.create');
-    Route::post('/processos', [ProcessoController::class, 'store'])->name('processos.store');
+    // ======================
+    // ANDAMENTOS
+    // ======================
+    Route::middleware(['permission:view_process_page'])->group(function () {
 
-    // Cadastro em lote
-    Route::get('/processos/import', [ProcessoController::class, 'createLote'])->name('processos.create-lote');
-    Route::post('/processos/importar-lote', [ProcessoController::class, 'importarLote'])->name('processos.importar-lote');
-});
+        // Listagem geral de andamentos
+        Route::get('/andamentos', [AndamentoController::class, 'index'])
+            ->name('andamentos.index');
 
-// ======================
-// ANDAMENTOS
-// ======================
-Route::middleware(['permission:view_process_page'])->group(function () {
+        // Cadastro de andamento (genérico ou contextual por processo)
+        Route::get('/andamentos/cadastro', [AndamentoController::class, 'create'])
+            ->name('andamentos.cadastro');
 
-    // Listagem geral de andamentos
-    Route::get('/andamentos', [AndamentoController::class, 'index'])
-        ->name('andamentos.index');
+        // Persistência
+        Route::post('/andamentos', [AndamentoController::class, 'store'])
+            ->name('andamentos.store');
 
-    // Cadastro de andamento (genérico ou contextual por processo)
-    Route::get('/andamentos/cadastro', [AndamentoController::class, 'create'])
-        ->name('andamentos.cadastro');
+        // Visualização
+        Route::get('/andamentos/{andamento}', [AndamentoController::class, 'show'])
+            ->name('andamentos.show');
 
-    // Persistência
-    Route::post('/andamentos', [AndamentoController::class, 'store'])
-        ->name('andamentos.store');
+        // Edição
+        Route::get('/andamentos/{andamento}/edit', [AndamentoController::class, 'edit'])
+            ->name('andamentos.edit');
 
-    // Visualização
-    Route::get('/andamentos/{andamento}', [AndamentoController::class, 'show'])
-        ->name('andamentos.show');
+        // Atualização
+        Route::put('/andamentos/{andamento}', [AndamentoController::class, 'update'])
+            ->name('andamentos.update');
 
-    // Edição
-    Route::get('/andamentos/{andamento}/edit', [AndamentoController::class, 'edit'])
-        ->name('andamentos.edit');
-
-    // Atualização
-    Route::put('/andamentos/{andamento}', [AndamentoController::class, 'update'])
-        ->name('andamentos.update');
-
-    // Exclusão (se permitido)
-    Route::delete('/andamentos/{andamento}', [AndamentoController::class, 'destroy'])
-        ->name('andamentos.destroy');
-});
+        // Exclusão (se permitido)
+        Route::delete('/andamentos/{andamento}', [AndamentoController::class, 'destroy'])
+            ->name('andamentos.destroy');
+    });
 
 
     // ======================
@@ -125,26 +132,27 @@ Route::middleware(['permission:view_process_page'])->group(function () {
         Route::get('/api/relatorios/procurador', [RelatoriosController::class, 'processosPorProcurador']);
         Route::get('/api/relatorios/assunto', [RelatoriosController::class, 'processosPorAssunto']);
     });
-    
-   // ======================
-// APIs de Busca (Autocomplete)
-Route::prefix('api')->group(function () {
-    // Processos
-    Route::get('processos/buscar', [SearchController::class, 'processos'])
-        ->name('processos.buscar');
-    Route::get('/processos', [ProcessoController::class, 'apiIndex']);
-    Route::get('/processos/{id}', [ProcessoController::class, 'apiShow']);
-    // Partes
-    Route::get('partes-existentes', [SearchController::class, 'partes'])
-        ->name('api.partes.search');
-    // Entidades
-    Route::get('tribunais', [SearchController::class, 'tribunais']);
-    Route::get('orgao-julgador', [SearchController::class, 'orgaosJulgadores']);
-    Route::get('orgao-origem', [SearchController::class, 'orgaosOrigem']);   
-    // Temáticas
-    Route::get('acoes', [SearchController::class, 'acoes']);
-    Route::get('assuntos', [SearchController::class, 'assuntos']);
-});
+
+    // ======================
+    // APIs de Busca (Autocomplete)
+    // ======================
+    Route::prefix('api')->group(function () {
+        // Processos
+        Route::get('processos/buscar', [SearchController::class, 'processos'])
+            ->name('processos.buscar');
+        Route::get('/processos', [ProcessoController::class, 'apiIndex']);
+        Route::get('/processos/{id}', [ProcessoController::class, 'apiShow']);
+        // Partes
+        Route::get('/partes-existentes', [SearchController::class, 'partes'])->name('api.partes');
+        // Entidades
+        Route::get('tribunais', [SearchController::class, 'tribunais']);
+        Route::get('orgao-julgador', [SearchController::class, 'orgaosJulgadores']);
+        Route::get('orgao-origem', [SearchController::class, 'orgaosOrigem']);
+        // Temáticas
+        Route::get('acoes', [SearchController::class, 'acoes']);
+        Route::get('assuntos', [SearchController::class, 'assuntos']);
+    });
+
     // ======================
     // SQUADS
     // ======================

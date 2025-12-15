@@ -102,34 +102,24 @@ export default function AutocompleteSearch<T extends OptionItem>({
 
 
   useEffect(() => {
+    // Em modo create, NÃO sincroniza texto via value
+    if (allowCreate) return;
+
     if (value === null || value === undefined) {
       if (!isOpen) setInputValue('');
       return;
     }
 
     const found =
-      options.find((o) => String(o.id) === String(value)) ??
-      filteredOptions.find((o) => String(o.id) === String(value)) ??
-      (initialSelectedItem && String(initialSelectedItem.id) === String(value) ? initialSelectedItem : null);
+      options.find(o => String(o.id) === String(value)) ??
+      filteredOptions.find(o => String(o.id) === String(value)) ??
+      (initialSelectedItem && String(initialSelectedItem.id) === String(value)
+        ? initialSelectedItem
+        : null);
 
-    if (found) {
+    if (found && !isOpen && document.activeElement !== inputRef.current) {
       setSelectedOption(found);
-      if (!isOpen && document.activeElement !== inputRef.current) {
-        setInputValue(found.nome);
-      }
-    } else {
-
-      if (allowCreate) {
-        setSelectedOption(null);
-        if (!isOpen && document.activeElement !== inputRef.current) {
-          setInputValue(String(value));
-        }
-      } else {
-
-        if (!isOpen && document.activeElement !== inputRef.current) {
-          setInputValue('');
-        }
-      }
+      setInputValue(found.nome);
     }
   }, [value, options, filteredOptions, initialSelectedItem, isOpen, allowCreate]);
 
@@ -158,10 +148,6 @@ export default function AutocompleteSearch<T extends OptionItem>({
     setInputValue(val);
     setIsOpen(true);
     setHighlightIndex(0);
-
-    if (allowCreate) {
-      onChange(val);
-    }
 
     if (val === '') {
       setSelectedOption(null);
