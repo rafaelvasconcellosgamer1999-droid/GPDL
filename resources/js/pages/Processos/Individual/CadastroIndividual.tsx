@@ -507,75 +507,93 @@ export default function CadastroIndividual({
                   <div key={par.id} className="rounded-xl border p-4 relative hover:shadow-sm transition-shadow" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)' }}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
 
-                      {/* INPUT DE TEXTO LIVRE PARA NOME (6 COLUNAS) */}
+                      {/* ESPAÇO PRINCIPAL (6 COLUNAS): Nome/Busca */}
                       <div className="md:col-span-6">
                         <Label>Nome</Label>
                         <div className="relative">
-                          <input
-                            className={INPUT_BASE_CLASS}
-                            placeholder="Digite o nome da parte..."
-                            value={par.nome}
-                            onChange={(e) => updateParte(par.id, { nome: e.target.value, parte_id: '' })}
-                          />
-                          {/* BOTÃO PARA MOSTRAR A BUSCA */}
-                          <button
-                            type="button"
-                            onClick={() => setIsSearchOpen(prev => ({ ...prev, [par.id]: !prev[par.id] }))}
-                            className="absolute right-0 top-0 h-full px-3 text-sm flex items-center gap-1.5 transition-colors rounded-r-lg"
-                            style={{ background: 'var(--surface-main)', color: 'var(--brand-600)', borderLeft: '1px solid var(--gpdl-border)' }}
-                          >
-                            {isSearchOpen[par.id] ? (
-                              <X className="h-4 w-4" />
-                            ) : (
-                              <Search className="h-4 w-4" />
-                            )}
-                            <span className="text-[10px] font-bold uppercase hidden sm:inline">{isSearchOpen[par.id] ? 'Fechar' : 'Reutilizar'}</span>
-                          </button>
+
+                          {/* 1. MODO PADRÃO: BUSCA DE PARTE EXISTENTE (SE isSearchOpen for FALSE) */}
+                          {!isSearchOpen[par.id] ? (
+                            <div className="flex">
+                              <div className="flex-grow">
+                                <AutocompleteSearch
+                                  placeholder="Buscar parte existente..."
+                                  // Certifique-se de que o valor é a parte selecionada/digitada
+                                  value={par.parte_id || null}
+
+                                  // CORREÇÃO DO ERRO DO TYPESCRIPT: Adicionar onChange
+                                  onChange={(v) => {
+                                    // Atualiza o ID da parte selecionada (para manter o estado do Autocomplete)
+                                    updateParte(par.id, { parte_id: String(v || '') });
+                                  }}
+
+                                  onSelectOption={(opt: any) => {
+                                    if (opt) {
+                                      // Preenche os dados da parte selecionada
+                                      updateParte(par.id, {
+                                        nome: opt.nome || '',
+                                        cpf: formatCPFInput(opt.cpf || opt.cpf_cnpj || ''),
+                                        qualificacao: opt.qualificacao || 'Pessoa Física',
+                                        tipo_qualificacao: opt.tipo_parte || 'Autor',
+                                        parte_id: String(opt.id),
+                                      });
+                                    } else {
+                                      // Limpeza se for desmarcado
+                                      updateParte(par.id, { nome: '', cpf: '', parte_id: '' });
+                                    }
+                                  }}
+                                  onSearch={searchPartes}
+                                  options={par.parte_id && par.nome ? [{ id: par.parte_id, nome: par.nome }] : []}
+                                  // Definir a largura para não invadir o botão
+                                />
+                              </div>
+
+                              {/* BOTÃO PARA ALTERNAR PARA O INPUT DE TEXTO LIVRE */}
+                              <button
+                                type="button"
+                                // Ação: Mudar para o modo manual/texto livre
+                                onClick={() => {
+                                  // Limpa o ID da parte existente e ativa o modo manual
+                                  updateParte(par.id, { parte_id: '' });
+                                  setIsSearchOpen(prev => ({ ...prev, [par.id]: true }))
+                                }}
+                                className="px-3 text-sm flex items-center gap-1.5 transition-colors rounded-lg ml-2"
+                                style={{ background: 'var(--surface-main)', color: 'var(--brand-600)', border: '1px solid var(--gpdl-border)', borderLeft: 'none' }}
+                              >
+                                <UserPlus className="h-4 w-4" />
+                                <span className="text-[10px] font-bold uppercase hidden sm:inline">Criar Novo</span>
+                              </button>
+                            </div>
+
+                          ) : (
+                            // 2. MODO MANUAL/CRIAÇÃO LIVRE (SE isSearchOpen for TRUE)
+                            <div className="relative">
+                              <input
+                                className={`${INPUT_BASE_CLASS} pr-10`} // pr-10 para o botão X
+                                placeholder="Digite o nome da parte (criação manual)..."
+                                value={par.nome}
+                                onChange={(e) => updateParte(par.id, { nome: e.target.value, parte_id: '' })}
+                              />
+                              {/* Botão de Fechar/Voltar para Busca */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Alterna de volta para o modo de busca
+                                  setIsSearchOpen(prev => ({ ...prev, [par.id]: false }))
+                                }}
+                                className="absolute right-0 top-0 h-full px-3 text-sm flex items-center gap-1.5 transition-colors rounded-r-lg"
+                                style={{ background: 'var(--surface-main)', color: 'var(--red-500)', borderLeft: '1px solid var(--gpdl-border)' }}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          )}  
                         </div>
                         <InputError message={getErrorByPath(`partes.${idx}.nome`)} className="mt-1" />
                       </div>
 
-                      {/* CPF/CNPJ (6 COLUNAS) */}
+                      {/* CPF/CNPJ e outras colunas permanecem as mesmas */}
                       <div className="md:col-span-6"><Label>CPF/CNPJ</Label><input className={`${INPUT_BASE_CLASS} font-mono`} value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" /></div>
-
-                      {/* CAMPO DE BUSCA OCULTO (AutocompleteSearch) */}
-                      {isSearchOpen[par.id] && (
-                        <div className="md:col-span-12 mt-2 -mb-2 animate-fadeIn">
-                          <div className="p-3 rounded-lg border border-dashed" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-main)' }}>
-                            <Label>Busca por Parte Existente</Label>
-                            <AutocompleteSearch
-                              placeholder="Digite para buscar e preencher dados..."
-                              value={par.parte_id || null}
-                              // onChange está vazio, pois o valor é o ID, e a busca é o foco.
-                              onChange={() => { /* handled in onSelectOption */ }}
-                              onSelectOption={(opt: any) => {
-                                if (!opt) {
-                                  // Limpeza (se o item selecionado for limpo pelo Autocomplete)
-                                  updateParte(par.id, {
-                                    nome: '',
-                                    cpf: '',
-                                    parte_id: ''
-                                  });
-                                  setIsSearchOpen(prev => ({ ...prev, [par.id]: false })); // Fecha a busca
-                                  return;
-                                }
-
-                                // Preenchimento de metadados
-                                updateParte(par.id, {
-                                  nome: opt.nome || '',
-                                  cpf: formatCPFInput(opt.cpf || opt.cpf_cnpj || ''),
-                                  qualificacao: opt.qualificacao || 'Pessoa Física',
-                                  tipo_qualificacao: opt.tipo_parte || 'Autor',
-                                  parte_id: String(opt.id),
-                                });
-                                setIsSearchOpen(prev => ({ ...prev, [par.id]: false })); // Fecha a busca após selecionar
-                              }}
-                              onSearch={searchPartes}
-                              options={[]}
-                            />
-                          </div>
-                        </div>
-                      )}
 
                       <div className="md:col-span-12 flex flex-col md:flex-row items-center gap-6 border-t border-dashed pt-3" style={{ borderColor: 'var(--gpdl-border)' }}>
 
