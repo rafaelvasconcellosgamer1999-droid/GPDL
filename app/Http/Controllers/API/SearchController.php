@@ -21,7 +21,7 @@ class SearchController extends Controller
 
         $results = Processos::query()
             ->with('procuradorResponsavel:id,nome')
-            ->where('cnj', 'like', "%{$q}%")
+            ->whereRaw("cnj ILIKE ?", ["%{$q}%"])
             ->orderBy('cnj')
             ->limit(10)
             ->get(['id', 'cnj', 'procurador_responsavel_id']);
@@ -43,8 +43,8 @@ class SearchController extends Controller
 
         $results = Partes::query()
             ->where(function ($q) use ($search) {
-                $q->where('nome', 'like', "%{$search}%")
-                  ->orWhere('cpf_cnpj', 'like', "%{$search}%");
+                $q->whereRaw("nome ILIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("cpf_cnpj ILIKE ?", ["%{$search}%"]);
             })
             ->limit(15)
             ->get(['id', 'nome', 'cpf_cnpj']);
@@ -96,8 +96,8 @@ class SearchController extends Controller
 
         if (!empty($term)) {
             $query->where(function (Builder $q) use ($term) {
-                $q->where('nome', 'like', "%{$term}%")
-                  ->orWhere('sigla', 'like', "%{$term}%");
+                $q->whereRaw("nome ILIKE ?", ["%{$term}%"])
+                  ->orWhereRaw("sigla ILIKE ?", ["%{$term}%"]);
             });
         }
 
@@ -115,7 +115,7 @@ class SearchController extends Controller
         $query = Tematicas::query()->where('tipo', $tipo);
 
         if (!empty($term)) {
-            $query->where('nome', 'like', "%{$term}%");
+            $query->whereRaw("nome ILIKE ?", ["%{$term}%"]);
         }
 
         $results = $query->limit(10)->get(['id', 'nome']);
