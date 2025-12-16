@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Processos;
+use App\Models\Andamento;
 use App\Models\User;
 use App\Models\Partes;
 use Illuminate\Http\Request;
@@ -165,6 +166,27 @@ class ProcessoController extends Controller
                     'updated_at' => now(),
                 ]);
             }
+        }
+
+        if ($request->filled('andamento_descricao')) {
+            Andamento::create([
+                'processo_id' => $processo->id, // VINCULA AO PROCESSO RECÉM CRIADO
+                'descricao' => $request->andamento_descricao,
+                'tipo_andamento' => $request->andamento_tipo,
+                'tipo_movimentacao' => $request->andamento_movimentacao,
+                'data_prazo' => $request->andamento_data_prazo,
+                'data_ciencia' => $request->andamento_data_ciencia,
+                'status' => $request->andamento_status ?? 'aberto',
+                'usuario_cadastro_id' => Auth::id(), // Importante: quem cadastrou
+                'data_andamento' => now(), // Data de hoje
+                
+                // Mapeando os IDs de procurador/assessor que vieram do form
+                // Atenção aos nomes das colunas no seu banco de dados (verifique na migration)
+                'procurador_andamento_id' => $request->andamento_procurador_id, 
+                'assessor_andamento_id' => ($request->andamento_assessor_id && $request->andamento_assessor_id !== 'null') 
+            ? $request->andamento_assessor_id 
+            : null,
+            ]);
         }
 
         return redirect()->to('/processos/novo')

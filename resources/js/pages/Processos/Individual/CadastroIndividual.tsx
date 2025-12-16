@@ -1,9 +1,12 @@
-import React, { useState, useCallback, useMemo, SelectHTMLAttributes, ChangeEvent } from 'react';
+import React, { useState, useCallback, useMemo, SelectHTMLAttributes, ChangeEvent, useEffect } from 'react';
 import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import AutocompleteSearch from '@/components/autocomplete-search';
-import { Check, Info, UserPlus, Users, ArrowRight, Scale, Calculator, ChevronDown, Trash2, Pencil, Search, X } from 'lucide-react'; // <-- IMPORTAÇÃO CORRIGIDA
+import { 
+  Check, Info, UserPlus, Users, ArrowRight, Scale, Calculator, 
+  ChevronDown, Trash2, Pencil, Search, X, FileText, Flag, User 
+} from 'lucide-react';
 
 // --- Interfaces de Tipagem ---
 type Procurador = { id: number; nome: string };
@@ -82,6 +85,7 @@ type SelectedItemsMap = {
 };
 
 type FormShape = {
+  // Dados Básicos
   area_atuacao: string;
   instancia: string;
   tribunal: string;
@@ -98,12 +102,25 @@ type FormShape = {
   numero_agravo: string;
   numero_suspensao: string;
   numero_protocolo: string;
+  // Partes
   partes: ParteItem[];
+  // Distribuição
   tipo_distribuicao: string;
   motivo_distribuicao: string;
   procurador_responsavel_id: string;
   incidencia?: string;
   referencia_numero_processo?: string;
+  
+  // --- Novos Campos de Andamento ---
+  adicionar_andamento_inicial: boolean; // Flag para controlar se envia ou não
+  andamento_descricao: string;
+  andamento_tipo: string;
+  andamento_movimentacao: string;
+  andamento_data_prazo: string;
+  andamento_data_ciencia: string;
+  andamento_status: string;
+  andamento_procurador_id: string;
+  andamento_assessor_id: string;
 };
 
 // --- Constantes Estáticas ---
@@ -122,6 +139,22 @@ const TIPO_QUALIFICACAO = [{ id: 'Autor', nome: 'Autor' }, { id: 'Réu', nome: '
 const EXPEDIENTE_OPTIONS = [{ id: '1', nome: 'Sim' }, { id: '0', nome: 'Não' }];
 const DIST_TYPES = [{ id: 'manual', nome: 'Manual' }, { id: 'automatica', nome: 'Automática' }, { id: 'equilibrada', nome: 'Equilibrada' }];
 const DIST_MOTIVOS = [{ id: 'rotina', nome: 'Rotina' }, { id: 'urgencia', nome: 'Urgência' }, { id: 'competencia', nome: 'Competência' }, { id: 'sobrecarga', nome: 'Equilíbrio de carga' }];
+
+// Constantes do Andamento
+const TIPOS_ANDAMENTO = [
+  { id: 'despacho', nome: 'Despacho' },
+  { id: 'decisao', nome: 'Decisão' },
+  { id: 'sentenca', nome: 'Sentença' },
+  { id: 'certidao', nome: 'Certidão' },
+  { id: 'peticao', nome: 'Petição' },
+];
+
+const TIPOS_MOVIMENTACAO = [
+  { id: 'entrada', nome: 'Entrada' },
+  { id: 'saida', nome: 'Saída' },
+  { id: 'prazo', nome: 'Prazo' },
+  { id: 'ciencia', nome: 'Ciência' },
+];
 
 const INPUT_BASE_CLASS = "gpdl-input-contrast w-full px-3 py-2 text-sm rounded-lg border-0 ring-1 ring-[var(--gpdl-border)] focus:ring-2 focus:ring-[var(--brand-500)]";
 const LABEL_BASE_CLASS = "block text-xs font-bold uppercase tracking-wide mb-1 opacity-70";
@@ -175,17 +208,20 @@ const createEmptyParte = (idx: number): ParteItem => ({
 
 export default function CadastroIndividual({
   procuradores = [],
+  assessores = [], // Nova prop
   setorSelecionado = '',
   processo = undefined
 }: {
   procuradores?: Procurador[];
+  assessores?: Procurador[]; // Assumindo mesma estrutura de {id, nome}
   setorSelecionado?: string;
   processo?: ProcessoEditData;
 }) {
   const isEditMode = !!processo;
   const [step, setStep] = useState<number>(0);
-  const stepTitles = ['Dados básicos', 'Partes', 'Distribuição'];
-  // ESTADO PARA CONTROLAR A VISIBILIDADE DA BUSCA
+  // Adicionado o passo "Primeiro Andamento"
+  const stepTitles = ['Dados básicos', 'Partes', 'Distribuição', 'Andamento'];
+  
   const [isSearchOpen, setIsSearchOpen] = useState<Record<string, boolean>>({});
 
   const [selectedItems, setSelectedItems] = useState<SelectedItemsMap>(() => {
@@ -204,6 +240,10 @@ export default function CadastroIndividual({
   const procuradoresOptions = useMemo(() => {
     return procuradores.map(p => ({ id: String(p.id), nome: p.nome }));
   }, [procuradores]);
+
+  const assessoresOptions = useMemo(() => {
+    return assessores.map(a => ({ id: String(a.id), nome: a.nome }));
+  }, [assessores]);
 
   const { data, setData, post, put, processing, errors, reset } = useForm<FormShape>({
     area_atuacao: processo?.area_atuacao || setorSelecionado || '',
@@ -240,8 +280,26 @@ export default function CadastroIndividual({
     motivo_distribuicao: processo?.motivo_distribuicao || '',
     procurador_responsavel_id: processo?.procurador_responsavel_id ? String(processo.procurador_responsavel_id) : '',
     incidencia: processo?.processo_ref_id ? '1' : '0',
-    referencia_numero_processo: ''
+    referencia_numero_processo: '',
+
+    // Init andamento fields
+    adicionar_andamento_inicial: true,
+    andamento_descricao: '',
+    andamento_tipo: '',
+    andamento_movimentacao: '',
+    andamento_data_prazo: '',
+    andamento_data_ciencia: '',
+    andamento_status: 'aberto',
+    andamento_procurador_id: '',
+    andamento_assessor_id: ''
   });
+
+  // Efeito para preencher o procurador do andamento automaticamente quando selecionado na distribuição
+  useEffect(() => {
+    if (data.procurador_responsavel_id && !data.andamento_procurador_id) {
+      setData('andamento_procurador_id', data.procurador_responsavel_id);
+    }
+  }, [data.procurador_responsavel_id]);
 
   const searchTribunais = useCallback(async (query: string) => {
     try { const r = await fetch(`/api/tribunais?search=${encodeURIComponent(query)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; }
@@ -263,7 +321,6 @@ export default function CadastroIndividual({
     try { const r = await fetch(`/api/orgao-julgador?search=${encodeURIComponent(query)}`); return r.ok ? (await r.json()).data || [] : []; } catch { return []; }
   }, []);
 
-  // Busca Assíncrona para o Autocomplete de Partes (Reutilizada)
   const searchPartes = useCallback(async (q: string) => {
     try {
       if ((q || '').trim().length < 3) return [];
@@ -285,6 +342,10 @@ export default function CadastroIndividual({
     try { return procuradores.filter(p => p.nome.toLowerCase().includes(q.toLowerCase())).map(p => ({ id: String(p.id), nome: p.nome })); } catch { return []; }
   }, [procuradores]);
 
+  const searchAssessores = useCallback(async (q: string) => {
+    try { return assessores.filter(a => a.nome.toLowerCase().includes(q.toLowerCase())).map(a => ({ id: String(a.id), nome: a.nome })); } catch { return []; }
+  }, [assessores]);
+
   const handleSetorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const novoValor = e.target.value;
     setData('area_atuacao', novoValor);
@@ -299,13 +360,10 @@ export default function CadastroIndividual({
   function addParte() { setData('partes', [...data.partes, createEmptyParte(data.partes.length)]); }
   function removeParte(idToRemove: string) { if (data.partes.length <= 1) return; setData('partes', data.partes.filter((p) => p.id !== idToRemove)); }
 
-  // FUNÇÃO REFATORADA: Aceita um objeto de atualizações para manipulações complexas (Partes)
   function updateParte(idToUpdate: string, updates: Partial<ParteItem> | keyof ParteItem, value?: string) {
     if (typeof updates === 'string' && value !== undefined) {
-      // Caso de uso antigo: updateParte(id, 'campo', 'valor')
       setData('partes', data.partes.map((p) => (p.id === idToUpdate ? { ...p, [updates]: value } : p)));
     } else if (typeof updates === 'object') {
-      // Caso de uso novo: updateParte(id, { campo: valor, outroCampo: outroValor })
       setData('partes', data.partes.map((p) => (p.id === idToUpdate ? { ...p, ...updates } : p)));
     }
   }
@@ -313,10 +371,12 @@ export default function CadastroIndividual({
   function canProceedFromStep(current: number): boolean {
     if (current === 0) return Boolean((data.assunto || data.numero_processo) && data.area_atuacao);
     if (current === 1) return data.partes.length > 0 && data.partes.every((p) => p.nome && p.nome.trim() !== '');
+    if (current === 2) return Boolean(data.tipo_distribuicao && data.procurador_responsavel_id); // Validação básica da distribuição
     return true;
   }
 
-  function next() { if (!canProceedFromStep(step)) return; setStep((s) => Math.min(2, s + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  // Aumentado o limite para 3 (4 passos: 0, 1, 2, 3)
+  function next() { if (!canProceedFromStep(step)) return; setStep((s) => Math.min(3, s + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   function prev() { setStep((s) => Math.max(0, s - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
   function formatCNJInput(raw?: string) { if (!raw) return ''; return String(raw).replace(/\D/g, '').slice(0, 20).replace(/^(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})$/, "$1-$2.$3.$4.$5.$6"); }
@@ -336,7 +396,6 @@ export default function CadastroIndividual({
     return d.length <= 11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
   }
 
-  // Usa a nova função updateParte para CPF
   function handleParteCPFChange(id: string, value: string) { updateParte(id, { cpf: formatCPFInput(value) }); }
 
   function handleFinalSubmit(e: React.FormEvent) {
@@ -382,11 +441,13 @@ export default function CadastroIndividual({
 
         <div className="mb-8 relative mx-4 md:mx-0">
           <div className="absolute top-4 left-0 w-full h-0.5 rounded-full opacity-30" style={{ background: 'var(--gpdl-border)' }} />
-          <div className="absolute top-4 left-0 h-0.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${(step / 2) * 100}%`, backgroundColor: 'var(--brand-600)' }} />
-          <div className="flex justify-between w-full relative z-10">{[0, 1, 2].map((i) => (<div key={i} className="flex-1 flex justify-center first:justify-start last:justify-end"><StepDot i={i} /></div>))}</div>
+          {/* Ajustado cálculo de porcentagem para 4 steps (divide por 3) */}
+          <div className="absolute top-4 left-0 h-0.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${(step / 3) * 100}%`, backgroundColor: 'var(--brand-600)' }} />
+          <div className="flex justify-between w-full relative z-10">{[0, 1, 2, 3].map((i) => (<div key={i} className="flex-1 flex justify-center first:justify-start last:justify-end"><StepDot i={i} /></div>))}</div>
         </div>
 
         <form onSubmit={handleFinalSubmit} className="space-y-6">
+          {/* ETAPA 1: DADOS BÁSICOS */}
           {step === 0 && (
             <section className="gpdl-card p-6 animate-fadeIn">
               <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}><div className={iconBoxClass} style={{ backgroundColor: 'var(--brand-600)' }}><Scale className="h-5 w-5" /></div><h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Dados básicos</h3></div>
@@ -499,6 +560,7 @@ export default function CadastroIndividual({
             </section>
           )}
 
+          {/* ETAPA 2: PARTES */}
           {step === 1 && (
             <section className="gpdl-card p-6 animate-fadeIn">
               <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}><div className={iconBoxClass} style={{ backgroundColor: 'var(--brand-600)' }}><Users className="h-5 w-5" /></div><h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Partes envolvidas</h3></div>
@@ -506,30 +568,20 @@ export default function CadastroIndividual({
                 {data.partes.map((par, idx) => (
                   <div key={par.id} className="rounded-xl border p-4 relative hover:shadow-sm transition-shadow" style={{ borderColor: 'var(--gpdl-border)', background: 'var(--surface-muted)' }}>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-
-                      {/* ESPAÇO PRINCIPAL (6 COLUNAS): Nome/Busca */}
                       <div className="md:col-span-6">
                         <Label>Nome</Label>
                         <div className="relative">
-
-                          {/* 1. MODO PADRÃO: BUSCA DE PARTE EXISTENTE (SE isSearchOpen for FALSE) */}
                           {!isSearchOpen[par.id] ? (
                             <div className="flex">
                               <div className="flex-grow">
                                 <AutocompleteSearch
                                   placeholder="Buscar parte existente..."
-                                  // Certifique-se de que o valor é a parte selecionada/digitada
                                   value={par.parte_id || null}
-
-                                  // CORREÇÃO DO ERRO DO TYPESCRIPT: Adicionar onChange
                                   onChange={(v) => {
-                                    // Atualiza o ID da parte selecionada (para manter o estado do Autocomplete)
                                     updateParte(par.id, { parte_id: String(v || '') });
                                   }}
-
                                   onSelectOption={(opt: any) => {
                                     if (opt) {
-                                      // Preenche os dados da parte selecionada
                                       updateParte(par.id, {
                                         nome: opt.nome || '',
                                         cpf: formatCPFInput(opt.cpf || opt.cpf_cnpj || ''),
@@ -538,22 +590,16 @@ export default function CadastroIndividual({
                                         parte_id: String(opt.id),
                                       });
                                     } else {
-                                      // Limpeza se for desmarcado
                                       updateParte(par.id, { nome: '', cpf: '', parte_id: '' });
                                     }
                                   }}
                                   onSearch={searchPartes}
                                   options={par.parte_id && par.nome ? [{ id: par.parte_id, nome: par.nome }] : []}
-                                  // Definir a largura para não invadir o botão
                                 />
                               </div>
-
-                              {/* BOTÃO PARA ALTERNAR PARA O INPUT DE TEXTO LIVRE */}
                               <button
                                 type="button"
-                                // Ação: Mudar para o modo manual/texto livre
                                 onClick={() => {
-                                  // Limpa o ID da parte existente e ativa o modo manual
                                   updateParte(par.id, { parte_id: '' });
                                   setIsSearchOpen(prev => ({ ...prev, [par.id]: true }))
                                 }}
@@ -566,19 +612,16 @@ export default function CadastroIndividual({
                             </div>
 
                           ) : (
-                            // 2. MODO MANUAL/CRIAÇÃO LIVRE (SE isSearchOpen for TRUE)
                             <div className="relative">
                               <input
-                                className={`${INPUT_BASE_CLASS} pr-10`} // pr-10 para o botão X
+                                className={`${INPUT_BASE_CLASS} pr-10`}
                                 placeholder="Digite o nome da parte (criação manual)..."
                                 value={par.nome}
                                 onChange={(e) => updateParte(par.id, { nome: e.target.value, parte_id: '' })}
                               />
-                              {/* Botão de Fechar/Voltar para Busca */}
                               <button
                                 type="button"
                                 onClick={() => {
-                                  // Alterna de volta para o modo de busca
                                   setIsSearchOpen(prev => ({ ...prev, [par.id]: false }))
                                 }}
                                 className="absolute right-0 top-0 h-full px-3 text-sm flex items-center gap-1.5 transition-colors rounded-r-lg"
@@ -587,16 +630,14 @@ export default function CadastroIndividual({
                                 <X className="h-4 w-4" />
                               </button>
                             </div>
-                          )}  
+                          )}
                         </div>
                         <InputError message={getErrorByPath(`partes.${idx}.nome`)} className="mt-1" />
                       </div>
 
-                      {/* CPF/CNPJ e outras colunas permanecem as mesmas */}
                       <div className="md:col-span-6"><Label>CPF/CNPJ</Label><input className={`${INPUT_BASE_CLASS} font-mono`} value={par.cpf} onChange={(e) => handleParteCPFChange(par.id, e.target.value)} placeholder="000.000.000-00" /></div>
 
                       <div className="md:col-span-12 flex flex-col md:flex-row items-center gap-6 border-t border-dashed pt-3" style={{ borderColor: 'var(--gpdl-border)' }}>
-
                         <div className="flex gap-4 w-full md:w-auto">
                           <div className="w-1/2"><CustomSelect label="Qualificação" value={par.qualificacao} onChange={(e) => updateParte(par.id, { qualificacao: e.target.value })} options={QUALIFICACOES} /></div>
                           <div className="w-1/2"><CustomSelect label="Tipo" value={par.tipo_qualificacao} onChange={(e) => updateParte(par.id, { tipo_qualificacao: e.target.value })} options={TIPO_QUALIFICACAO} /></div>
@@ -623,6 +664,7 @@ export default function CadastroIndividual({
             </section>
           )}
 
+          {/* ETAPA 3: DISTRIBUIÇÃO */}
           {step === 2 && (
             <section className="gpdl-card p-6 animate-fadeIn">
               <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}><div className={iconBoxClass} style={{ backgroundColor: 'var(--brand-600)' }}><Calculator className="h-5 w-5" /></div><h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Distribuição</h3></div>
@@ -631,7 +673,7 @@ export default function CadastroIndividual({
                 <div className="md:col-span-2"><CustomSelect label="Motivo (Opcional)" placeholder="Nenhum" value={data.motivo_distribuicao} onChange={(e) => setData('motivo_distribuicao', e.target.value)} options={DIST_MOTIVOS} /></div>
               </div>
               <div className="mt-5">
-                <Label>Procurador</Label>
+                <Label>Procurador Responsável</Label>
                 <div className="w-full">
                   <AutocompleteSearch
                     placeholder="Selecione um procurador"
@@ -645,6 +687,109 @@ export default function CadastroIndividual({
               </div>
               <div className="mt-8 flex justify-between border-t pt-5" style={{ borderColor: 'var(--gpdl-border)' }}>
                 <button type="button" onClick={prev} className="px-5 py-2 rounded-lg border text-sm font-medium hover:shadow-sm" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-muted)', color: 'var(--text-strong)' }}>Voltar</button>
+                
+                {/* Botão agora é Próximo, pois há uma etapa nova */}
+                <button type="button" onClick={next} disabled={!canProceedFromStep(2)} className={`btn-gradient rounded-lg px-6 py-2 text-sm font-semibold text-white shadow-md flex items-center gap-2 ${!canProceedFromStep(2) ? 'opacity-50' : ''}`}>
+                  Próximo <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* ETAPA 4: PRIMEIRO ANDAMENTO (NOVO) */}
+          {step === 3 && (
+            <section className="gpdl-card p-6 animate-fadeIn">
+              <div className={sectionHeaderClass} style={{ borderColor: 'var(--gpdl-border)' }}>
+                <div className={iconBoxClass} style={{ backgroundColor: 'var(--brand-600)' }}>
+                  <FileText className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-bold" style={{ color: 'var(--text-strong)' }}>Primeiro Andamento</h3>
+              </div>
+              
+              <div className="mb-6 bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex items-start gap-3">
+                 <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+                 <p className="text-sm text-blue-700">Este andamento será criado automaticamente vinculado a este novo processo. O "Processo" é o que você está acabando de criar.</p>
+              </div>
+
+              <div>
+                <Label>Descrição do andamento</Label>
+                <textarea
+                  className={`${INPUT_BASE_CLASS} min-h-[100px]`}
+                  value={data.andamento_descricao}
+                  onChange={(e) => setData('andamento_descricao', e.target.value)}
+                  placeholder="Descreva o andamento processual inicial..."
+                />
+                <InputError message={getErrorByPath('andamento_descricao')} className="mt-1" />
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <Label>Tipo de andamento</Label>
+                  <AutocompleteSearch
+                    placeholder="Selecione..."
+                    value={data.andamento_tipo}
+                    onChange={(v) => setData('andamento_tipo', String(v))}
+                    options={TIPOS_ANDAMENTO}
+                    onSearch={async (q) => TIPOS_ANDAMENTO.filter(t => t.nome.toLowerCase().includes(q.toLowerCase()))}
+                  />
+                  <InputError message={getErrorByPath('andamento_tipo')} />
+                </div>
+                <div>
+                  <Label>Tipo de movimentação</Label>
+                  <AutocompleteSearch
+                    placeholder="Selecione..."
+                    value={data.andamento_movimentacao}
+                    onChange={(v) => setData('andamento_movimentacao', String(v))}
+                    options={TIPOS_MOVIMENTACAO}
+                    onSearch={async (q) => TIPOS_MOVIMENTACAO.filter(t => t.nome.toLowerCase().includes(q.toLowerCase()))}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Status</Label>
+                  <select className={INPUT_BASE_CLASS} value={data.andamento_status} onChange={(e) => setData('andamento_status', e.target.value)}>
+                    <option value="aberto">Aberto</option>
+                    <option value="concluido">Concluído</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label><Flag className="inline h-3 w-3 mr-1" /> Data do prazo</Label>
+                  <input type="date" className={INPUT_BASE_CLASS} value={data.andamento_data_prazo} onChange={(e) => setData('andamento_data_prazo', e.target.value)} />
+                </div>
+                <div>
+                  <Label>Data da ciência</Label>
+                  <input type="date" className={INPUT_BASE_CLASS} value={data.andamento_data_ciencia} onChange={(e) => setData('andamento_data_ciencia', e.target.value)} />
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label><User className="inline h-3 w-3 mr-1" /> Procurador responsável</Label>
+                  <AutocompleteSearch
+                    placeholder="Selecione um procurador"
+                    value={data.andamento_procurador_id}
+                    onChange={(val) => setData('andamento_procurador_id', String(val))}
+                    onSearch={searchProcuradores}
+                    options={procuradoresOptions}
+                  />
+                </div>
+                <div>
+                  <Label><User className="inline h-3 w-3 mr-1" /> Assessor responsável</Label>
+                  <AutocompleteSearch
+                    placeholder="Selecione um assessor"
+                    value={data.andamento_assessor_id}
+                    onChange={(val) => setData('andamento_assessor_id', String(val))}
+                    onSearch={searchAssessores}
+                    options={assessoresOptions}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-between border-t pt-5" style={{ borderColor: 'var(--gpdl-border)' }}>
+                <button type="button" onClick={prev} className="px-5 py-2 rounded-lg border text-sm font-medium hover:shadow-sm" style={{ borderColor: 'var(--gpdl-border)', backgroundColor: 'var(--surface-muted)', color: 'var(--text-strong)' }}>Voltar</button>
                 <button type="submit" disabled={processing} className="btn-gradient rounded-lg px-6 py-2 text-sm font-semibold text-white shadow-md disabled:opacity-70 flex items-center gap-2">
                   {processing ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Cadastrar Processo')}
                   {isEditMode ? <Pencil className="h-4 w-4" /> : <Check className="h-4 w-4" />}
@@ -652,6 +797,7 @@ export default function CadastroIndividual({
               </div>
             </section>
           )}
+
         </form>
       </div>
     </GPDLLayout>
