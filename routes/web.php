@@ -45,27 +45,43 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
     // PROCESSOS (ATUALIZADO)
     // ======================
     Route::middleware(['permission:view_process_page'])
-        ->prefix('processos')     // Todas as rotas abaixo começam com /processos
-        ->name('processos.')      // Todos os nomes abaixo começam com processos.
+        ->prefix('processos')
+        ->name('processos.')
         ->group(function () {
 
-            // Redirecionamento da raiz para a aba padrão
-            Route::get('/', function () {
-                return redirect()->route('processos.ativos');
-            })->name('index');
+ 
+            // CADASTRO (ANTES da rota dinâmica)
+            Route::get('/novo', [ProcessoController::class, 'create'])
+                ->name('create');
 
-            // Ações utilitárias
-            Route::post('/set-setor', [ProcessoController::class, 'setSetor'])->name('set-setor');
-            Route::post('/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('finalizar');
+            Route::post('/', [ProcessoController::class, 'store'])
+                ->name('store');
 
+            // AÇÕES FIXAS
+            Route::post('/set-setor', [ProcessoController::class, 'setSetor'])
+                ->name('set-setor');
 
-            // Visualização
-            Route::get('/visualizar', [ProcessoController::class, 'visualizar'])->name('visualizar');
+            Route::post('/{id}/finalizar', [ProcessoController::class, 'finalizar'])
+                ->name('finalizar');
 
-            // Cadastro Individual
-            Route::get('/novo', [ProcessoController::class, 'create'])->name('create');
-            Route::post('/', [ProcessoController::class, 'store'])->name('store'); // POST /processos
+            Route::get('/visualizar', [ProcessoController::class, 'index'])
+            ->name('visualizar');
 
+            // DETALHE (SEMPRE POR ÚLTIMO)
+            Route::get('/{processo}', [ProcessoController::class, 'show'])
+                ->name('show');
+
+            // Andamentos do processo (lazy load)
+            Route::get('/{processo}/andamentos', [ProcessoController::class, 'andamentos'])
+                ->name('andamentos');
+
+            // Partes do processo (lazy load)
+            Route::get('/{processo}/partes', [ProcessoController::class, 'partes'])
+                ->name('partes');
+
+            // Incidências / ramificações do processo (lazy load)
+            Route::get('/{processo}/incidencias', [ProcessoController::class, 'incidencias'])
+                ->name('incidencias');
         });
 
     Route::get('/debug/processos-test', function () {
@@ -132,8 +148,6 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         // Processos
         Route::get('processos/buscar', [SearchController::class, 'processos'])
             ->name('processos.buscar');
-        Route::get('/processos', [ProcessoController::class, 'apiIndex']);
-        Route::get('/processos/{id}', [ProcessoController::class, 'apiShow']);
         // Partes
         Route::get('/partes-existentes', [SearchController::class, 'partes'])->name('api.partes');
         // Entidades
@@ -222,7 +236,6 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
         Route::post('entidades-juridicas/editar', [EntidadeJuridicaController::class, 'editarEntidade']);
         Route::post('entidades-juridicas/deletar', [EntidadeJuridicaController::class, 'deletarEntidade']);
         Route::post('entidades-juridicas/toggle', [EntidadeJuridicaController::class, 'toggleEntidade']);
-
     });
 
     // ======================

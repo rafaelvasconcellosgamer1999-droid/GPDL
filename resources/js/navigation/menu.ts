@@ -1,6 +1,6 @@
 import { dashboard } from '@/routes'
 import type { LucideIcon } from 'lucide-react'
-import type { InertiaLinkProps } from '@inertiajs/react';
+import type { InertiaLinkProps } from '@inertiajs/react'
 import {
   Calendar,
   ChartPie,
@@ -9,7 +9,6 @@ import {
   FileSearch,
   FileText,
   Home,
-  /*Share2,*/
   Shield,
   Users,
 } from 'lucide-react'
@@ -43,23 +42,21 @@ export type PermissionRequirement = {
   levels?: string[]
 }
 
-export type { PermissionMap, PermissionValue } from './permissions'
-
 export type NavigationMatch = {
   segment?: string
   query?: { key: string; value: string }
 }
 
 export type NavigationItem = {
-  id: string;
-  label: string;
-  icon: LucideIcon;
-  section?: 'main' | 'monitor';
-  href?: InertiaLinkProps['href'];
-  match?: NavigationMatch;
-  permission?: PermissionRequirement;
-  children?: NavigationItem[];
-};
+  id: string
+  label: string
+  icon: LucideIcon
+  section?: 'main' | 'monitor'
+  href?: InertiaLinkProps['href']
+  match?: NavigationMatch
+  permission?: PermissionRequirement
+  children?: NavigationItem[]
+}
 
 export const navigationItems: NavigationItem[] = [
   {
@@ -71,43 +68,50 @@ export const navigationItems: NavigationItem[] = [
     permission: { key: 'view_dashboard_menu' },
     section: 'main',
   },
+
+  // ============================
+  // PROCESSOS
+  // ============================
   {
     id: 'processos',
     label: 'Processos',
     icon: FileText,
-    href: '/processos/ativos',
-    match: { segment: 'processos' },
     permission: { key: 'view_process_menu' },
     section: 'main',
     children: [
-      // --- SEÇÃO DE CADASTROS ---
+      {
+        id: 'processos-visualizar',
+        label: 'Visualizar Processos',
+        icon: FileSearch,
+        href: '/processos/visualizar',
+        match: { segment: 'visualizar' },
+      },
       {
         id: 'processos-cadastro',
-        label: 'Cadastrar Individual', // Renomeado para ficar claro
+        label: 'Cadastrar Processo',
         icon: FilePlus,
         href: '/processos/novo',
         match: { segment: 'novo' },
-        permission: { key: 'create_process', levels: ['all', 'total', 'sector', 'setor'] },
+        permission: {
+          key: 'create_process',
+          levels: ['all', 'total', 'sector', 'setor'],
+        },
       },
       {
         id: 'andamentos',
-        label: 'Andamentos',
+        label: 'Cadastrar Andamento',
         icon: FileClock,
         href: '/andamentos/cadastro',
         match: { segment: 'andamentos' },
         permission: { key: 'view_process_page' },
       },
-      {
-        id: 'processos-visualizar',
-        label: 'Visualizar',
-        icon: FileSearch,
-        href: '/processos/visualizar',
-        match: { segment: 'visualizar' },
-        permission: { key: 'view_process_page' },
-      },
-     
     ],
   },
+
+
+  // ============================
+  // OUTROS MÓDULOS
+  // ============================
   {
     id: 'agenda',
     label: 'Agenda',
@@ -144,6 +148,10 @@ export const navigationItems: NavigationItem[] = [
     permission: { key: 'view_squads_menu' },
     section: 'main',
   },
+
+  // ============================
+  // MONITORAMENTO
+  // ============================
   {
     id: 'logs',
     label: 'Logs do Sistema',

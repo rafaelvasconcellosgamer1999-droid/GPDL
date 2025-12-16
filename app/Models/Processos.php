@@ -37,9 +37,14 @@ class Processos extends Model
         return $this->belongsTo(Processos::class, 'processo_ref_id');
     }
 
-    public function ramificacoes(){
-        return $this->hasMany(Processos::class, 'processo_ref_id');
-    }
+    public function ramificacoes()
+{
+    return $this->hasMany(
+        Processos::class,
+        'processo_ref_id', // FK na tabela processos
+        'id'               // PK deste processo
+    );
+}
 
     public function acao(){
         return $this->belongsTo(Tematicas::class, 'acao_id');
@@ -57,16 +62,15 @@ class Processos extends Model
       public function entidadeJulgadora(){
         return $this->belongsTo(EntidadesJuridicas::class, 'orgao_julgador_id');
     }
- public function partes()
+ 
+public function partes()
 {
     return $this->belongsToMany(Partes::class, 'parte_processo', 'processo_id', 'parte_id')
-        ->using(Parte_Processo::class) 
         ->withPivot([
-            'qualificacao', 
-            'tipo_qualificacao', 
-            'parte_principal'
-        ])
-        ->withTimestamps();
+            'qualificacao',
+            'tipo_qualificacao',
+            'parte_principal',
+        ]);
 }
     public function cadastradoPor() {
         return $this->belongsTo(User::class, 'usuario_cadastro_id');

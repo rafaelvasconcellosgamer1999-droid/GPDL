@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Processos;
 use App\Models\User;
 use App\Models\Partes;
-use App\Http\Resources\ProcessoResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -90,23 +88,23 @@ class ProcessoController extends Controller
             'partes.*.parte_id' => ['nullable'],
         ]);
 
-            $usuario = Auth::user();
-            $valorCausaFormatado = null;
-            if (!empty($data['valor_causa'])) {
+        $usuario = Auth::user();
+        $valorCausaFormatado = null;
+        if (!empty($data['valor_causa'])) {
 
-                $valorLimpo = $data['valor_causa'];
-                
-                $valorLimpo = str_replace('.', '', $valorLimpo); 
-                
-                
-                $valorCausaFormatado = str_replace(',', '.', $valorLimpo); 
-                
-                
-                $valorCausaFormatado = str_replace(['R$', ' '], '', $valorCausaFormatado);
-                
-                
-                $valorCausaFormatado = (float) $valorCausaFormatado;
-            }
+            $valorLimpo = $data['valor_causa'];
+
+            $valorLimpo = str_replace('.', '', $valorLimpo);
+
+
+            $valorCausaFormatado = str_replace(',', '.', $valorLimpo);
+
+
+            $valorCausaFormatado = str_replace(['R$', ' '], '', $valorCausaFormatado);
+
+
+            $valorCausaFormatado = (float) $valorCausaFormatado;
+        }
         $processo = Processos::create([
             'area_atuacao' => Session::get('setorSelecionado', null),
             'municipio' => 'Belém',
@@ -114,7 +112,7 @@ class ProcessoController extends Controller
             'tribunal_id' => $data['tribunal'] ?? null,
             'valor_causa' => $valorCausaFormatado,
             'cnj' => $data['numero_processo'] ?? null,
-            'tipo_processo' => $data['tipo_processo'] ?? null,  
+            'tipo_processo' => $data['tipo_processo'] ?? null,
             'tipo_pagamento' => $data['tipo_pagamento'] ?? null,
             'acao_id' => $data['acao'] ?? null,
             'assunto_id' => $data['assunto'] ?? null,
@@ -173,74 +171,89 @@ class ProcessoController extends Controller
             ->with('success', 'Processo cadastrado com sucesso.');
     }
 
-    public function visualizar(Request $request)
+    public function index(): Response
     {
-        $initial = Processos::with(['tribunal', 'acao', 'assunto', 'procuradorResponsavel'])
-            ->limit(20)->get();
+        $processos = Processos::query()
+            ->with([
+                'acao:id,nome',
+                'assunto:id,nome',
+            ])
+            ->withCount([
+                'andamentos',
+                'partes',
+                'ramificacoes as incidencias_count',
+            ])
+            ->orderByDesc('created_at')
+            ->paginate(15);
 
-        return Inertia::render('Processos/Individual/Visualizar', [
-            'initialProcesses' => $initial,
-            'fetchUrl' => url('/api/processos'),
+        return Inertia::render('Processos/NovoVisualizador/Index', [
+            'processos' => $processos,
         ]);
     }
 
-    // =========================================================================
-    //  API e HELPERS PRIVADOS (Mantidos)
-    // =========================================================================
-
-    public function apiIndex(Request $request)
+    public function show(Processos $processo): Response
     {
-        $modelInstance = new Processos();
-        $q = Processos::query()
-            ->with(['tribunal:id,nome', 'acao:id,nome', 'assunto:id,nome', 'procuradorResponsavel:id,nome']);
+        $processo->load([
+            'acao',
+            'assunto',
+            'tribunal',
+            'entidadeOrigem',
+            'entidadeJulgadora',
+            'partes',
+            'andamentos.cadastradoPor',
+            'ramificacoes',
+        ]);
 
-        if (method_exists($modelInstance, 'andamentos')) $q->withCount('andamentos');
-        if (method_exists($modelInstance, 'incidencias')) $q->withCount('incidencias');
+        return Inertia::render('Processos/NovoVisualizador/Show', [
+            'processo' => $processo,
+        ]);
+    }
 
-        $search = trim((string) $request->query('q', ''));
-        if ($search !== '') {
-            $q->where(function (Builder $qq) use ($search) {
-                $qq->where('cnj', 'like', "%{$search}%")
-                    ->orWhere('municipio', 'like', "%{$search}%")
-                    ->orWhereHas('acao', fn($r) => $r->where('nome', 'like', "%{$search}%"))
-                    ->orWhereHas('assunto', fn($r) => $r->where('nome', 'like', "%{$search}%"));
+    public function andamentos(Processos $processo): JsonResponse
+    {
+        $andamentos = $processo->andamentos()
+            ->orderByDesc('data_andamento')
+            ->get([
+                'id',
+                'descricao',
+                'tipo_andamento',
+                'tipo_movimentacao',
+                'data_andamento',
+                'data_prazo',
+                'status',
+            ]);
+
+        return response()->json($andamentos);
+    }
+
+    public function partes(Processos $processo): JsonResponse
+    {
+        $partes = $processo->partes()
+            ->orderBy('nome')
+            ->get()
+            ->map(function ($parte) {
+                return [
+                    'id' => $parte->id,
+                    'nome' => $parte->nome,
+                    'tipo' => $parte->pivot->tipo_qualificacao,
+                    'documento' => $parte->cpf_cnpj,
+                    'principal' => (bool) $parte->pivot->parte_principal,
+                ];
             });
-        }
 
-        $responsavelId = (int) $request->query('responsavel_id', 0);
-        if ($responsavelId > 0) $q->where('procurador_responsavel_id', $responsavelId);
-
-        if (Schema::hasColumn($modelInstance->getTable(), 'data_limite')) {
-            $q->orderByRaw('CASE WHEN data_limite IS NULL THEN 1 ELSE 0 END ASC')
-                ->orderBy('data_limite', 'asc');
-        } else {
-            $q->orderByDesc('id');
-        }
-
-        $paginator = $q->paginate(max(5, min(100, (int) $request->query('per_page', 12))))
-            ->appends($request->query());
-
-        return ProcessoResource::collection($paginator)
-            ->additional(['meta' => [
-                'total' => $paginator->total(),
-                'per_page' => $paginator->perPage(),
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-            ]]);
+        return response()->json($partes);
     }
 
-    public function apiShow(Request $request, $id)
+    public function incidencias(Processos $processo): JsonResponse
     {
-        $modelInstance = new Processos();
-        $with = ['tribunal:id,nome', 'acao:id,nome', 'assunto:id,nome', 'procuradorResponsavel:id,nome'];
-        if (method_exists($modelInstance, 'andamentos')) $with[] = 'andamentos';
-        if (method_exists($modelInstance, 'incidencias')) $with[] = 'incidencias';
+        $incidencias = $processo->ramificacoes()
+            ->orderByDesc('created_at')
+            ->get([
+                'cnj',
+                'status',
+                'created_at',
+            ]);
 
-        $processo = Processos::with($with)->find($id);
-        if (!$processo) return response()->json(['message' => 'Processo não encontrado.'], 404);
-
-        return new ProcessoResource($processo);
+        return response()->json($incidencias);
     }
-
-
 }
