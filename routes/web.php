@@ -57,12 +57,7 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
             // Ações utilitárias
             Route::post('/set-setor', [ProcessoController::class, 'setSetor'])->name('set-setor');
             Route::post('/{id}/finalizar', [ProcessoController::class, 'finalizar'])->name('finalizar');
-            // Abas de Listagem (Novas Rotas)
-            Route::get('/ativos', [ProcessoController::class, 'ativos'])->name('ativos');
-            Route::get('/pendentes', [ProcessoController::class, 'pendentes'])->name('pendentes');
-            Route::get('/vencidos', [ProcessoController::class, 'vencidos'])->name('vencidos');
-            Route::get('/distribuicao', [ProcessoController::class, 'distribuicao'])->name('distribuicao');
-            Route::get('/encerrados', [ProcessoController::class, 'encerrados'])->name('encerrados');
+
 
             // Visualização
             Route::get('/visualizar', [ProcessoController::class, 'visualizar'])->name('visualizar');
@@ -71,9 +66,6 @@ Route::middleware(['auth', 'verified', 'force.password.change'])->group(function
             Route::get('/novo', [ProcessoController::class, 'create'])->name('create');
             Route::post('/', [ProcessoController::class, 'store'])->name('store'); // POST /processos
 
-            // Cadastro em lote
-            Route::get('/import', [ProcessoController::class, 'createLote'])->name('create-lote');
-            Route::post('/importar-lote', [ProcessoController::class, 'importarLote'])->name('importar-lote');
         });
 
     Route::get('/debug/processos-test', function () {

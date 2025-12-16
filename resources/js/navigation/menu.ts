@@ -9,11 +9,8 @@ import {
   FileSearch,
   FileText,
   Home,
-  Layers, // <--- Adicionado para o ícone de Lote
-  Lock,
   /*Share2,*/
   Shield,
-  TriangleAlert,
   Users,
 } from 'lucide-react'
 
@@ -108,51 +105,7 @@ export const navigationItems: NavigationItem[] = [
         match: { segment: 'visualizar' },
         permission: { key: 'view_process_page' },
       },
-      {
-        id: 'processos-lote',
-        label: 'Cadastrar Lote', // Novo item para importação
-        icon: Layers,
-        href: '/processos/import',
-        match: { segment: 'import' }, // Rota definida no web.php
-        permission: { key: 'create_process', levels: ['all', 'total', 'sector', 'setor'] },
-      },
-      // --- SEÇÃO DE LISTAGEM ---
-      {
-        id: 'processos-ativos',
-        label: 'Ativos',
-        icon: FileText,
-        href: '/processos/ativos',
-        match: { segment: 'ativos' },
-      },
-      {
-        id: 'processos-pendentes',
-        label: 'Pendentes',
-        icon: TriangleAlert,
-        href: '/processos/pendentes',
-        match: { segment: 'pendentes' },
-      },
-      {
-        id: 'processos-vencidos',
-        label: 'Vencidos',
-        icon: TriangleAlert,
-        href: '/processos/vencidos',
-        match: { segment: 'vencidos' },
-      },
-      /*{
-        id: 'processos-distribuicao',
-        label: 'Distribuição',
-        icon: Share2,
-        href: '/processos/distribuicao',
-        match: { segment: 'distribuicao' },
-        permission: { key: 'edit_process', levels: ['sector', 'setor', 'all', 'total'] },
-      },*/
-      {
-        id: 'processos-encerrados',
-        label: 'Finalizados',
-        icon: Lock,
-        href: '/processos/encerrados',
-        match: { segment: 'encerrados' },
-      },
+     
     ],
   },
   {
