@@ -71,8 +71,8 @@ export default function CadastroAndamento({
   }
   return (
     <GPDLLayout breadcrumbs={[
-      { title: 'Processos', href: '/processos' },
-      { title: 'Andamentos', href: '/andamentos' },
+      { title: 'Processos', href: '#' },
+      { title: 'Andamentos', href: '#' },
       { title: 'Cadastro', href: '/andamentos/cadastro' },
     ]}>
       <Head title="Cadastrar Andamento" />

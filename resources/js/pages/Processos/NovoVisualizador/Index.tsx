@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Head } from '@inertiajs/react'
 import GPDLLayout from '@/layouts/gpdl-layout'
 import ProcessoCard from './ProcessoCard'
@@ -9,14 +9,8 @@ type Processo = {
   cnj: string
   instancia?: string
   data_limite?: string | null
-  acao?: {
-    id: number
-    nome: string
-  }
-  assunto?: {
-    id: number
-    nome: string
-  }
+  acao?: { id: number; nome: string }
+  assunto?: { id: number; nome: string }
   andamentos_count: number
   partes_count: number
   incidencias_count: number
@@ -25,13 +19,7 @@ type Processo = {
 /* ======================
    PAGINAÇÃO INERTIA
    ====================== */
-
-type PaginationLink = {
-  url: string | null
-  label: string
-  active: boolean
-}
-
+type PaginationLink = { url: string | null; label: string; active: boolean }
 type PaginationMeta = {
   current_page: number
   from: number | null
@@ -41,35 +29,36 @@ type PaginationMeta = {
   to: number | null
   total: number
 }
+type Paginated<T> = { data: T[]; links: PaginationLink[]; meta: PaginationMeta }
 
-type Paginated<T> = {
-  data: T[]
-  links: PaginationLink[]
-  meta: PaginationMeta
-}
-
-type Props = {
-  processos: Paginated<Processo>
-}
+type Props = { processos: Paginated<Processo> }
 
 export default function Index({ processos }: Props) {
-  const [selectedProcesso, setSelectedProcesso] =
-    useState<Processo | null>(null)
+  const [selectedProcesso, setSelectedProcesso] = useState<Processo | null>(null)
+
+  const handleSelect = useCallback((processo: Processo) => {
+    setSelectedProcesso(processo)
+  }, [])
 
   return (
-    <GPDLLayout>
+    <GPDLLayout
+      breadcrumbs={[
+        { title: 'Processos', href: '#' },
+        { title: 'Visualizar', href: '/visualizar' },
+      ]}
+    >
       <Head title="Processos" />
 
-      <div className="flex h-full">
-        {/* LISTA */}
-        <div className="flex-1 overflow-y-auto pr-[380px]">
+      <div className="flex h-full overflow-hidden">
+        {/* LISTA DE PROCESSOS */}
+        <div className="flex-1 min-w-0 overflow-y-auto pr-[380px]">
           <div className="space-y-3 p-6">
             {processos.data.map((processo) => (
               <ProcessoCard
                 key={processo.id}
                 processo={processo}
                 active={selectedProcesso?.id === processo.id}
-                onSelect={() => setSelectedProcesso(processo)}
+                onSelect={() => handleSelect(processo)}
               />
             ))}
           </div>
@@ -83,6 +72,9 @@ export default function Index({ processos }: Props) {
           />
         )}
       </div>
+
+      {/* FUTURA PAGINAÇÃO */}
+      {/* Você pode iterar sobre processos.links e renderizar botões de paginação aqui */}
     </GPDLLayout>
   )
 }

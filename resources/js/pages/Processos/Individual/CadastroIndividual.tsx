@@ -3,7 +3,7 @@ import GPDLLayout from '@/layouts/gpdl-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import AutocompleteSearch from '@/components/autocomplete-search';
-import { Check, Info, UserPlus, Users, ArrowRight, Scale, Calculator, ChevronDown, Trash2, Pencil, Search, X, Loader2 } from 'lucide-react'; // <-- IMPORTAÇÃO CORRIGIDA
+import { Check, Info, UserPlus, Users, ArrowRight, Scale, Calculator, ChevronDown, Trash2, Pencil, Search, X } from 'lucide-react'; // <-- IMPORTAÇÃO CORRIGIDA
 
 // --- Interfaces de Tipagem ---
 type Procurador = { id: number; nome: string };
@@ -71,14 +71,6 @@ type ParteItem = {
   eh_principal: string;
   expediente: string;
   parte_id?: string;
-};
-
-type ParteEncontrada = {
-  id: string | number;
-  nome: string;
-  cpf?: string;
-  qualificacao?: string;
-  tipo_parte?: string;
 };
 
 type SelectedItemsMap = {
